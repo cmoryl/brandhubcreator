@@ -177,19 +177,25 @@ export default function PublicLogoHubAudit() {
     });
   }, [rows]);
 
-  const filtered = useMemo(
-    () =>
-      audited.filter((r) => {
-        if (search && !r.name.toLowerCase().includes(search.toLowerCase())) return false;
-        if (category !== 'all' && r.category !== category) return false;
-        if (status === 'audit-fail') return r.audit.overall === 'fail';
-        if (status === 'audit-warn') return r.audit.overall === 'warn';
-        if (status === 'audit-pass') return r.audit.overall === 'pass';
-        if (status !== 'all' && r.bucket !== status) return false;
-        return true;
-      }),
-    [audited, search, category, status],
+  const severitySet = useMemo(
+    () => new Set<AuditSeverity>(filter.severities.length ? filter.severities : ALL_SEVERITIES),
+    [filter.severities],
   );
+  const bucketSet = useMemo(
+    () => new Set<CoverageBucket>(filter.buckets.length ? filter.buckets : ALL_BUCKETS),
+    [filter.buckets],
+  );
+
+  const filtered = useMemo(() => {
+    const q = filter.search.trim().toLowerCase();
+    return audited.filter((r) => {
+      if (q && !r.name.toLowerCase().includes(q)) return false;
+      if (filter.category !== 'all' && r.category !== filter.category) return false;
+      if (!severitySet.has(r.audit.overall)) return false;
+      if (!bucketSet.has(r.bucket)) return false;
+      return true;
+    });
+  }, [audited, filter.search, filter.category, severitySet, bucketSet]);
 
   const summary = useMemo(() => {
     const totals = {
