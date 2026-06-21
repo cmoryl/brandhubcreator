@@ -135,7 +135,20 @@ interface GlobalLogoRow {
   category: string;
   website_url: string | null;
   files: ClientLogoFile[];
+  updated_at: string | null;
 }
+
+const ASSET_DATE_FMT = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+});
+const formatAssetDate = (iso: string | null): string | null => {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return ASSET_DATE_FMT.format(d);
+};
 
 type VariantFilter = ClientLogoVariant | 'all';
 type LockupFilter = ClientLogoLockup | 'all';
@@ -240,7 +253,7 @@ export default function PublicLogoHub() {
     setLoading(true);
     const { data, error } = await supabase
       .from('global_client_logos')
-      .select('id, name, description, category, website_url, files')
+      .select('id, name, description, category, website_url, files, updated_at')
       .order('category')
       .order('name')
       .limit(2000);
@@ -441,6 +454,14 @@ export default function PublicLogoHub() {
                       <p className="text-[10px] text-muted-foreground truncate">
                         {logo.category} • {logo.files.length} files
                       </p>
+                      {formatAssetDate(logo.updated_at) && (
+                        <p
+                          className="text-[10px] text-muted-foreground/80 truncate mt-0.5"
+                          title={`Assets last updated ${formatAssetDate(logo.updated_at)}`}
+                        >
+                          Updated {formatAssetDate(logo.updated_at)}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div
