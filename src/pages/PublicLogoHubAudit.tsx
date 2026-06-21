@@ -1,17 +1,31 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Loader2, Search, ArrowLeft, XCircle, FileImage, FileType2, Globe2 } from 'lucide-react';
+import {
+  Loader2,
+  Search,
+  ArrowLeft,
+  XCircle,
+  FileImage,
+  FileType2,
+  Globe2,
+  CheckCircle2,
+  AlertTriangle,
+  Bookmark,
+  Save,
+  Trash2,
+} from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import type { ClientLogoFile, ClientLogoVariant, ClientLogoLockup } from '@/types/brand';
 import { auditBrand } from '@/lib/logoAuditChecks';
 import { OrphanedFilesSection } from '@/components/logohub/OrphanedFilesSection';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 interface Row {
   id: string;
@@ -43,16 +57,65 @@ const extOf = (url: string, fallback?: string) => {
 
 type StatusFilter = 'all' | 'complete' | 'partial' | 'raster' | 'missing' | 'audit-fail' | 'audit-warn' | 'audit-pass';
 
+type AuditSeverity = 'pass' | 'warn' | 'fail';
+type CoverageBucket = 'complete' | 'partial' | 'raster' | 'missing';
+
+const ALL_SEVERITIES: AuditSeverity[] = ['pass', 'warn', 'fail'];
+const ALL_BUCKETS: CoverageBucket[] = ['complete', 'partial', 'raster', 'missing'];
+
+interface FilterState {
+  search: string;
+  category: string;
+  severities: AuditSeverity[];
+  buckets: CoverageBucket[];
+}
+
+interface FilterPreset {
+  id: string;
+  name: string;
+  filter: FilterState;
+  createdAt: number;
+}
+
+const PRESETS_KEY = 'logohub-audit-presets-v1';
+const DEFAULT_FILTER: FilterState = {
+  search: '',
+  category: 'all',
+  severities: [...ALL_SEVERITIES],
+  buckets: [...ALL_BUCKETS],
+};
+
+function loadPresets(): FilterPreset[] {
+  try {
+    const raw = localStorage.getItem(PRESETS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function savePresets(presets: FilterPreset[]) {
+  try {
+    localStorage.setItem(PRESETS_KEY, JSON.stringify(presets));
+  } catch {
+    /* ignore quota */
+  }
+}
+
 export default function PublicLogoHubAudit() {
   const { isAdmin, isSuperAdmin } = useAuth();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [category, setCategory] = useState('all');
-  const [status, setStatus] = useState<StatusFilter>('all');
+  const [filter, setFilter] = useState<FilterState>(DEFAULT_FILTER);
+  const [presets, setPresets] = useState<FilterPreset[]>([]);
+  const [presetName, setPresetName] = useState('');
+  const [activePresetId, setActivePresetId] = useState<string>('');
 
   useEffect(() => {
     document.title = 'Logo Hub Audit — Coverage & Format Details';
+    setPresets(loadPresets());
   }, []);
 
   useEffect(() => {
@@ -114,19 +177,25 @@ export default function PublicLogoHubAudit() {
     });
   }, [rows]);
 
-  const filtered = useMemo(
-    () =>
-      audited.filter((r) => {
-        if (search && !r.name.toLowerCase().includes(search.toLowerCase())) return false;
-        if (category !== 'all' && r.category !== category) return false;
-        if (status === 'audit-fail') return r.audit.overall === 'fail';
-        if (status === 'audit-warn') return r.audit.overall === 'warn';
-        if (status === 'audit-pass') return r.audit.overall === 'pass';
-        if (status !== 'all' && r.bucket !== status) return false;
-        return true;
-      }),
-    [audited, search, category, status],
+  const severitySet = useMemo(
+    () => new Set<AuditSeverity>(filter.severities.length ? filter.severities : ALL_SEVERITIES),
+    [filter.severities],
   );
+  const bucketSet = useMemo(
+    () => new Set<CoverageBucket>(filter.buckets.length ? filter.buckets : ALL_BUCKETS),
+    [filter.buckets],
+  );
+
+  const filtered = useMemo(() => {
+    const q = filter.search.trim().toLowerCase();
+    return audited.filter((r) => {
+      if (q && !r.name.toLowerCase().includes(q)) return false;
+      if (filter.category !== 'all' && r.category !== filter.category) return false;
+      if (!severitySet.has(r.audit.overall)) return false;
+      if (!bucketSet.has(r.bucket)) return false;
+      return true;
+    });
+  }, [audited, filter.search, filter.category, severitySet, bucketSet]);
 
   const summary = useMemo(() => {
     const totals = {
@@ -232,19 +301,28 @@ export default function PublicLogoHubAudit() {
       </header>
 
       <section className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur">
-        <div className="container mx-auto max-w-7xl px-4 sm:px-6 py-3 sm:py-4 space-y-3 md:space-y-0 md:flex md:flex-wrap md:items-center md:gap-3">
-          <div className="flex gap-2 md:flex-1 md:min-w-[220px]">
-            <div className="relative flex-1">
+        <div className="container mx-auto max-w-7xl px-4 sm:px-6 py-3 sm:py-4 space-y-3">
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
+            <div className="relative flex-1 min-w-[220px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search brand name..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                value={filter.search}
+                onChange={(e) => {
+                  setActivePresetId('');
+                  setFilter((p) => ({ ...p, search: e.target.value }));
+                }}
                 className="pl-9"
               />
             </div>
-            <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger aria-label="Filter by category" className="w-[130px] sm:w-[180px] shrink-0">
+            <Select
+              value={filter.category}
+              onValueChange={(v) => {
+                setActivePresetId('');
+                setFilter((p) => ({ ...p, category: v }));
+              }}
+            >
+              <SelectTrigger aria-label="Filter by category" className="w-full md:w-[200px] shrink-0">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -256,23 +334,214 @@ export default function PublicLogoHubAudit() {
                 ))}
               </SelectContent>
             </Select>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-9 text-xs"
+              onClick={() => {
+                setActivePresetId('');
+                setFilter(DEFAULT_FILTER);
+              }}
+            >
+              Reset
+            </Button>
           </div>
-          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 md:overflow-visible">
-            <Tabs value={status} onValueChange={(v) => setStatus(v as StatusFilter)}>
-              <TabsList>
-                <TabsTrigger value="all">All</TabsTrigger>
-                <TabsTrigger value="complete">Complete</TabsTrigger>
-                <TabsTrigger value="partial">Partial</TabsTrigger>
-                <TabsTrigger value="raster">Raster</TabsTrigger>
-                <TabsTrigger value="missing">Missing</TabsTrigger>
-                <TabsTrigger value="audit-pass">Audit ✓</TabsTrigger>
-                <TabsTrigger value="audit-warn">Audit ⚠</TabsTrigger>
-                <TabsTrigger value="audit-fail">Audit ✗</TabsTrigger>
-              </TabsList>
-            </Tabs>
+
+          {/* Severity + coverage toggle pills */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground mr-1">Audit:</span>
+            {([
+              { id: 'pass' as const, label: `Pass (${summary.auditPass})`, tone: 'border-emerald-500/40 text-emerald-600 dark:text-emerald-300', active: 'bg-emerald-500/15 border-emerald-500 text-emerald-700 dark:text-emerald-200', icon: CheckCircle2 },
+              { id: 'warn' as const, label: `Warn (${summary.auditWarn})`, tone: 'border-amber-500/40 text-amber-600 dark:text-amber-300', active: 'bg-amber-500/15 border-amber-500 text-amber-700 dark:text-amber-200', icon: AlertTriangle },
+              { id: 'fail' as const, label: `Fail (${summary.auditFail})`, tone: 'border-red-500/40 text-red-600 dark:text-red-300', active: 'bg-red-500/15 border-red-500 text-red-700 dark:text-red-200', icon: XCircle },
+            ]).map(({ id, label, tone, active, icon: Icon }) => {
+              const on = filter.severities.includes(id);
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => {
+                    setActivePresetId('');
+                    setFilter((p) => ({
+                      ...p,
+                      severities: p.severities.includes(id)
+                        ? p.severities.filter((s) => s !== id)
+                        : [...p.severities, id],
+                    }));
+                  }}
+                  onDoubleClick={() => {
+                    setActivePresetId('');
+                    setFilter((p) => ({ ...p, severities: [id] }));
+                  }}
+                  title="Click to toggle · Double-click to isolate"
+                  className={cn(
+                    'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-medium transition',
+                    on ? active : `${tone} opacity-60 hover:opacity-100`,
+                  )}
+                >
+                  <Icon className="h-3 w-3" aria-hidden="true" />
+                  {label}
+                </button>
+              );
+            })}
+            <span className="mx-2 h-4 w-px bg-border" aria-hidden="true" />
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground mr-1">Coverage:</span>
+            {([
+              { id: 'complete' as const, label: `Complete (${summary.complete})`, tone: 'border-emerald-500/40 text-emerald-600 dark:text-emerald-300', active: 'bg-emerald-500/15 border-emerald-500 text-emerald-700 dark:text-emerald-200' },
+              { id: 'partial' as const, label: `Partial (${summary.partial})`, tone: 'border-amber-500/40 text-amber-600 dark:text-amber-300', active: 'bg-amber-500/15 border-amber-500 text-amber-700 dark:text-amber-200' },
+              { id: 'raster' as const, label: `Raster (${summary.raster})`, tone: 'border-orange-500/40 text-orange-600 dark:text-orange-300', active: 'bg-orange-500/15 border-orange-500 text-orange-700 dark:text-orange-200' },
+              { id: 'missing' as const, label: `Missing (${summary.missing})`, tone: 'border-red-500/40 text-red-600 dark:text-red-300', active: 'bg-red-500/15 border-red-500 text-red-700 dark:text-red-200' },
+            ]).map(({ id, label, tone, active }) => {
+              const on = filter.buckets.includes(id);
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => {
+                    setActivePresetId('');
+                    setFilter((p) => ({
+                      ...p,
+                      buckets: p.buckets.includes(id)
+                        ? p.buckets.filter((s) => s !== id)
+                        : [...p.buckets, id],
+                    }));
+                  }}
+                  onDoubleClick={() => {
+                    setActivePresetId('');
+                    setFilter((p) => ({ ...p, buckets: [id] }));
+                  }}
+                  title="Click to toggle · Double-click to isolate"
+                  className={cn(
+                    'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-medium transition',
+                    on ? active : `${tone} opacity-60 hover:opacity-100`,
+                  )}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Saved filter presets */}
+          <div className="flex flex-wrap items-center gap-2">
+            <Bookmark className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Presets:</span>
+            <Select
+              value={activePresetId || '__none__'}
+              onValueChange={(v) => {
+                if (v === '__none__') {
+                  setActivePresetId('');
+                  return;
+                }
+                const p = presets.find((x) => x.id === v);
+                if (!p) return;
+                setFilter({
+                  ...DEFAULT_FILTER,
+                  ...p.filter,
+                  severities:
+                    Array.isArray(p.filter.severities) && p.filter.severities.length
+                      ? p.filter.severities
+                      : [...ALL_SEVERITIES],
+                  buckets:
+                    Array.isArray(p.filter.buckets) && p.filter.buckets.length
+                      ? p.filter.buckets
+                      : [...ALL_BUCKETS],
+                });
+                setActivePresetId(v);
+              }}
+            >
+              <SelectTrigger aria-label="Apply saved preset" className="h-8 w-[200px] text-xs">
+                <SelectValue placeholder={presets.length ? 'Apply preset…' : 'No presets saved'} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">— None —</SelectItem>
+                {presets.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {activePresetId && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-8 gap-1 text-xs text-red-600 hover:text-red-700"
+                onClick={() => {
+                  const p = presets.find((x) => x.id === activePresetId);
+                  const next = presets.filter((x) => x.id !== activePresetId);
+                  setPresets(next);
+                  savePresets(next);
+                  setActivePresetId('');
+                  if (p) toast.success(`Deleted preset "${p.name}"`);
+                }}
+              >
+                <Trash2 className="h-3 w-3" /> Delete
+              </Button>
+            )}
+            <div className="flex items-center gap-1 ml-auto">
+              <Input
+                value={presetName}
+                onChange={(e) => setPresetName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const name = presetName.trim();
+                    if (!name) {
+                      toast.error('Preset name required');
+                      return;
+                    }
+                    const preset: FilterPreset = {
+                      id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
+                      name,
+                      filter,
+                      createdAt: Date.now(),
+                    };
+                    const next = [...presets, preset];
+                    setPresets(next);
+                    savePresets(next);
+                    setActivePresetId(preset.id);
+                    setPresetName('');
+                    toast.success(`Saved preset "${name}"`);
+                  }
+                }}
+                placeholder="Save current as…"
+                className="h-8 w-[180px] text-xs"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-8 gap-1 text-xs"
+                onClick={() => {
+                  const name = presetName.trim();
+                  if (!name) {
+                    toast.error('Preset name required');
+                    return;
+                  }
+                  const preset: FilterPreset = {
+                    id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
+                    name,
+                    filter,
+                    createdAt: Date.now(),
+                  };
+                  const next = [...presets, preset];
+                  setPresets(next);
+                  savePresets(next);
+                  setActivePresetId(preset.id);
+                  setPresetName('');
+                  toast.success(`Saved preset "${name}"`);
+                }}
+              >
+                <Save className="h-3 w-3" /> Save
+              </Button>
+            </div>
           </div>
         </div>
       </section>
+
 
       <section aria-label="Audit report" className="container mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8">
         {loading ? (
