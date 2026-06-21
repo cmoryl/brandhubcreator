@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, FileType2, AlertTriangle, CheckCircle2, XCircle, Wrench } from 'lucide-react';
+import { ArrowLeft, FileType2, AlertTriangle, CheckCircle2, XCircle, Wrench, Link2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +20,10 @@ interface SvgEntry {
 }
 
 type StatusFilter = 'all' | 'fail' | 'warn' | 'pass' | 'pending';
+
+function findingAnchor(entryKey: string, findingId: string) {
+  return `finding-${entryKey.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '')}-${findingId}`;
+}
 
 /**
  * Row that computes its own lint-derived status, reports it upward via
