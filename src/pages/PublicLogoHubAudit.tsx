@@ -1,17 +1,31 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Loader2, Search, ArrowLeft, XCircle, FileImage, FileType2, Globe2 } from 'lucide-react';
+import {
+  Loader2,
+  Search,
+  ArrowLeft,
+  XCircle,
+  FileImage,
+  FileType2,
+  Globe2,
+  CheckCircle2,
+  AlertTriangle,
+  Bookmark,
+  Save,
+  Trash2,
+} from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import type { ClientLogoFile, ClientLogoVariant, ClientLogoLockup } from '@/types/brand';
 import { auditBrand } from '@/lib/logoAuditChecks';
 import { OrphanedFilesSection } from '@/components/logohub/OrphanedFilesSection';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 interface Row {
   id: string;
