@@ -110,6 +110,7 @@ const PublicLogoHub = lazyWithRetry(() => import("./pages/PublicLogoHub"));
 const PublicLogoHubAudit = lazyWithRetry(() => import("./pages/PublicLogoHubAudit"));
 const PublicLogoHubMonoCutoutAudit = lazyWithRetry(() => import("./pages/PublicLogoHubMonoCutoutAudit"));
 const PublicLogoHubBrandAudit = lazyWithRetry(() => import("./pages/PublicLogoHubBrandAudit"));
+const PublicLogoHubSvgAudit = lazyWithRetry(() => import("./pages/PublicLogoHubSvgAudit"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -558,6 +559,14 @@ const App = () => (
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <PublicLogoHubMonoCutoutAudit />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="logohub/audit/svgs"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <PublicLogoHubSvgAudit />
                         </Suspense>
                       }
                     />
