@@ -563,6 +563,14 @@ const App = () => (
                       }
                     />
                     <Route
+                      path="logohub/audit/svgs"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <PublicLogoHubSvgAudit />
+                        </Suspense>
+                      }
+                    />
+                    <Route
                       path="logohub/audit/:id"
                       element={
                         <Suspense fallback={<PageSkeleton />}>
