@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, FileType2, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
+import { ArrowLeft, FileType2, AlertTriangle, CheckCircle2, XCircle, Wrench } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { SvgLintCell } from '@/components/logohub/SvgLintCell';
 import { SvgQualityCell } from '@/components/logohub/SvgQualityCell';
 import type { ClientLogoFile, ClientLogoLockup, ClientLogoVariant } from '@/types/brand';
 import { useSvgLint } from '@/hooks/useSvgLint';
+import { getRemediationsFor } from '@/lib/svgRemediations';
 import { cn } from '@/lib/utils';
 
 interface SvgEntry {
