@@ -454,6 +454,14 @@ export default function PublicLogoHub() {
                       <p className="text-[10px] text-muted-foreground truncate">
                         {logo.category} • {logo.files.length} files
                       </p>
+                      {formatAssetDate(logo.updated_at) && (
+                        <p
+                          className="text-[10px] text-muted-foreground/80 truncate mt-0.5"
+                          title={`Assets last updated ${formatAssetDate(logo.updated_at)}`}
+                        >
+                          Updated {formatAssetDate(logo.updated_at)}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div
