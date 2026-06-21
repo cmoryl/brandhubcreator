@@ -88,6 +88,62 @@ function SvgAuditRow({
           )}
           <SvgLintCell url={entry.file.url} />
           <SvgQualityCell url={entry.file.url} />
+          {result && status !== 'pass' && status !== 'pending' && (() => {
+            const fixes = getRemediationsFor(result.findings);
+            if (fixes.length === 0) return null;
+            const toneCls =
+              status === 'fail'
+                ? 'border-red-500/40 bg-red-500/5'
+                : 'border-amber-500/40 bg-amber-500/5';
+            const headCls =
+              status === 'fail'
+                ? 'text-red-700 dark:text-red-300'
+                : 'text-amber-700 dark:text-amber-300';
+            return (
+              <div className={cn('mt-3 rounded-md border p-3', toneCls)}>
+                <div className={cn('mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider', headCls)}>
+                  <Wrench className="h-3 w-3" aria-hidden="true" />
+                  Suggested fixes ({fixes.length})
+                </div>
+                <ul className="space-y-2">
+                  {fixes.map(({ finding, remediation }) => (
+                    <li key={finding.id} className="text-[11px]">
+                      <div className="flex items-start gap-1.5">
+                        <span
+                          className={cn(
+                            'mt-0.5 text-[10px]',
+                            finding.severity === 'fail' ? 'text-red-500' : 'text-amber-500',
+                          )}
+                          aria-hidden="true"
+                        >
+                          {finding.severity === 'fail' ? '✗' : '⚠'}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="font-semibold text-foreground">{finding.label}</div>
+                          <div className="text-muted-foreground">{remediation.summary}</div>
+                          <ol className="mt-1 list-decimal space-y-0.5 pl-4 text-muted-foreground">
+                            {remediation.steps.map((s, i) => (
+                              <li key={i}>{s}</li>
+                            ))}
+                          </ol>
+                          {remediation.snippet && (
+                            <pre className="mt-1 overflow-x-auto rounded bg-muted/60 px-2 py-1 font-mono text-[10px] leading-snug">
+                              {remediation.snippet}
+                            </pre>
+                          )}
+                          {remediation.tool && (
+                            <div className="mt-1 text-[10px] italic text-muted-foreground">
+                              Tool: {remediation.tool}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })()}
         </div>
       </div>
     </article>
