@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, FileType2, AlertTriangle, CheckCircle2, XCircle, Wrench } from 'lucide-react';
+import { ArrowLeft, FileType2, AlertTriangle, CheckCircle2, XCircle, Wrench, Link2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +20,10 @@ interface SvgEntry {
 }
 
 type StatusFilter = 'all' | 'fail' | 'warn' | 'pass' | 'pending';
+
+function findingAnchor(entryKey: string, findingId: string) {
+  return `finding-${entryKey.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '')}-${findingId}`;
+}
 
 /**
  * Row that computes its own lint-derived status, reports it upward via
@@ -105,41 +109,84 @@ function SvgAuditRow({
                   <Wrench className="h-3 w-3" aria-hidden="true" />
                   Suggested fixes ({fixes.length})
                 </div>
-                <ul className="space-y-2">
-                  {fixes.map(({ finding, remediation }) => (
-                    <li key={finding.id} className="text-[11px]">
-                      <div className="flex items-start gap-1.5">
-                        <span
-                          className={cn(
-                            'mt-0.5 text-[10px]',
-                            finding.severity === 'fail' ? 'text-red-500' : 'text-amber-500',
-                          )}
-                          aria-hidden="true"
-                        >
-                          {finding.severity === 'fail' ? '✗' : '⚠'}
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <div className="font-semibold text-foreground">{finding.label}</div>
-                          <div className="text-muted-foreground">{remediation.summary}</div>
-                          <ol className="mt-1 list-decimal space-y-0.5 pl-4 text-muted-foreground">
-                            {remediation.steps.map((s, i) => (
-                              <li key={i}>{s}</li>
-                            ))}
-                          </ol>
-                          {remediation.snippet && (
-                            <pre className="mt-1 overflow-x-auto rounded bg-muted/60 px-2 py-1 font-mono text-[10px] leading-snug">
-                              {remediation.snippet}
-                            </pre>
-                          )}
-                          {remediation.tool && (
-                            <div className="mt-1 text-[10px] italic text-muted-foreground">
-                              Tool: {remediation.tool}
+                <ul className="space-y-3">
+                  {fixes.map(({ finding, remediation }) => {
+                    const anchor = findingAnchor(entry.key, finding.id);
+                    return (
+                      <li id={anchor} key={finding.id} className="text-[11px] scroll-mt-4">
+                        <div className="flex items-start gap-1.5">
+                          <span
+                            className={cn(
+                              'mt-0.5 text-[10px]',
+                              finding.severity === 'fail' ? 'text-red-500' : 'text-amber-500',
+                            )}
+                            aria-hidden="true"
+                          >
+                            {finding.severity === 'fail' ? '✗' : '⚠'}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5">
+                              <div className="font-semibold text-foreground">{finding.label}</div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const url = new URL(window.location.href);
+                                  url.hash = anchor;
+                                  window.history.replaceState(null, '', url.toString());
+                                  if (navigator.clipboard?.writeText) {
+                                    navigator.clipboard.writeText(url.toString());
+                                  }
+                                }}
+                                className="inline-flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-accent hover:text-foreground"
+                                aria-label={`Copy link to ${finding.label} finding`}
+                                title="Copy link to this finding"
+                              >
+                                <Link2 className="h-3 w-3" aria-hidden="true" />
+                              </button>
                             </div>
-                          )}
+                            {finding.detail && (
+                              <div className="text-[10px] text-muted-foreground">{finding.detail}</div>
+                            )}
+                            <div className="mt-1 text-muted-foreground">
+                              <span className="font-medium text-foreground">Fix:</span>{' '}
+                              {remediation.summary}
+                            </div>
+                            <div className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
+                              <span className="font-medium text-foreground">Why it matters:</span>{' '}
+                              {remediation.rationale}
+                            </div>
+                            <ol className="mt-1.5 list-decimal space-y-0.5 pl-4 text-muted-foreground">
+                              {remediation.steps.map((s, i) => (
+                                <li key={i}>{s}</li>
+                              ))}
+                            </ol>
+                            {remediation.snippet && (
+                              <pre className="mt-1.5 overflow-x-auto rounded bg-muted/60 px-2 py-1 font-mono text-[10px] leading-snug">
+                                {remediation.snippet}
+                              </pre>
+                            )}
+                            <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[10px]">
+                              {remediation.tool && (
+                                <span className="italic text-muted-foreground">
+                                  Tool: {remediation.tool}
+                                </span>
+                              )}
+                              {remediation.href && (
+                                <a
+                                  href={remediation.href}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 text-primary hover:underline"
+                                >
+                                  Learn more <span aria-hidden="true">↗</span>
+                                </a>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </li>
-                  ))}
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             );
