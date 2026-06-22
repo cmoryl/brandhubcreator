@@ -160,8 +160,6 @@ async function firecrawlSearch(query: string, key: string, limit = 8) {
   return Array.isArray(arr) ? arr : [];
 }
 
-function _unused() {
-}
 
 function harvestAssetUrlsFromHtml(html: string, baseUrl: string): string[] {
   const out = new Set<string>();
