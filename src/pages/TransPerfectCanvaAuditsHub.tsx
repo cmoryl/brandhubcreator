@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ExternalLink, FileText, Layers, Database, ArrowRight } from 'lucide-react';
+import { ExternalLink, FileText, Layers, Database, Globe, ArrowRight } from 'lucide-react';
 
 const AUDITS = [
   {
