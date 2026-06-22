@@ -330,14 +330,19 @@
   <div class="stat-box amber"><span class="val" id="stat-flags">0</span><span class="lbl">Audit Flags</span></div>
 </div>
 
+<div class="division-tabs" id="division-tabs">
+  <button type="button" data-division="" class="active">All <span class="tab-count" id="tab-count-all">0</span></button>
+  <button type="button" data-division="GlobalLink">GlobalLink <span class="tab-count" id="tab-count-globallink">0</span></button>
+  <button type="button" data-division="GLNEXT">GlobalLink NEXT <span class="tab-count" id="tab-count-glnext">0</span></button>
+</div>
+
 <div class="flags-section">
   <h2>🚩 Audit Findings &amp; Recommendations</h2>
   <div class="flag-grid" id="flag-grid"></div>
 </div>
 
 <div class="lc-filter-bar">
-  <label for="lc-division">Division</label>
-  <select id="lc-division"><option value="">All divisions</option><option value="GLNEXT">GLNEXT</option><option value="GlobalLink">GlobalLink</option></select>
+  <select id="lc-division" style="display:none;"><option value="">All divisions</option><option value="GLNEXT">GLNEXT</option><option value="GlobalLink">GlobalLink</option></select>
   <label for="lc-type">Type</label>
   <select id="lc-type"><option value="">All types</option></select>
   <input id="lc-search" type="search" placeholder="Search name, size or ID…" />
