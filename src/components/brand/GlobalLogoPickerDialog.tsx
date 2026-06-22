@@ -186,7 +186,7 @@ export function GlobalLogoPickerDialog({ existingLogoNames = [], onImport, trigg
         </div>
 
         {/* Logo Grid */}
-        <ScrollArea className="flex-1 min-h-0 -mx-6 px-6">
+        <div className="flex-1 min-h-0 overflow-y-auto -mx-6 px-6">
           {isLoading ? (
             <div className="flex items-center justify-center py-16">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
