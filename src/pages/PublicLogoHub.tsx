@@ -60,6 +60,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { ClientLogoFile, ClientLogoVariant, ClientLogoLockup } from '@/types/brand';
 import { AddLogoDialog } from '@/components/logohub/AddLogoDialog';
+import { downloadManyLogosZip } from '@/lib/downloadLogoZip';
 
 const slugify = (s: string) =>
   s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'logo';
@@ -325,6 +326,22 @@ export default function PublicLogoHub() {
             </div>
             <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
               <AddLogoDialog categories={categories} onAdded={loadLogos} />
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() =>
+                  downloadManyLogosZip(
+                    filtered.map((l) => ({ name: l.name, files: l.files })),
+                    `global-logo-hub-${new Date().toISOString().slice(0, 10)}.zip`,
+                  )
+                }
+                disabled={filtered.length === 0}
+                aria-label="Download all logos as ZIP"
+              >
+                <Package className="h-4 w-4" />
+                Download all ({filtered.length})
+              </Button>
               <a
                 href="/logohub/audit"
                 className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium hover:border-primary/50 hover:bg-accent transition-colors"
