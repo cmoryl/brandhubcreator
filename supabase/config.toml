@@ -1,7 +1,5 @@
 project_id = "nhxaijbyqfkkhhoornzy"
 
-[functions.admin-update-logo-batch-v3]
-verify_jwt = false
 
 
 
