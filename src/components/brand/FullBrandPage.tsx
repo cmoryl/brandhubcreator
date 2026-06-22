@@ -324,37 +324,7 @@ export const FullBrandPage = ({
       case 'brandicon': return <BrandIconsSection brandIcons={brand.brandIcons} onBrandIconsChange={editHandler((brandIcons) => onBrandUpdate({ brandIcons }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'colors': return <ColorPaletteSection colors={brand.colors} onColorsChange={editHandler((colors) => onBrandUpdate({ colors }))} colorCombinations={brand.colorCombinations} onColorCombinationsChange={editHandler((colorCombinations) => onBrandUpdate({ colorCombinations }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandName={brand.hero.name} brandSlug={brand.slug} />;
       case 'gradients': return <GradientsSection gradients={brand.gradients} onGradientsChange={editHandler((gradients) => onBrandUpdate({ gradients }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} brandName={brand.hero.name} brandColors={brand.colors} />;
-      case 'layouttemplates': {
-        const explicitVisuals = (brand as any).brandVisuals;
-        const derivedVisuals = resolveBrandVisuals(explicitVisuals, {
-          brandSlug: brand.slug,
-          hero: brand.hero,
-          logos: brand.logos,
-          imagery: brand.imagery,
-          patterns: brand.patterns,
-          gradients: brand.gradients,
-          approvedImagery: (brand as any).approvedImagery,
-        });
-        const isDerived = !((explicitVisuals?.staticAssets?.length ?? 0) + (explicitVisuals?.motionAssets?.length ?? 0));
-        return <LayoutTemplatesSection
-          brandVisuals={derivedVisuals}
-          brandLogos={brand.logos}
-          isDerived={isDerived}
-          customSubtitle={customSubtitle}
-          onSubtitleChange={onSubtitleChange}
-          canvaFolderUrl={(brand as any).canvaFolderUrl}
-          canvaTemplateLinks={(brand as any).canvaTemplateLinks || {}}
-          onCanvaFolderUrlChange={canEdit ? (url: string) => {
-            onBrandUpdate({ ...(brand as any), canvaFolderUrl: url } as any);
-          } : undefined}
-          onCanvaTemplateLinkChange={canEdit ? (templateId: string, url: string) => {
-            const existing = { ...((brand as any).canvaTemplateLinks || {}) };
-            if (!url) delete existing[templateId];
-            else existing[templateId] = url;
-            onBrandUpdate({ ...(brand as any), canvaTemplateLinks: existing } as any);
-          } : undefined}
-        />;
-      }
+      // case 'layouttemplates': temporarily hidden — pending direction on Brand Visual Templates area
       case 'patterns': return <PatternsSection patterns={brand.patterns} onPatternsChange={editHandler((patterns) => onBrandUpdate({ patterns }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} brandName={brand.hero.name} brandColors={brand.colors} brandTagline={brand.tagline?.primary} brandArchetype={brand.identity?.archetype} brandSlug={brand.slug} customShapes={brand.customShapes} onCustomShapesChange={canEdit ? (customShapes) => onBrandUpdate({ customShapes }) : undefined} />;
       case 'typography': return <TypographySection typography={brand.typography} onTypographyChange={editHandler((typography) => onBrandUpdate({ typography }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandSlug={brand.slug} />;
       case 'textstyles': return <TextStylesSection textStyles={brand.textStyles} onTextStylesChange={editHandler((textStyles) => onBrandUpdate({ textStyles }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} adminCustomStyle={brand.adminCustomStyle} onAdminCustomStyleChange={canEdit ? (adminCustomStyle) => onBrandUpdate({ adminCustomStyle }) : undefined} canEdit={canEdit} />;
