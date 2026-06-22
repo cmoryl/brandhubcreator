@@ -233,3 +233,6 @@ verify_jwt = false
 
 [functions.commit-brand-logos]
 verify_jwt = false
+
+[functions.admin-update-cunard-logos]
+verify_jwt = false
