@@ -156,8 +156,10 @@ async function firecrawlSearch(query: string, key: string, limit = 8) {
   });
   const j = await res.json().catch(()=>({}));
   if (!res.ok) throw new Error(`firecrawl search ${res.status}`);
-  return j?.data ?? j?.web ?? [];
+  const arr = j?.data?.web ?? j?.web ?? j?.data ?? [];
+  return Array.isArray(arr) ? arr : [];
 }
+
 
 function harvestAssetUrlsFromHtml(html: string, baseUrl: string): string[] {
   const out = new Set<string>();
