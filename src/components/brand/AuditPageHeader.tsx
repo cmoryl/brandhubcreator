@@ -26,7 +26,7 @@ export function AuditPageHeader({
   downloadName,
   theme,
   onToggleTheme,
-  backHref = '/transperfect-canva-audits',
+  backHref = '/brand-canva-audits',
   backLabel = 'Brand Canva Audits',
 }: AuditPageHeaderProps) {
   const isLight = theme === 'light';
