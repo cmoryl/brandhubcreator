@@ -1,68 +1,63 @@
-# Connect Underutilized Brand Data Across the Product
+# Cohesive Client Logos ↔ Logo Hub
 
-Five gaps, executed in priority order. Each is self-contained so we can ship incrementally.
+Make the brand-page "Client Logos" section a first-class view of the Global Logo Hub: same card visuals, same lockup/variant matrix, same validation + upload-version workflow, same download/ZIP behavior, and the same underlying data (`global_client_logos`) as the single source of truth.
 
-## 1. Imagery preference signals → all generation surfaces
+## What changes for the user
 
-**Problem:** `imagery_preference_signals` + `imageryAvoidList` + `brand_imagery_embeddings` are captured but only the thumbs-down deletion writes to them. No generator reads them back.
+- Client Logos cards on a brand page look identical to Logo Hub cards (same preview tiles, variant labels, lockup grouping, badges, and density).
+- "Add logo" pulls from the Global Logo Library by default. New uploads land in the shared library and are linked to the brand, so the next brand sees the same asset.
+- Per-row actions match the Hub: Upload Version (lockup + variant), Re-sync, Validate, Exempt, Open Website, Download file, Download ZIP.
+- Bulk "Download all as ZIP" uses the Hub's slug/lockup/variant naming convention.
+- Validation findings (missing variants/lockups, mono-cutout, contrast) surface inline with the same badges.
 
-**Build:**
-- New shared helper `src/lib/imagerySignals.ts` → `buildAvoidClause(brandSlug)` that pulls the avoid list + recent negative signals and returns a prompt fragment ("Avoid: [styles]. Do not reproduce: [URLs as references]").
-- Inject into: Creative Studio (`generate-brand-image` edge fn), Icon Studio (`generate-icon`), Social Asset gen, PDF cover gen, Layout Template gen.
-- Add a small "Learning from N rejections" badge on each generator UI surface so users see the loop is active.
+## Implementation
 
-## 2. Canva audit findings → Creative Studio prompts
+### 1. Shared presentational primitives (new)
+Extract from `GlobalLogoHub.tsx` into reusable, presentation-only components in `src/components/logohub/shared/`:
 
-**Problem:** Audit identifies typos, casing inconsistencies, stale assets — but Creative Studio doesn't bias against them.
+- `LogoCardShared.tsx` — preview-tile grid (color / white / black, grouped by lockup), variant labels, title block, website link, action slot. Visual parity with Hub.
+- `LogoDownloadMatrix.tsx` — the lockup × variant × format grid, with `FileUploadCell`/download chip styling identical to Hub.
+- `LogoValidationBadges.tsx` — wraps `validateLogoFiles` results into the same badge row used in `GlobalLogoHub`.
+- `downloadLogoZip.ts` — shared util for slug/lockup/variant ZIP packaging (lifted from `PublicLogoHub.downloadFilesAsZip`).
 
-**Build:**
-- Extend `get_entity_text_context` (already exists) to include `canva_audit_findings` (last analysis row's `findings` JSONB, top 5 by severity).
-- Update Creative Studio prompt template to add a "Recent audit flagged:" constraints block.
-- On every generation, if a finding matches the prompt subject (e.g., wordmark generation + casing finding), surface a one-line warning toast: "Audit flagged Brand Mark casing — using approved form."
+Refactor `GlobalLogoHub.tsx` and `PublicLogoHub.tsx` to consume these so all three surfaces stay visually in lockstep going forward.
 
-## 3. Brand intelligence → DataForce compliance weighting
+### 2. Shared data source
+Treat `global_client_logos` as the source of truth. The brand's `clientLogos` field becomes a thin selection list:
 
-**Problem:** Compliance scoring uses generic criteria. Archetype/voice/industry should weight what counts as a violation.
+```ts
+type ClientLogoRef = { id: string; globalLogoId: string; name: string };
+```
 
-**Build:**
-- Update `dataforce-compliance` edge fn to read `brand_intelligence.brand_dna` (archetype, voice, industry) before scoring.
-- Add weighting matrix: e.g., Caregiver archetype = +20% weight on inclusive language checks; Regulated industry (LifeSciences) = +30% weight on disclaimer presence.
-- Surface "Weighted by: Caregiver archetype, Life Sciences industry" line under each compliance score in the UI.
+Migration path (no DB schema change required):
+- On read, hydrate each `clientLogos[i]` by joining to `global_client_logos` by id/name.
+- On write, only persist the ref. Files always come from the library.
+- Legacy per-brand `files[]` continues to render if no library match is found (back-compat), with a one-click "Promote to Library" action.
 
-## 4. Oracle KB → Brain panel citations
+### 3. Functional parity in `ClientLogosSection.tsx`
+Rewrite the section to:
+- Render `LogoCardShared` per selected logo.
+- Use the existing `UploadLogoVersion` dialog (already lockup+variant aware) for adding versions — writes to `global_client_logos` then refreshes.
+- Reuse `GlobalLogoPickerDialog` as the only "Add" entry point (already exists, already wired to the library). Remove the inline "new logo" dialog and per-cell base64 upload path.
+- Add the Hub's per-row toolbar: Validate, Exempt, Re-sync (calls `seed-partnerlink-logos`), Open Website, Download ZIP, Remove from brand.
+- Surface `LogoValidationBadges` next to each card title.
 
-**Problem:** `oracle_knowledge_base` rows only surface through Oracle chat.
+### 4. Download/export parity
+- Per-file download uses Hub naming: `{slug}-{lockup}-{variant}.{format}`.
+- Per-card ZIP uses `downloadLogoZip(name, files)`.
+- Section ZIP iterates selected logos, one folder per logo, using the same util.
 
-**Build:**
-- New `OracleCitationsTile` in `BrandIntelligencePanel` showing top 5 most-relevant KB entries for the brand (filtered by `brand_id` or org-level).
-- Each tile entry → click opens Oracle chat pre-seeded with that KB entry as context.
-- Inject top 3 KB summaries into `brand-intelligence-worker` prompt so refreshed intelligence cites them.
+### 5. Permissions
+- `canEdit` still gates editing; non-admins see read-only cards with download chips only (Hub already follows this pattern).
 
-## 5. Unified Action Center
+## Files touched
 
-**Problem:** `recommendation_actions` + `competitive_recommendation_actions` + `intelligence_alerts` are scattered across 3+ panels.
+- New: `src/components/logohub/shared/LogoCardShared.tsx`, `LogoDownloadMatrix.tsx`, `LogoValidationBadges.tsx`, `src/lib/downloadLogoZip.ts`
+- Rewrite: `src/components/brand/ClientLogosSection.tsx` (≈700 → ≈300 lines, delegates to shared primitives)
+- Refactor (consume shared primitives, no behavior change): `src/components/admin/GlobalLogoHub.tsx`, `src/pages/PublicLogoHub.tsx`
+- Touch: `src/lib/guideNormalization.ts` to hydrate `clientLogos` refs against `global_client_logos` on load
 
-**Build:**
-- New `src/components/brand/ActionCenter.tsx` — single tabbed panel (All / Compliance / Competitive / Audit / Alerts) with filters by severity, status (open/in-progress/done), and source.
-- New hook `useUnifiedActions(brandId)` parallel-fetches all 3 tables, normalizes to a common `BrandAction` shape, sorts by priority.
-- Add as the **first tile** in `BrandIntelligencePanel` (above CanvaOperationsTile).
-- Bulk-mark-done, assign-to-user, snooze actions.
-- Surface count badge in main brand editor sidebar nav ("Brain (7)").
+## Out of scope
 
-## Technical Notes
-
-- All edge function changes stay under 150MB by using `gemini-2.5-flash-lite` and lean prompts.
-- New helper `imagerySignals.ts` is shared client+edge (duplicate file in `supabase/functions/_shared/` per current pattern).
-- No schema changes needed for #1, #2, #4 — all existing tables.
-- #3 needs a `compliance_weighting_rules` JSONB column on `dataforce_config` (small migration).
-- #5 is pure UI + read-only hooks, no schema changes.
-
-## Execution order
-
-1. **#5 Unified Action Center** first — pure UI, makes existing data visible immediately, highest user-visible impact.
-2. **#1 Imagery signals** — closes the feedback loop users explicitly built (avoid list).
-3. **#4 Oracle citations** — small, makes Brain panel feel "alive".
-4. **#2 Canva → Creative Studio** — requires edge fn + context fn changes.
-5. **#3 Compliance weighting** — needs migration + scoring rewrite, most risk.
-
-Estimated: ~20 files touched, 1 small migration, 0 destructive changes.
+- DB schema changes (everything fits in existing `clientLogos` JSONB + `global_client_logos` table).
+- Sponsor/Event logos (`SponsorLogosSection`, `EventSponsorsSection`) — same primitives could be applied later, but not in this pass unless you want it included.
