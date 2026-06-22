@@ -762,58 +762,7 @@ const BrandEditor = () => {
       case 'brandicon': return <BrandIconsSection brandIcons={brand.brandIcons} onBrandIconsChange={editHandler((brandIcons) => updateBrand({ brandIcons }))} entityId={brand.id} entityType="brand" />;
       case 'colors': return <ColorPaletteSection colors={brand.colors} onColorsChange={editHandler((colors) => updateBrand({ colors }))} colorCombinations={brand.colorCombinations} onColorCombinationsChange={editHandler((colorCombinations) => updateBrand({ colorCombinations }))} brandName={brand.hero.name} brandSlug={brand.slug} />;
       case 'gradients': return <GradientsSection gradients={brand.gradients} onGradientsChange={editHandler((gradients) => updateBrand({ gradients }))} brandName={brand.hero.name} brandColors={brand.colors} />;
-      case 'layouttemplates': {
-        const explicitVisuals = (brand as any).brandVisuals;
-        const derivedVisuals = resolveBrandVisuals(explicitVisuals, {
-          brandSlug: brand.slug,
-          hero: brand.hero,
-          logos: brand.logos,
-          imagery: brand.imagery,
-          patterns: brand.patterns,
-          gradients: brand.gradients,
-          approvedImagery: (brand as any).approvedImagery,
-        });
-        const isDerived = !((explicitVisuals?.staticAssets?.length ?? 0) + (explicitVisuals?.motionAssets?.length ?? 0));
-        return <LayoutTemplatesSection
-          brandVisuals={derivedVisuals}
-          brandLogos={brand.logos}
-          isDerived={isDerived}
-          savedCustomizations={(brand as any).layoutTemplateCustomizations || []}
-          canvaFolderUrl={(brand as any).canvaFolderUrl}
-          canvaTemplateLinks={(brand as any).canvaTemplateLinks || {}}
-          onCanvaFolderUrlChange={canEdit ? (url: string) => {
-            updateBrand({ ...(brand as any), canvaFolderUrl: url } as any);
-          } : undefined}
-          onCanvaTemplateLinkChange={canEdit ? (templateId: string, url: string) => {
-            const existing = { ...((brand as any).canvaTemplateLinks || {}) };
-            if (!url) {
-              delete existing[templateId];
-            } else {
-              existing[templateId] = url;
-            }
-            updateBrand({ ...(brand as any), canvaTemplateLinks: existing } as any);
-          } : undefined}
-          onSaveCustomization={canEdit ? (variant) => {
-            const existing = (brand as any).layoutTemplateCustomizations || [];
-            const next = [...existing.filter((v: any) => v.id !== variant.id), variant];
-            updateBrand({ ...(brand as any), layoutTemplateCustomizations: next } as any);
-          } : undefined}
-          onApplyToSection={canEdit ? (target, asset) => {
-            if (target === 'hero') {
-              const heroPatch = asset.type === 'video'
-                ? { ...brand.hero, coverVideo: asset.url, useVideo: true }
-                : { ...brand.hero, coverImage: asset.url, useVideo: false };
-              updateBrand({ hero: heroPatch });
-            } else if (target === 'social') {
-              const imagery = brand.imagery || [];
-              updateBrand({ imagery: [{ id: `lt-${Date.now()}`, url: asset.url, type: 'do', description: 'Applied from layout template' } as any, ...imagery] });
-            } else if (target === 'casestudy') {
-              const cs = brand.caseStudies || [];
-              updateBrand({ caseStudies: [{ id: `lt-${Date.now()}`, title: 'New case study', description: '', imageUrl: asset.url } as any, ...cs] });
-            }
-          } : undefined}
-        />;
-      }
+      // case 'layouttemplates': temporarily hidden — pending direction on Brand Visual Templates area
       case 'patterns': return <PatternsSection patterns={brand.patterns} onPatternsChange={editHandler((patterns) => updateBrand({ patterns }))} brandName={brand.hero.name} brandColors={brand.colors} brandTagline={brand.tagline?.primary} brandArchetype={brand.identity?.archetype} brandSlug={brand.slug} customShapes={brand.customShapes} onCustomShapesChange={canEdit ? (customShapes) => updateBrand({ customShapes }) : undefined} entityId={brand.id} entityType="brand" />;
       case 'typography': return <TypographySection typography={brand.typography} onTypographyChange={editHandler((typography) => updateBrand({ typography }))} isAdmin={isGuideAdmin} brandSlug={brand.slug} />;
       case 'textstyles': return <TextStylesSection textStyles={brand.textStyles} onTextStylesChange={editHandler((textStyles) => updateBrand({ textStyles }))} adminCustomStyle={brand.adminCustomStyle} onAdminCustomStyleChange={canEdit ? (adminCustomStyle) => updateBrand({ adminCustomStyle }) : undefined} canEdit={canEdit} />;
