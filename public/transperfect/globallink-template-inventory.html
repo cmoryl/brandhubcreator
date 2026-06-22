@@ -522,8 +522,31 @@ document.getElementById('lc-reset-btn').addEventListener('click', () => {
   document.getElementById('lc-search').value = '';
   typeSel.value = '';
   document.getElementById('lc-division').value = '';
+  setActiveTab('');
   applyFilter();
 });
+
+function setActiveTab(division) {
+  document.querySelectorAll('#division-tabs button').forEach(b => {
+    b.classList.toggle('active', b.dataset.division === division);
+  });
+}
+document.querySelectorAll('#division-tabs button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const d = btn.dataset.division;
+    document.getElementById('lc-division').value = d;
+    setActiveTab(d);
+    applyFilter();
+  });
+});
+(function updateTabCounts() {
+  const all = DATA.length;
+  const gl = DATA.filter(r => r.division === 'GlobalLink').length;
+  const gn = DATA.filter(r => r.division === 'GLNEXT').length;
+  document.getElementById('tab-count-all').textContent = all;
+  document.getElementById('tab-count-globallink').textContent = gl;
+  document.getElementById('tab-count-glnext').textContent = gn;
+})();
 
 function csvEscape(v) {
   const s = String(v == null ? '' : v);
