@@ -233,3 +233,4 @@ verify_jwt = false
 
 [functions.commit-brand-logos]
 verify_jwt = false
+
