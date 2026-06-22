@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GlobalLink / GLNEXT Template Inventory | TransPerfect Canva Registry</title>
+<style>
+  :root {
+    --ink: #1a1d29;
+    --ink-soft: #4b5066;
+    --line: #e3e6ef;
+    --bg: #f6f7fb;
+    --card: #ffffff;
+    --accent: #0e7c86;
+    --accent-soft: #e6f4f5;
+    --accent-dark: #0a5a62;
+    --accent2: #5b3df0;
+    --accent2-soft: #efebff;
+    --accent2-dark: #4527d6;
+    --good: #0f9d58;
+    --good-bg: #e8f7ee;
+    --warn: #b3690c;
+    --warn-bg: #fdf1e0;
+    --mono: 'SF Mono', 'Consolas', 'Menlo', monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    padding: 32px 24px 64px;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+  header.page {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 18px;
+  }
+  .title-block .eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-dark);
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  h1 { font-size: 28px; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .subtitle { color: var(--ink-soft); font-size: 14.5px; max-width: 580px; line-height: 1.5; }
+  .stat-cards { display: flex; gap: 10px; }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px 22px;
+    text-align: center;
+    min-width: 110px;
+  }
+  .stat-card .num { font-size: 30px; font-weight: 700; color: var(--accent); line-height: 1; }
+  .stat-card.alt .num { color: var(--accent2); }
+  .stat-card .label { font-size: 12px; color: var(--ink-soft); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+
+  .meta-row {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 16px;
+    margin-bottom: 12px;
+  }
+  .meta-row .meta-item strong { color: var(--ink); }
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--good-bg);
+    color: var(--good);
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+  }
+  .status-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--good); }
+
+  .flag-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 12.5px;
+    color: #8a5800;
+    background: var(--warn-bg);
+    border: 1px solid #f0ddb8;
+    border-radius: 10px;
+    padding: 10px 16px;
+    margin-bottom: 28px;
+    line-height: 1.5;
+  }
+  .flag-note strong { color: #6e4400; }
+
+  section.division { margin-bottom: 38px; }
+  section.division:last-of-type { margin-bottom: 18px; }
+  .division-header {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+  }
+  .division-header h2 { font-size: 20px; margin: 0; letter-spacing: -0.01em; }
+  .division-pill {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+  .division-pill.glnext { background: var(--accent-soft); color: var(--accent-dark); }
+  .division-pill.globallink { background: var(--accent2-soft); color: var(--accent2-dark); }
+  .division-desc { color: var(--ink-soft); font-size: 13.5px; margin: 0 0 16px; line-height: 1.5; max-width: 760px; }
+
+  .toolbar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .search-box {
+    flex: 1;
+    min-width: 220px;
+    position: relative;
+  }
+  .search-box input {
+    width: 100%;
+    padding: 11px 14px 11px 38px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    font-size: 14px;
+    background: var(--card);
+    color: var(--ink);
+  }
+  .search-box input:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+  .search-box svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: 0.45; }
+  .count-pill {
+    font-size: 13px;
+    color: var(--ink-soft);
+    white-space: nowrap;
+    padding: 0 4px;
+  }
+  .export-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .export-btn:hover { border-color: var(--accent); color: var(--accent-dark); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card);
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+  }
+  thead th {
+    text-align: left;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+    background: #fafafe;
+    padding: 13px 16px;
+    border-bottom: 1px solid var(--line);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+  thead th:hover { color: var(--accent-dark); }
+  thead th .arrow { opacity: 0.35; font-size: 10px; margin-left: 4px; }
+  thead th.sorted .arrow { opacity: 1; color: var(--accent); }
+  tbody tr { border-bottom: 1px solid var(--line); }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #fafaff; }
+  tbody tr.mixed-row { background: var(--warn-bg); }
+  tbody tr.mixed-row:hover { background: #fbe9cd; }
+  td { padding: 12px 16px; font-size: 14px; vertical-align: middle; }
+  td.name { font-weight: 600; max-width: 360px; }
+  td.size { font-family: var(--mono); font-size: 12.5px; color: var(--ink-soft); white-space: nowrap; }
+  td.size .flag { color: var(--warn); font-weight: 700; cursor: help; }
+  td.pages { font-family: var(--mono); font-size: 12.5px; color: var(--ink-soft); text-align: center; }
+  td.id { font-family: var(--mono); font-size: 12px; color: #9296a8; white-space: nowrap; }
+  td.date { font-size: 13px; color: var(--ink-soft); white-space: nowrap; }
+  td.action { text-align: right; white-space: nowrap; }
+  .edit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent-soft);
+    color: var(--accent-dark);
+    border: none;
+    border-radius: 8px;
+    padding: 7px 13px;
+    font-size: 12.5px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .edit-btn:hover { background: var(--accent); color: #fff; }
+  section.division.globallink-section .edit-btn { background: var(--accent2-soft); color: var(--accent2-dark); }
+  section.division.globallink-section .edit-btn:hover { background: var(--accent2); color: #fff; }
+  section.division.globallink-section thead th.sorted .arrow { color: var(--accent2); }
+  section.division.globallink-section .search-box input:focus { border-color: var(--accent2); outline-color: var(--accent2-soft); }
+  section.division.globallink-section .export-btn:hover { border-color: var(--accent2); color: var(--accent2-dark); }
+
+  .status-bar {
+    margin-top: 16px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    text-align: center;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px;
+  }
+  footer {
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--ink-soft);
+    text-align: center;
+    line-height: 1.6;
+  }
+  .no-results { text-align: center; padding: 48px 20px; color: var(--ink-soft); display: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page">
+    <div class="title-block">
+      <div class="eyebrow">TransPerfect &middot; Canva Brand Templates</div>
+      <h1>GlobalLink / GLNEXT Template Inventory</h1>
+      <div class="subtitle">Complete, standalone reference of every GLNEXT (GlobalLink NEXT conference) and GlobalLink product/marketing brand template in the team account &mdash; split into two independently searchable sections, with live asset sizes, page counts, creation/update dates, and direct Canva edit links. No external lookups required.</div>
+    </div>
+    <div class="stat-cards">
+      <div class="stat-card">
+        <div class="num">39</div>
+        <div class="label">GLNEXT</div>
+      </div>
+      <div class="stat-card alt">
+        <div class="num">15</div>
+        <div class="label">GlobalLink</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="meta-row">
+    <div class="meta-item">Data compiled <strong>Jun 17, 2026</strong></div>
+    <div class="meta-item">Division <strong>GLNEXT / GlobalLink</strong></div>
+    <div class="meta-item">Account <strong>TransPerfect Canva Team</strong></div>
+    <span class="status-badge"><span class="dot"></span> All sizes, pages &amp; edit links confirmed</span>
+  </div>
+
+  <div class="flag-note">
+    <span class="flag">&#9888;&#65039;</span>
+    <span><strong>2 templates use mixed page sizes</strong> &mdash; "GL NEXT General Email Header Variations" (both versions, in the GLNEXT section below, marked with <span class="flag">*</span> and highlighted) contain a 2500&times;834 banner format on page 1 plus a smaller 600&times;150 footer/signature format on later pages within the same multi-page file. The size shown is page 1 only; open the file in Canva to see all formats.</span>
+  </div>
+
+  <section class="division glnext-section">
+    <div class="division-header">
+      <h2>GLNEXT</h2>
+      <span class="division-pill glnext">39 templates</span>
+    </div>
+    <p class="division-desc">Conference &amp; event-specific collateral for the annual GlobalLink NEXT event &mdash; sponsorship decks, save-the-dates, schedules, direct mailers, email headers/footers, social templates, app assets, event screens, and city/region-specific banners.</p>
+
+    <div class="toolbar">
+      <div class="search-box">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="searchInput-glnext" placeholder="Filter by template name or size&hellip;">
+      </div>
+      <div class="count-pill" id="visibleCount-glnext">Showing 39 of 39</div>
+      <button class="export-btn" id="exportBtn-glnext">&#8595; Export CSV</button>
+    </div>
+
+    <table id="templateTable-glnext">
+      <thead>
+        <tr>
+          <th data-key="title" data-type="string">Template Name <span class="arrow">&#9650;</span></th>
+          <th data-key="w" data-type="number">Size (px) <span class="arrow">&#9650;</span></th>
+          <th data-key="pages" data-type="number">Pages <span class="arrow">&#9650;</span></th>
+          <th data-key="id" data-type="string">Template ID <span class="arrow">&#9650;</span></th>
+          <th data-key="created_ts" data-type="number">Created <span class="arrow">&#9650;</span></th>
+          <th data-key="updated_ts" data-type="number">Last Updated <span class="arrow">&#9650;</span></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tableBody-glnext"></tbody>
+    </table>
+    <div class="no-results" id="noResults-glnext">No templates match your search.</div>
+  </section>
+
+  <section class="division globallink-section">
+    <div class="division-header">
+      <h2>GlobalLink</h2>
+      <span class="division-pill globallink">15 templates</span>
+    </div>
+    <p class="division-desc">General product and brand marketing content for GlobalLink &mdash; LinkedIn and social posts, website/G2 content, client spotlights and case studies, and the "GL Go" sub-brand template set. Not tied to a specific conference year.</p>
+
+    <div class="toolbar">
+      <div class="search-box">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="searchInput-globallink" placeholder="Filter by template name or size&hellip;">
+      </div>
+      <div class="count-pill" id="visibleCount-globallink">Showing 15 of 15</div>
+      <button class="export-btn" id="exportBtn-globallink">&#8595; Export CSV</button>
+    </div>
+
+    <table id="templateTable-globallink">
+      <thead>
+        <tr>
+          <th data-key="title" data-type="string">Template Name <span class="arrow">&#9650;</span></th>
+          <th data-key="w" data-type="number">Size (px) <span class="arrow">&#9650;</span></th>
+          <th data-key="pages" data-type="number">Pages <span class="arrow">&#9650;</span></th>
+          <th data-key="id" data-type="string">Template ID <span class="arrow">&#9650;</span></th>
+          <th data-key="created_ts" data-type="number">Created <span class="arrow">&#9650;</span></th>
+          <th data-key="updated_ts" data-type="number">Last Updated <span class="arrow">&#9650;</span></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tableBody-globallink"></tbody>
+    </table>
+    <div class="no-results" id="noResults-globallink">No templates match your search.</div>
+  </section>
+
+  <div class="status-bar">54 templates total &middot; 39 GLNEXT &#43; 15 GlobalLink &middot; All sizes, pages &amp; edit links confirmed &middot; TransPerfect Canva Team Account &middot; 2 flagged as mixed-size multi-page files</div>
+
+  <footer>
+    Sizes and page counts confirmed via Canva API (create-design-from-brand-template &rarr; get-design-pages) &middot; All data hardcoded for standalone sharing via Teams/SharePoint &middot; No live fetches required.
+  </footer>
+
+</div>
+
+<script>
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function initSection(sectionKey, data) {
+  let currentSort = { key: 'title', dir: 1 };
+  let filtered = data.slice();
+
+  const tbody = document.getElementById('tableBody-' + sectionKey);
+  const noResults = document.getElementById('noResults-' + sectionKey);
+  const visibleCount = document.getElementById('visibleCount-' + sectionKey);
+  const searchInput = document.getElementById('searchInput-' + sectionKey);
+  const exportBtn = document.getElementById('exportBtn-' + sectionKey);
+  const table = document.getElementById('templateTable-' + sectionKey);
+
+  function renderRows(rows) {
+    if (rows.length === 0) {
+      tbody.innerHTML = '';
+      noResults.style.display = 'block';
+    } else {
+      noResults.style.display = 'none';
+      tbody.innerHTML = rows.map(r => `
+        <tr class="${r.mixed ? 'mixed-row' : ''}">
+          <td class="name">${escapeHtml(r.title)}</td>
+          <td class="size">${r.w}&times;${r.h}${r.mixed ? ' <span class="flag" title="Multi-page file with mixed formats &mdash; page 1 size shown">*</span>' : ''}</td>
+          <td class="pages">${r.pages}</td>
+          <td class="id">${r.id}</td>
+          <td class="date">${r.created}</td>
+          <td class="date">${r.updated}</td>
+          <td class="action"><a class="edit-btn" href="${r.url}" target="_blank" rel="noopener">Edit in Canva &rarr;</a></td>
+        </tr>
+      `).join('');
+    }
+    visibleCount.textContent = `Showing ${rows.length} of ${data.length}`;
+  }
+
+  function applySort() {
+    const { key, dir } = currentSort;
+    filtered.sort((a, b) => {
+      let av = a[key], bv = b[key];
+      if (typeof av === 'string') { av = av.toLowerCase(); bv = bv.toLowerCase(); }
+      if (av < bv) return -1 * dir;
+      if (av > bv) return 1 * dir;
+      return 0;
+    });
+    renderRows(filtered);
+  }
+
+  function applyFilter() {
+    const q = searchInput.value.trim().toLowerCase();
+    filtered = data.filter(r =>
+      r.title.toLowerCase().includes(q) ||
+      (r.w + 'x' + r.h).toLowerCase().includes(q) ||
+      r.id.toLowerCase().includes(q)
+    );
+    applySort();
+  }
+
+  table.querySelectorAll('thead th[data-key]').forEach(th => {
+    th.addEventListener('click', () => {
+      const key = th.getAttribute('data-key');
+      if (currentSort.key === key) {
+        currentSort.dir *= -1;
+      } else {
+        currentSort.key = key;
+        currentSort.dir = 1;
+      }
+      table.querySelectorAll('thead th').forEach(t => t.classList.remove('sorted'));
+      th.classList.add('sorted');
+      table.querySelectorAll('thead th .arrow').forEach(a => a.innerHTML = '&#9650;');
+      if (currentSort.dir === -1) th.querySelector('.arrow').innerHTML = '&#9660;';
+      applySort();
+    });
+  });
+
+  searchInput.addEventListener('input', applyFilter);
+
+  exportBtn.addEventListener('click', () => {
+    const headers = ['Template Name','Width','Height','Mixed Sizes','Pages','Template ID','Created','Last Updated','Edit URL'];
+    const lines = [headers.join(',')];
+    filtered.forEach(r => {
+      const row = [
+        `"${r.title.replace(/"/g,'""')}"`,
+        r.w, r.h, r.mixed ? 'Yes' : 'No', r.pages, r.id, r.created, r.updated, r.url
+      ];
+      lines.push(row.join(','));
+    });
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = sectionKey + '-template-inventory.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  applySort();
+}
+
+initSection('glnext', [{"id": "EAHMARZY8YQ", "title": "CM GLNEXT Sponsorship 26_USA", "w": 816, "h": 1056, "pages": 15, "created_at": 1780938006, "updated_at": 1780938094, "created": "Jun 8, 2026", "updated": "Jun 8, 2026", "created_ts": 1780938006, "updated_ts": 1780938094, "url": "https://www.canva.com/design?create=true&template=EAHMARZY8YQ", "mixed": false}, {"id": "EAGmDWU6ixg", "title": "GL NEXT App Icon", "w": 1024, "h": 1024, "pages": 4, "created_at": 1726248299, "updated_at": 1772735061, "created": "Sep 13, 2024", "updated": "Mar 5, 2026", "created_ts": 1726248299, "updated_ts": 1772735061, "url": "https://www.canva.com/design?create=true&template=EAGmDWU6ixg", "mixed": false}, {"id": "EAGmDZzZPkA", "title": "GLNEXT App 1025x500", "w": 1025, "h": 500, "pages": 1, "created_at": 1716581081, "updated_at": 1772734910, "created": "May 24, 2024", "updated": "Mar 5, 2026", "created_ts": 1716581081, "updated_ts": 1772734910, "url": "https://www.canva.com/design?create=true&template=EAGmDZzZPkA", "mixed": false}, {"id": "EAHDGZoeSxM", "title": "GLNEXT Sponsorship 26_USA", "w": 816, "h": 1056, "pages": 13, "created_at": 1772730747, "updated_at": 1772730853, "created": "Mar 5, 2026", "updated": "Mar 5, 2026", "created_ts": 1772730747, "updated_ts": 1772730853, "url": "https://www.canva.com/design?create=true&template=EAHDGZoeSxM", "mixed": false}, {"id": "EAGmDSaF3EI", "title": "GLNEXT App 1125x2036", "w": 1125, "h": 2036, "pages": 1, "created_at": 1716581008, "updated_at": 1772734771, "created": "May 24, 2024", "updated": "Mar 5, 2026", "created_ts": 1716581008, "updated_ts": 1772734771, "url": "https://www.canva.com/design?create=true&template=EAGmDSaF3EI", "mixed": false}, {"id": "EAGmDb3_UAE", "title": "GLNEXT App 1080x1920", "w": 1080, "h": 1920, "pages": 1, "created_at": 1716580909, "updated_at": 1772734591, "created": "May 24, 2024", "updated": "Mar 5, 2026", "created_ts": 1716580909, "updated_ts": 1772734591, "url": "https://www.canva.com/design?create=true&template=EAGmDb3_UAE", "mixed": false}, {"id": "EAHB_DEXvUo", "title": "GLNEXT Client Session Recaps w/ QR codes", "w": 816, "h": 1056, "pages": 6, "created_at": 1771707130, "updated_at": 1771707217, "created": "Feb 21, 2026", "updated": "Feb 21, 2026", "created_ts": 1771707130, "updated_ts": 1771707217, "url": "https://www.canva.com/design?create=true&template=EAHB_DEXvUo", "mixed": false}, {"id": "EAHDGN52_Vs", "title": "GL NEXT General Email Header Variations", "w": 2500, "h": 834, "pages": 15, "created_at": 1772728156, "updated_at": 1773683175, "mixed": true, "created": "Mar 5, 2026", "updated": "Mar 16, 2026", "created_ts": 1772728156, "updated_ts": 1773683175, "url": "https://www.canva.com/design?create=true&template=EAHDGN52_Vs"}, {"id": "EAHDGIq1eP8", "title": "GLNEXT 26 Social Templates", "w": 1200, "h": 628, "pages": 39, "created_at": 1772728032, "updated_at": 1773670129, "created": "Mar 5, 2026", "updated": "Mar 16, 2026", "created_ts": 1772728032, "updated_ts": 1773670129, "url": "https://www.canva.com/design?create=true&template=EAHDGIq1eP8", "mixed": false}, {"id": "EAHDGMVAKZo", "title": "GLNEXT 2026 Email Footer", "w": 800, "h": 250, "pages": 5, "created_at": 1772728109, "updated_at": 1773323950, "created": "Mar 5, 2026", "updated": "Mar 12, 2026", "created_ts": 1772728109, "updated_ts": 1773323950, "url": "https://www.canva.com/design?create=true&template=EAHDGMVAKZo", "mixed": false}, {"id": "EAGmDaTuoYA", "title": "GLNEXT App 1280x1920", "w": 1280, "h": 1920, "pages": 1, "created_at": 1716580632, "updated_at": 1772734690, "created": "May 24, 2024", "updated": "Mar 5, 2026", "created_ts": 1716580632, "updated_ts": 1772734690, "url": "https://www.canva.com/design?create=true&template=EAGmDaTuoYA", "mixed": false}, {"id": "EAHDMZdJe3M", "title": "GLNEXT USA Direct Mailer Post Card", "w": 528, "h": 408, "pages": 4, "created_at": 1772816925, "updated_at": 1773333481, "created": "Mar 6, 2026", "updated": "Mar 12, 2026", "created_ts": 1772816925, "updated_ts": 1773333481, "url": "https://www.canva.com/design?create=true&template=EAHDMZdJe3M", "mixed": false}, {"id": "EAGmDcrF-sc", "title": "GLNEXT USA Direct Mailer Post Card", "w": 528, "h": 408, "pages": 2, "created_at": 1722518439, "updated_at": 1745966907, "created": "Aug 1, 2024", "updated": "Apr 29, 2025", "created_ts": 1722518439, "updated_ts": 1745966907, "url": "https://www.canva.com/design?create=true&template=EAGmDcrF-sc", "mixed": false}, {"id": "EAHDGqkSrh0", "title": "GL NEXT_app_homeimage", "w": 1080, "h": 3500, "pages": 1, "created_at": 1772733768, "updated_at": 1772733831, "created": "Mar 5, 2026", "updated": "Mar 5, 2026", "created_ts": 1772733768, "updated_ts": 1772733831, "url": "https://www.canva.com/design?create=true&template=EAHDGqkSrh0", "mixed": false}, {"id": "EAGmDa-PX9I", "title": "GLNEXT 24 Social Templates", "w": 1200, "h": 628, "pages": 22, "created_at": 1711641222, "updated_at": 1745967405, "created": "Mar 28, 2024", "updated": "Apr 29, 2025", "created_ts": 1711641222, "updated_ts": 1745967405, "url": "https://www.canva.com/design?create=true&template=EAGmDa-PX9I", "mixed": false}, {"id": "EAHEIkFIdEE", "title": "GLNEXT Social Templates", "w": 1200, "h": 628, "pages": 23, "created_at": 1773684107, "updated_at": 1773684213, "created": "Mar 16, 2026", "updated": "Mar 16, 2026", "created_ts": 1773684107, "updated_ts": 1773684213, "url": "https://www.canva.com/design?create=true&template=EAHEIkFIdEE", "mixed": false}, {"id": "EAHEIlUNd5M", "title": "GL NEXT General Email Header Variations", "w": 2500, "h": 834, "pages": 8, "created_at": 1773684284, "updated_at": 1773684352, "mixed": true, "created": "Mar 16, 2026", "updated": "Mar 16, 2026", "created_ts": 1773684284, "updated_ts": 1773684352, "url": "https://www.canva.com/design?create=true&template=EAHEIlUNd5M"}, {"id": "EAHEIqmyo1s", "title": "GLNEXT Email Footers", "w": 800, "h": 250, "pages": 5, "created_at": 1773684473, "updated_at": 1773684552, "created": "Mar 16, 2026", "updated": "Mar 16, 2026", "created_ts": 1773684473, "updated_ts": 1773684552, "url": "https://www.canva.com/design?create=true&template=EAHEIqmyo1s", "mixed": false}, {"id": "EAGmDb2vy44", "title": "GL NEXT_app_homeimage", "w": 1080, "h": 3500, "pages": 1, "created_at": 1716583199, "updated_at": 1745966899, "created": "May 24, 2024", "updated": "Apr 29, 2025", "created_ts": 1716583199, "updated_ts": 1745966899, "url": "https://www.canva.com/design?create=true&template=EAGmDb2vy44", "mixed": false}, {"id": "EAGmDdYNdZo", "title": "GLNEXT Email Footer", "w": 800, "h": 250, "pages": 3, "created_at": 1687186847, "updated_at": 1745967346, "created": "Jun 19, 2023", "updated": "Apr 29, 2025", "created_ts": 1687186847, "updated_ts": 1745967346, "url": "https://www.canva.com/design?create=true&template=EAGmDdYNdZo", "mixed": false}, {"id": "EAGmDZ9_OOQ", "title": "GLNEXT Sponsorship 24_USA", "w": 816, "h": 1056, "pages": 8, "created_at": 1708351641, "updated_at": 1745967282, "created": "Feb 19, 2024", "updated": "Apr 29, 2025", "created_ts": 1708351641, "updated_ts": 1745967282, "url": "https://www.canva.com/design?create=true&template=EAGmDZ9_OOQ", "mixed": false}, {"id": "EAHCJnSsSA0", "title": "GL Next Ads", "w": 1024, "h": 1024, "pages": 16, "created_at": 1771855895, "updated_at": 1771855996, "created": "Feb 23, 2026", "updated": "Feb 23, 2026", "created_ts": 1771855895, "updated_ts": 1771855996, "url": "https://www.canva.com/design?create=true&template=EAHCJnSsSA0", "mixed": false}, {"id": "EAGmDT2Vx_c", "title": "GL Next Ads", "w": 1024, "h": 1024, "pages": 16, "created_at": 1716909783, "updated_at": 1745966764, "created": "May 28, 2024", "updated": "Apr 29, 2025", "created_ts": 1716909783, "updated_ts": 1745966764, "url": "https://www.canva.com/design?create=true&template=EAGmDT2Vx_c", "mixed": false}, {"id": "EAHB_T6omP4", "title": "Copy of GLNEXT Email Footer", "w": 800, "h": 250, "pages": 3, "created_at": 1771707601, "updated_at": 1771707674, "created": "Feb 21, 2026", "updated": "Feb 21, 2026", "created_ts": 1771707601, "updated_ts": 1771707674, "url": "https://www.canva.com/design?create=true&template=EAHB_T6omP4", "mixed": false}, {"id": "EAHB_DF6H0E", "title": "GL 25 Schedule template (A4)", "w": 794, "h": 1123, "pages": 2, "created_at": 1771707306, "updated_at": 1771707374, "created": "Feb 21, 2026", "updated": "Feb 21, 2026", "created_ts": 1771707306, "updated_ts": 1771707374, "url": "https://www.canva.com/design?create=true&template=EAHB_DF6H0E", "mixed": false}, {"id": "EAGmDeGpsdw", "title": "GLNEXT 24 NYC PPT Template", "w": 1920, "h": 1080, "pages": 14, "created_at": 1711113967, "updated_at": 1745967284, "created": "Mar 22, 2024", "updated": "Apr 29, 2025", "created_ts": 1711113967, "updated_ts": 1745967284, "url": "https://www.canva.com/design?create=true&template=EAGmDeGpsdw", "mixed": false}, {"id": "EAGmDc0e3X0", "title": "GLNEXT 23 Social Templates", "w": 1200, "h": 628, "pages": 24, "created_at": 1689598184, "updated_at": 1745966936, "created": "Jul 17, 2023", "updated": "Apr 29, 2025", "created_ts": 1689598184, "updated_ts": 1745966936, "url": "https://www.canva.com/design?create=true&template=EAGmDc0e3X0", "mixed": false}, {"id": "EAGmDVI-Ob4", "title": "GLNEXT Email Footer NYC2024", "w": 800, "h": 250, "pages": 2, "created_at": 1711054934, "updated_at": 1745967299, "created": "Mar 21, 2024", "updated": "Apr 29, 2025", "created_ts": 1711054934, "updated_ts": 1745967299, "url": "https://www.canva.com/design?create=true&template=EAGmDVI-Ob4", "mixed": false}, {"id": "EAGmDddyQHs", "title": "2024 GLNEXT USA EMEA (2200 x 550 px)", "w": 2200, "h": 550, "pages": 2, "created_at": 1725469479, "updated_at": 1745967272, "created": "Sep 4, 2024", "updated": "Apr 29, 2025", "created_ts": 1725469479, "updated_ts": 1745967272, "url": "https://www.canva.com/design?create=true&template=EAGmDddyQHs", "mixed": false}, {"id": "EAGmDVaYmNc", "title": "2024 GLNEXT USA EMEA (1200 x 200 px)", "w": 1200, "h": 200, "pages": 5, "created_at": 1722518471, "updated_at": 1745967032, "created": "Aug 1, 2024", "updated": "Apr 29, 2025", "created_ts": 1722518471, "updated_ts": 1745967032, "url": "https://www.canva.com/design?create=true&template=EAGmDVaYmNc", "mixed": false}, {"id": "EAGmDbIoucQ", "title": "GLNEXT SF Quotes", "w": 1080, "h": 1080, "pages": 1, "created_at": 1689598667, "updated_at": 1745966883, "created": "Jul 17, 2023", "updated": "Apr 29, 2025", "created_ts": 1689598667, "updated_ts": 1745966883, "url": "https://www.canva.com/design?create=true&template=EAGmDbIoucQ", "mixed": false}, {"id": "EAGmDaMMS_M", "title": "GLNEXT 23 Social Templates", "w": 1200, "h": 628, "pages": 12, "created_at": 1691424202, "updated_at": 1745966947, "created": "Aug 7, 2023", "updated": "Apr 29, 2025", "created_ts": 1691424202, "updated_ts": 1745966947, "url": "https://www.canva.com/design?create=true&template=EAGmDaMMS_M", "mixed": false}, {"id": "EAGmDW2xDb8", "title": "GLNEXT EMEA Direct Mailer Post Card_FINAL", "w": 528, "h": 408, "pages": 2, "created_at": 1691583459, "updated_at": 1745967376, "created": "Aug 9, 2023", "updated": "Apr 29, 2025", "created_ts": 1691583459, "updated_ts": 1745967376, "url": "https://www.canva.com/design?create=true&template=EAGmDW2xDb8", "mixed": false}, {"id": "EAGmDScY9CU", "title": "GLNEXT 23 Blast Sections", "w": 600, "h": 500, "pages": 2, "created_at": 1679674874, "updated_at": 1745967306, "created": "Mar 24, 2023", "updated": "Apr 29, 2025", "created_ts": 1679674874, "updated_ts": 1745967306, "url": "https://www.canva.com/design?create=true&template=EAGmDScY9CU", "mixed": false}, {"id": "EAGmDQHhaXI", "title": "GLNEXT USA Social Media Post", "w": 1200, "h": 627, "pages": 1, "created_at": 1692124993, "updated_at": 1745966865, "created": "Aug 15, 2023", "updated": "Apr 29, 2025", "created_ts": 1692124993, "updated_ts": 1745966865, "url": "https://www.canva.com/design?create=true&template=EAGmDQHhaXI", "mixed": false}, {"id": "EAGmDaNpy-Y", "title": "GLNEXT EVENT Screens", "w": 1920, "h": 1080, "pages": 10, "created_at": 1695247084, "updated_at": 1745967359, "created": "Sep 20, 2023", "updated": "Apr 29, 2025", "created_ts": 1695247084, "updated_ts": 1745967359, "url": "https://www.canva.com/design?create=true&template=EAGmDaNpy-Y", "mixed": false}, {"id": "EAGmDUjVPWg", "title": "GLNEXT GL Homepage Banner", "w": 1500, "h": 600, "pages": 1, "created_at": 1690488273, "updated_at": 1745967012, "created": "Jul 27, 2023", "updated": "Apr 29, 2025", "created_ts": 1690488273, "updated_ts": 1745967012, "url": "https://www.canva.com/design?create=true&template=EAGmDUjVPWg", "mixed": false}, {"id": "EAGmDQRYKrE", "title": "GLNEXT USA Save The Date", "w": 1200, "h": 627, "pages": 7, "created_at": 1708550211, "updated_at": 1745966920, "created": "Feb 21, 2024", "updated": "Apr 29, 2025", "created_ts": 1708550211, "updated_ts": 1745966920, "url": "https://www.canva.com/design?create=true&template=EAGmDQRYKrE", "mixed": false}, {"id": "EAGmDWpcjL8", "title": "GLNEXT 570x570 NYC2024", "w": 570, "h": 570, "pages": 1, "created_at": 1715115857, "updated_at": 1745967388, "created": "May 7, 2024", "updated": "Apr 29, 2025", "created_ts": 1715115857, "updated_ts": 1745967388, "url": "https://www.canva.com/design?create=true&template=EAGmDWpcjL8", "mixed": false}]);
+initSection('globallink', [{"id": "EAHMqsfxEJo", "title": "GL Test Case Study 2026", "w": 816, "h": 1056, "pages": 1, "created_at": 1781549482, "updated_at": 1781550675, "created": "Jun 15, 2026", "updated": "Jun 15, 2026", "created_ts": 1781549482, "updated_ts": 1781550675, "url": "https://www.canva.com/design?create=true&template=EAHMqsfxEJo", "mixed": false}, {"id": "EAHMSpLab-o", "title": "TP GL Client Spotlight 2026 v1", "w": 816, "h": 1056, "pages": 1, "created_at": 1781202198, "updated_at": 1781207005, "created": "Jun 11, 2026", "updated": "Jun 11, 2026", "created_ts": 1781202198, "updated_ts": 1781207005, "url": "https://www.canva.com/design?create=true&template=EAHMSpLab-o", "mixed": false}, {"id": "EAHDGLJMWe4", "title": "GlobalLink Social Banners Square 2026", "w": 1200, "h": 1200, "pages": 21, "created_at": 1772728229, "updated_at": 1773676171, "created": "Mar 5, 2026", "updated": "Mar 16, 2026", "created_ts": 1772728229, "updated_ts": 1773676171, "url": "https://www.canva.com/design?create=true&template=EAHDGLJMWe4", "mixed": false}, {"id": "EAHEIoWWt2o", "title": "GlobalLink Social Banners Square", "w": 1200, "h": 1200, "pages": 13, "created_at": 1773686922, "updated_at": 1773687016, "created": "Mar 16, 2026", "updated": "Mar 16, 2026", "created_ts": 1773686922, "updated_ts": 1773687016, "url": "https://www.canva.com/design?create=true&template=EAHEIoWWt2o", "mixed": false}, {"id": "EAGmDfMLu_k", "title": "GlobalLink - LinkedIn Banner Header", "w": 1584, "h": 396, "pages": 4, "created_at": 1730147379, "updated_at": 1745966805, "created": "Oct 28, 2024", "updated": "Apr 29, 2025", "created_ts": 1730147379, "updated_ts": 1745966805, "url": "https://www.canva.com/design?create=true&template=EAGmDfMLu_k", "mixed": false}, {"id": "EAGmDfsD5nw", "title": "GlobalLink Web - How Leading Retailers Guide - LinkedIn", "w": 1080, "h": 1080, "pages": 7, "created_at": 1729624081, "updated_at": 1745966815, "created": "Oct 22, 2024", "updated": "Apr 29, 2025", "created_ts": 1729624081, "updated_ts": 1745966815, "url": "https://www.canva.com/design?create=true&template=EAGmDfsD5nw", "mixed": false}, {"id": "EAGmDcur_sw", "title": "GlobalLink OH Social Posts", "w": 1080, "h": 1080, "pages": 6, "created_at": 1728580667, "updated_at": 1745967411, "created": "Oct 10, 2024", "updated": "Apr 29, 2025", "created_ts": 1728580667, "updated_ts": 1745967411, "url": "https://www.canva.com/design?create=true&template=EAGmDcur_sw", "mixed": false}, {"id": "EAGmDeltMVA", "title": "GlobalLink - G2 - Organic Posts", "w": 1080, "h": 1080, "pages": 7, "created_at": 1729188299, "updated_at": 1745967388, "created": "Oct 17, 2024", "updated": "Apr 29, 2025", "created_ts": 1729188299, "updated_ts": 1745967388, "url": "https://www.canva.com/design?create=true&template=EAGmDeltMVA", "mixed": false}, {"id": "EAGmDanvRhU", "title": "GlobalLink - Website Localization Playbook LinkedIn Post", "w": 1080, "h": 1080, "pages": 6, "created_at": 1729886063, "updated_at": 1745966799, "created": "Oct 25, 2024", "updated": "Apr 29, 2025", "created_ts": 1729886063, "updated_ts": 1745966799, "url": "https://www.canva.com/design?create=true&template=EAGmDanvRhU", "mixed": false}, {"id": "EAGmDcDciZ0", "title": "TranServices 1 \u2013 GL Go", "w": 1080, "h": 1080, "pages": 2, "created_at": 1689288490, "updated_at": 1745967342, "created": "Jul 13, 2023", "updated": "Apr 29, 2025", "created_ts": 1689288490, "updated_ts": 1745967342, "url": "https://www.canva.com/design?create=true&template=EAGmDcDciZ0", "mixed": false}, {"id": "EAGmDWRjBdU", "title": "Tweet Recreation \u2013 GL Go", "w": 1080, "h": 1080, "pages": 1, "created_at": 1689288501, "updated_at": 1745967330, "created": "Jul 13, 2023", "updated": "Apr 29, 2025", "created_ts": 1689288501, "updated_ts": 1745967330, "url": "https://www.canva.com/design?create=true&template=EAGmDWRjBdU", "mixed": false}, {"id": "EAGmDTuCCKg", "title": "Basic Headline \u2013 GL Go", "w": 1080, "h": 1080, "pages": 1, "created_at": 1689288463, "updated_at": 1745966694, "created": "Jul 13, 2023", "updated": "Apr 29, 2025", "created_ts": 1689288463, "updated_ts": 1745966694, "url": "https://www.canva.com/design?create=true&template=EAGmDTuCCKg", "mixed": false}, {"id": "EAGmDcNBHWM", "title": "Holiday \u2013 GL Go", "w": 1080, "h": 1080, "pages": 1, "created_at": 1689288470, "updated_at": 1745967219, "created": "Jul 13, 2023", "updated": "Apr 29, 2025", "created_ts": 1689288470, "updated_ts": 1745967219, "url": "https://www.canva.com/design?create=true&template=EAGmDcNBHWM", "mixed": false}, {"id": "EAGmDazQeOI", "title": "Testimonial \u2013 GL Go", "w": 1080, "h": 1080, "pages": 1, "created_at": 1689288476, "updated_at": 1745966681, "created": "Jul 13, 2023", "updated": "Apr 29, 2025", "created_ts": 1689288476, "updated_ts": 1745966681, "url": "https://www.canva.com/design?create=true&template=EAGmDazQeOI", "mixed": false}, {"id": "EAGmDUTU8LM", "title": "TranSchool \u2013 GL Go", "w": 1080, "h": 1080, "pages": 2, "created_at": 1689288482, "updated_at": 1745966660, "created": "Jul 13, 2023", "updated": "Apr 29, 2025", "created_ts": 1689288482, "updated_ts": 1745966660, "url": "https://www.canva.com/design?create=true&template=EAGmDUTU8LM", "mixed": false}]);
+</script>
+</body>
+</html>
