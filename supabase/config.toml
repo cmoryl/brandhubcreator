@@ -234,8 +234,7 @@ verify_jwt = false
 [functions.commit-brand-logos]
 verify_jwt = false
 
-[functions.admin-update-belmond-logo]
-verify_jwt = false
+
 
 
 
