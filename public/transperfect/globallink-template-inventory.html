@@ -250,6 +250,26 @@
   }
   body.light-mode .site-header { background: linear-gradient(135deg, #5b3df0 0%, #4527d6 60%, #0a5c40 100%); }
   body.light-mode tbody tr:hover { background: #f4f1ff; }
+
+  .division-tabs {
+    display: flex; gap: 4px; padding: 0 40px;
+    background: var(--surface); border-bottom: 1px solid var(--border);
+  }
+  .division-tabs button {
+    background: transparent; border: none; border-bottom: 2px solid transparent;
+    color: var(--text-muted); padding: 12px 18px; font-size: 12.5px;
+    font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+    cursor: pointer; font-family: inherit; display: flex; gap: 8px; align-items: center;
+    transition: all 0.15s;
+  }
+  .division-tabs button:hover { color: var(--text); }
+  .division-tabs button.active { color: var(--tp-green); border-bottom-color: var(--tp-green); }
+  .division-tabs button .tab-count {
+    font-size: 10.5px; padding: 2px 7px; border-radius: 999px;
+    background: var(--surface2); color: var(--text-muted); font-weight: 600;
+    letter-spacing: 0;
+  }
+  .division-tabs button.active .tab-count { background: rgba(0,200,83,0.15); color: var(--tp-green); }
 </style>
 </head>
 <body>
