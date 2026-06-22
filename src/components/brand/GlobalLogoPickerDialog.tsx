@@ -247,7 +247,7 @@ export function GlobalLogoPickerDialog({ existingLogoNames = [], onImport, trigg
               })}
             </div>
           )}
-        </ScrollArea>
+        </div>
 
         {/* Footer */}
         <div className="flex items-center justify-between pt-3 border-t">
