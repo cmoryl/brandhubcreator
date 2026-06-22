@@ -42,6 +42,19 @@ const AUDITS = [
     icon: Database,
     accent: 'from-violet-500/20 to-fuchsia-500/20 border-violet-500/30',
   },
+  {
+    slug: '/transperfect-globallink-template-inventory',
+    title: 'GlobalLink / GLNEXT Template Inventory',
+    division: 'TransPerfect · GlobalLink',
+    description:
+      'Full GlobalLink and GLNEXT Canva template registry — naming hygiene, autofill field mapping, per-asset notes, sortable inventory, and live Canva Connect sync.',
+    stats: [
+      { label: 'Division', value: 'GlobalLink' },
+      { label: 'Product', value: 'GLNEXT' },
+    ],
+    icon: Globe,
+    accent: 'from-teal-500/20 to-indigo-500/20 border-teal-500/30',
+  },
 ];
 
 export default function TransPerfectCanvaAuditsHub() {
