@@ -60,6 +60,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { ClientLogoFile, ClientLogoVariant, ClientLogoLockup } from '@/types/brand';
 import { AddLogoDialog } from '@/components/logohub/AddLogoDialog';
+import { downloadManyLogosZip } from '@/lib/downloadLogoZip';
 
 const slugify = (s: string) =>
   s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'logo';
