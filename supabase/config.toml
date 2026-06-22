@@ -1,5 +1,9 @@
 project_id = "nhxaijbyqfkkhhoornzy"
 
+[functions.admin-update-logo-batch-v2]
+verify_jwt = false
+
+
 [functions.brand-audit]
 verify_jwt = false
 
