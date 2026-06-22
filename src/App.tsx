@@ -524,6 +524,14 @@ const App = () => (
                       }
                     />
                     <Route
+                      path="transperfect-globallink-template-inventory"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <TransPerfectGlobalLinkTemplateInventory />
+                        </Suspense>
+                      }
+                    />
+                    <Route
                       path="brand-canva-audits"
                       element={
                         <Suspense fallback={<PageSkeleton />}>
