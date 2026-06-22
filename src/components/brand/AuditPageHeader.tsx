@@ -1,4 +1,5 @@
-import { ExternalLink, Sun, Moon } from 'lucide-react';
+import { ExternalLink, Sun, Moon, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 
 interface AuditPageHeaderProps {
@@ -8,6 +9,8 @@ interface AuditPageHeaderProps {
   downloadName: string;
   theme: 'dark' | 'light';
   onToggleTheme: () => void;
+  backHref?: string;
+  backLabel?: string;
 }
 
 /**
@@ -23,15 +26,31 @@ export function AuditPageHeader({
   downloadName,
   theme,
   onToggleTheme,
+  backHref = '/transperfect-canva-audits',
+  backLabel = 'Brand Canva Audits',
 }: AuditPageHeaderProps) {
   const isLight = theme === 'light';
   const themeLabel = isLight ? 'Switch to dark mode' : 'Switch to light mode';
 
   return (
     <div className="flex flex-col gap-2 border-b bg-card/50 px-3 py-2 shrink-0 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-4 sm:py-3">
-      <div className="min-w-0">
-        <h1 className="truncate text-sm font-semibold">{title}</h1>
-        <p className="truncate text-xs text-muted-foreground">{subtitle}</p>
+      <div className="flex items-center gap-2 min-w-0">
+        <Button
+          asChild
+          variant="ghost"
+          size="sm"
+          className="shrink-0 h-8 px-2 text-xs text-muted-foreground hover:text-foreground"
+          title={`Back to ${backLabel}`}
+        >
+          <Link to={backHref} aria-label={`Back to ${backLabel}`}>
+            <ArrowLeft className="h-3.5 w-3.5 sm:mr-1.5" />
+            <span className="hidden sm:inline">{backLabel}</span>
+          </Link>
+        </Button>
+        <div className="min-w-0">
+          <h1 className="truncate text-sm font-semibold">{title}</h1>
+          <p className="truncate text-xs text-muted-foreground">{subtitle}</p>
+        </div>
       </div>
 
       <div className="flex items-center gap-1 sm:gap-2">
