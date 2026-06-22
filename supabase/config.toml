@@ -4,6 +4,9 @@ project_id = "nhxaijbyqfkkhhoornzy"
 
 
 
+[functions.brand-kit-harvester]
+verify_jwt = false
+
 [functions.brand-audit]
 verify_jwt = false
 
