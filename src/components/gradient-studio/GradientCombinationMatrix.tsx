@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { Plus, Trash2, Sparkles, X } from "lucide-react";
+import { Plus, Trash2, Sparkles, X, ChevronDown, ChevronUp } from "lucide-react";
+import { GradientComponentPreview } from "./GradientComponentPreview";
 import {
   generateCombinations,
   DEFAULT_BRAND_PALETTE,
