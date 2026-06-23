@@ -1,11 +1,23 @@
-import { useState } from 'react';
-import { Plus, X, Pencil, Copy, Check, Sparkles, Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { GradientExportPanel } from '@/components/gradient-studio/GradientExportPanel';
+import type { StudioGradient } from '@/lib/gradientStudio';
+import { Plus, X, Pencil, Copy, Check, Sparkles, Loader2, Wand2, ExternalLink } from 'lucide-react';
 import { BrandGradient, BrandColor, LayoutPreset } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { SectionHeader } from './SectionHeader';
 import { LayoutSelector, useLayoutClasses } from './LayoutSelector';
 import { GradientEditor } from './GradientEditor';
 import { GradientAccessibilityBadge } from './GradientAccessibilityBadge';
+import { GradientStudioEditor } from '@/components/gradient-studio/GradientStudioEditor';
+import { GradientPreview } from '@/components/gradient-studio/GradientPreview';
+import {
+  createStudioGradient,
+  extractStudioGradient,
+  serializeWithMeta,
+  stripStudioMeta,
+} from '@/lib/gradientStudio';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -32,10 +44,20 @@ export const GradientsSection = ({
   brandColors 
 }: GradientsSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [studioId, setStudioId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const { gridClass, cardClass, isListView } = useLayoutClasses(layout);
+  const palette = (brandColors ?? []).map((c) => c.hex).filter(Boolean);
+  const studioGradient = studioId
+    ? (() => {
+        const g = gradients.find((x) => x.id === studioId);
+        if (!g) return null;
+        const parsed = extractStudioGradient(g.css);
+        return parsed ?? createStudioGradient({ id: g.id, name: g.name });
+      })()
+    : null;
 
   const addGradient = () => {
     const newGradient: BrandGradient = {
@@ -147,6 +169,17 @@ export const GradientsSection = ({
                 <span className="hidden sm:inline">Add Gradient</span>
                 <span className="sm:hidden">Add</span>
               </Button>
+              <Button asChild size="sm" variant="outline" className="gap-2 ml-auto">
+                <Link
+                  to={`/gradient-studio${palette.length ? `?palette=${encodeURIComponent(palette.join(','))}` : ''}`}
+                  target="_blank"
+                  rel="noopener"
+                >
+                  <Wand2 className="h-4 w-4" />
+                  <span className="hidden sm:inline">Open Gradient Studio</span>
+                  <ExternalLink className="h-3 w-3" />
+                </Link>
+              </Button>
             </>
           )}
       </div>
@@ -158,12 +191,18 @@ export const GradientsSection = ({
             className="group relative bg-card rounded-xl overflow-hidden shadow-sm border border-border animate-scale-in"
             style={{ animationDelay: `${index * 50}ms` }}
           >
-          {/* Gradient preview */}
-          <div
-            className={`${isListView ? 'w-24 h-full' : 'h-32'} relative cursor-pointer`}
-            style={{ background: gradient.css }}
-            onClick={() => copyCSS(gradient.css, gradient.id)}
-          >
+          {/* Gradient preview (Studio-aware when GS metadata is present) */}
+          {(() => {
+            const studio = extractStudioGradient(gradient.css);
+            return (
+              <div
+                className={`${isListView ? 'w-24 h-full' : 'h-32'} relative cursor-pointer`}
+                style={studio ? undefined : { background: stripStudioMeta(gradient.css) }}
+                onClick={() => copyCSS(stripStudioMeta(gradient.css), gradient.id)}
+              >
+                {studio && (
+                  <GradientPreview gradient={studio} className="absolute inset-0" />
+                )}
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30">
                 {copiedId === gradient.id ? (
                   <div className="flex items-center gap-1 text-white text-sm font-medium">
@@ -185,6 +224,8 @@ export const GradientsSection = ({
                 <X className="h-3.5 w-3.5" />
               </button>
             </div>
+            );
+          })()}
 
             {/* Gradient info */}
             <div className="p-4 space-y-3">
@@ -201,18 +242,28 @@ export const GradientsSection = ({
                   <div className="flex items-start justify-between">
                     <div>
                       <h3 className="font-medium text-foreground">{gradient.name}</h3>
-                      <p className="text-xs font-mono text-muted-foreground mt-1 truncate max-w-[180px]">{gradient.css}</p>
+                      <p className="text-xs font-mono text-muted-foreground mt-1 truncate max-w-[180px]">{stripStudioMeta(gradient.css)}</p>
                     </div>
-                    <button
-                      onClick={() => setEditingId(gradient.id)}
-                      className="p-1.5 rounded-md hover:bg-secondary transition-colors"
-                    >
-                      <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => setStudioId(gradient.id)}
+                        title="Open in Gradient Studio"
+                        className="p-1.5 rounded-md hover:bg-secondary transition-colors"
+                      >
+                        <Wand2 className="h-3.5 w-3.5 text-muted-foreground" />
+                      </button>
+                      <button
+                        onClick={() => setEditingId(gradient.id)}
+                        title="Quick edit"
+                        className="p-1.5 rounded-md hover:bg-secondary transition-colors"
+                      >
+                        <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                      </button>
+                    </div>
                   </div>
                   {/* OKLCH Accessibility Badge */}
                   <div className="pt-2 border-t border-border">
-                    <GradientAccessibilityBadge css={gradient.css} />
+                    <GradientAccessibilityBadge css={stripStudioMeta(gradient.css)} />
                   </div>
                 </>
               )}
@@ -230,6 +281,69 @@ export const GradientsSection = ({
           </button>
         )}
       </div>
+
+      {/* Studio dialog — full editor for the selected gradient */}
+      <StudioDialog
+        open={!!studioId}
+        gradient={studioGradient}
+        palette={palette}
+        onClose={() => setStudioId(null)}
+        onSave={(g) => {
+          if (!studioId) return;
+          updateGradient(studioId, { name: g.name, css: serializeWithMeta(g) });
+          setStudioId(null);
+        }}
+      />
     </section>
+  );
+};
+
+/* -------------------------------------------------------------------------- */
+/* Studio dialog                                                              */
+/* -------------------------------------------------------------------------- */
+
+
+interface StudioDialogProps {
+  open: boolean;
+  gradient: StudioGradient | null;
+  palette: string[];
+  onClose: () => void;
+  onSave: (g: StudioGradient) => void;
+}
+
+const StudioDialog = ({ open, gradient, palette, onClose, onSave }: StudioDialogProps) => {
+  const [draft, setDraft] = useState<StudioGradient | null>(gradient);
+  useEffect(() => { setDraft(gradient); }, [gradient]);
+
+  if (!draft) return null;
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-5xl max-h-[92vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Gradient Studio</DialogTitle>
+        </DialogHeader>
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
+          <div className="space-y-3">
+            <GradientPreview
+              gradient={draft}
+              className="w-full rounded-lg border border-border"
+              style={{ aspectRatio: '16 / 10' }}
+            />
+            <div className="bg-muted/30 border border-border rounded-lg p-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Export</h3>
+              <GradientExportPanel gradient={draft} />
+            </div>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-3">
+            <GradientStudioEditor gradient={draft} onChange={setDraft} palette={palette} />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button onClick={() => onSave(draft)}>Save</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };

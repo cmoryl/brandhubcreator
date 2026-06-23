@@ -114,6 +114,7 @@ const PublicLogoHubBrandAudit = lazyWithRetry(() => import("./pages/PublicLogoHu
 const PublicLogoHubSvgAudit = lazyWithRetry(() => import("./pages/PublicLogoHubSvgAudit"));
 const PublicLogoHubRasterReport = lazyWithRetry(() => import("./pages/PublicLogoHubRasterReport"));
 const PublicLogoHubIconAudit = lazyWithRetry(() => import("./pages/PublicLogoHubIconAudit"));
+const GradientStudio = lazyWithRetry(() => import("./pages/GradientStudio"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -546,6 +547,14 @@ const App = () => (
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <ClaudeForDesigners />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="gradient-studio"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <GradientStudio />
                         </Suspense>
                       }
                     />
