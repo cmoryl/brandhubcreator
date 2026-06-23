@@ -141,6 +141,20 @@ const GradientStudio = () => {
             </div>
           </TabsContent>
 
+          <TabsContent value="image">
+            <div className="bg-card border border-border rounded-xl p-4 sm:p-6">
+              <div className="mb-4">
+                <h2 className="text-sm font-semibold text-foreground">Analyze a gradient image</h2>
+                <p className="text-xs text-muted-foreground">
+                  Upload a gradient screenshot or photo. We extract its palette, rebuild it as mesh &amp; linear gradients, grade each for WCAG contrast, and let admins save the result to the shared library.
+                </p>
+              </div>
+              <ImageGradientAnalyzer
+                onUseGradient={(g) => { setGradient(g); setTab("editor"); }}
+              />
+            </div>
+          </TabsContent>
+
           <TabsContent value="combinations">
             <div className="bg-card border border-border rounded-xl p-4 sm:p-6">
               <div className="mb-4">
