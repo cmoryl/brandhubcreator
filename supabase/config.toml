@@ -246,3 +246,6 @@ verify_jwt = false
 
 
 
+
+[functions.replace-black-wordmark]
+verify_jwt = false
