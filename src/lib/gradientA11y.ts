@@ -59,6 +59,22 @@ export function hslToRgb(h: number, s: number, l: number): RGB {
   return { r: Math.round((r + m) * 255), g: Math.round((g + m) * 255), b: Math.round((b + m) * 255) };
 }
 
+export function rgbToHsl({ r, g, b }: RGB): { h: number; s: number; l: number } {
+  const rn = r / 255, gn = g / 255, bn = b / 255;
+  const max = Math.max(rn, gn, bn), min = Math.min(rn, gn, bn);
+  const l = (max + min) / 2;
+  if (max === min) return { h: 0, s: 0, l };
+  const d = max - min;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  let h = 0;
+  switch (max) {
+    case rn: h = ((gn - bn) / d + (gn < bn ? 6 : 0)); break;
+    case gn: h = (bn - rn) / d + 2; break;
+    case bn: h = (rn - gn) / d + 4; break;
+  }
+  return { h: h * 60, s, l };
+}
+
 export function rgbToHex({ r, g, b }: RGB): string {
   return "#" + [r, g, b].map((v) => clamp(Math.round(v)).toString(16).padStart(2, "0")).join("");
 }
