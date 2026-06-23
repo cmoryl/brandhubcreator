@@ -132,7 +132,7 @@ const GradientStudio = () => {
               </div>
               <AIGradientDesigner
                 brandPalette={palette}
-                onUseGradient={(g) => setGradient(g)}
+                onUseGradient={(g) => { setGradient(g); setTab("editor"); }}
               />
             </div>
           </TabsContent>
