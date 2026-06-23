@@ -16,54 +16,10 @@ import { scoreGradient } from "@/lib/gradientA11y";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 
-const PRESETS: { name: string; build: () => StudioGradient }[] = [
-  {
-    name: "Sunset",
-    build: () =>
-      createStudioGradient({
-        name: "Sunset",
-        type: "linear",
-        angle: 135,
-        stops: [
-          { id: crypto.randomUUID(), color: "#ff9a9e", position: 0 },
-          { id: crypto.randomUUID(), color: "#fad0c4", position: 50 },
-          { id: crypto.randomUUID(), color: "#fbc2eb", position: 100 },
-        ],
-      }),
-  },
-  {
-    name: "Aurora Mesh",
-    build: () => createStudioGradient({ name: "Aurora Mesh", type: "mesh" }),
-  },
-  {
-    name: "Conic Prism",
-    build: () =>
-      createStudioGradient({
-        name: "Conic Prism",
-        type: "conic",
-        angle: 0,
-        stops: [
-          { id: crypto.randomUUID(), color: "#ff006e", position: 0 },
-          { id: crypto.randomUUID(), color: "#8338ec", position: 33 },
-          { id: crypto.randomUUID(), color: "#3a86ff", position: 66 },
-          { id: crypto.randomUUID(), color: "#ff006e", position: 100 },
-        ],
-      }),
-  },
-  {
-    name: "Grain Field",
-    build: () =>
-      createStudioGradient({
-        name: "Grain Field",
-        type: "radial",
-        stops: [
-          { id: crypto.randomUUID(), color: "#1e3a8a", position: 0 },
-          { id: crypto.randomUUID(), color: "#0f172a", position: 100 },
-        ],
-        noise: { enabled: true, opacity: 0.22, scale: 1.1 },
-      }),
-  },
-];
+import { BRAND_PRESETS, BRAND_PRESET_GROUPS, BrandPreset } from "@/lib/transperfectPresets";
+import { toCssGradient } from "@/lib/gradientStudio";
+
+
 
 const GradientStudio = () => {
   useSEO({
@@ -78,7 +34,7 @@ const GradientStudio = () => {
       const parsed = extractStudioGradient(seed);
       if (parsed) return parsed;
     }
-    return PRESETS[0].build();
+    return BRAND_PRESETS[0].build();
   });
 
   // Brand palette (from URL ?palette=hex,hex,hex)
@@ -119,24 +75,9 @@ const GradientStudio = () => {
           </TabsList>
 
           <TabsContent value="editor" className="space-y-4">
-            {/* Presets */}
-            <div className="flex gap-2 flex-wrap">
-              {PRESETS.map((p) => (
-                <button
-                  key={p.name}
-                  onClick={() => setGradient(p.build())}
-                  className="text-xs px-3 py-1.5 rounded-full border border-border bg-card hover:bg-secondary transition-colors"
-                >
-                  {p.name}
-                </button>
-              ))}
-              <button
-                onClick={() => setGradient(createStudioGradient())}
-                className="text-xs px-3 py-1.5 rounded-full border border-dashed border-border text-muted-foreground hover:bg-secondary"
-              >
-                + Blank
-              </button>
-            </div>
+            {/* Brand presets — TransPerfect Master Brand palette, WCAG-tuned */}
+            <BrandPresetShelf onPick={setGradient} />
+
 
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
               {/* Preview + a11y + export */}
@@ -228,6 +169,110 @@ const A11ySummary = ({ gradient }: { gradient: StudioGradient }) => {
         ))}
       </div>
     </div>
+  );
+};
+
+const BrandPresetShelf = ({ onPick }: { onPick: (g: StudioGradient) => void }) => {
+  // Score each preset once to surface live AA / AAA badges.
+  const scored = useMemo(
+    () => BRAND_PRESETS.map((p) => {
+      const g = p.build();
+      return { preset: p, gradient: g, score: scoreGradient(g) };
+    }),
+    [],
+  );
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-baseline justify-between flex-wrap gap-2">
+        <div>
+          <h2 className="text-sm font-semibold text-foreground">TransPerfect brand presets</h2>
+          <p className="text-xs text-muted-foreground">
+            Built from the Master Brand palette only. Every preset is tuned to pass WCAG AA for its recommended text color.
+          </p>
+        </div>
+        <button
+          onClick={() => onPick(createStudioGradient({ name: "Untitled" }))}
+          className="text-xs px-3 py-1.5 rounded-full border border-dashed border-border text-muted-foreground hover:bg-secondary"
+        >
+          + Blank canvas
+        </button>
+      </div>
+
+      {BRAND_PRESET_GROUPS.map((group) => {
+        const items = scored.filter((s) => s.preset.group === group);
+        if (!items.length) return null;
+        return (
+          <div key={group} className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{group}</span>
+              <span className="text-[10px] text-muted-foreground">{items.length} preset{items.length === 1 ? "" : "s"}</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+              {items.map(({ preset, gradient, score }) => (
+                <PresetCard key={preset.name} preset={preset} gradient={gradient} score={score} onPick={onPick} />
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+const PresetCard = ({
+  preset, gradient, score, onPick,
+}: {
+  preset: BrandPreset;
+  gradient: StudioGradient;
+  score: ReturnType<typeof scoreGradient>;
+  onPick: (g: StudioGradient) => void;
+}) => {
+  const recommended = preset.recommendedText;
+  const ratio = recommended === "light" ? score.minRatioWhite : score.minRatioDark;
+  const level = recommended === "light" ? score.whiteLevel : score.darkLevel;
+  const tone =
+    level === "AAA" ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
+    : level === "AA" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
+    : level === "AA-Large" ? "bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-500/30"
+    : "bg-destructive/15 text-destructive border-destructive/30";
+
+  return (
+    <button
+      type="button"
+      onClick={() => onPick(preset.build())}
+      className="group text-left rounded-lg border border-border bg-card overflow-hidden hover:border-primary/60 hover:shadow-sm transition"
+    >
+      <div
+        className="relative aspect-[16/10] flex items-end p-3"
+        style={{ background: toCssGradient(gradient) }}
+      >
+        <span
+          className="text-base font-bold drop-shadow-sm"
+          style={{ color: recommended === "light" ? "#FFFFFF" : "#0A0A0A" }}
+        >
+          Aa
+        </span>
+        <span
+          className="ml-auto text-[10px] font-medium px-1.5 py-0.5 rounded"
+          style={{
+            background: recommended === "light" ? "rgba(255,255,255,0.18)" : "rgba(0,0,0,0.12)",
+            color: recommended === "light" ? "#FFFFFF" : "#0A0A0A",
+          }}
+        >
+          {recommended} text
+        </span>
+      </div>
+      <div className="p-2.5 space-y-1">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs font-semibold text-foreground truncate">{preset.name}</span>
+          <Badge variant="outline" className={`text-[10px] shrink-0 ${tone}`}>
+            {ratio.toFixed(1)} · {level}
+          </Badge>
+        </div>
+        <p className="text-[11px] text-muted-foreground line-clamp-2">{preset.description}</p>
+      </div>
+    </button>
   );
 };
 
