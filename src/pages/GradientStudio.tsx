@@ -18,6 +18,7 @@ import { ImageGradientAnalyzer } from "@/components/gradient-studio/ImageGradien
 import { scoreGradient } from "@/lib/gradientA11y";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Plus } from "lucide-react";
 
 import { BRAND_PRESETS, BRAND_PRESET_GROUPS, BrandPreset } from "@/lib/transperfectPresets";
 import { toCssGradient } from "@/lib/gradientStudio";
