@@ -581,6 +581,14 @@ const App = () => (
                       }
                     />
                     <Route
+                      path="logohub/raster-report"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <PublicLogoHubRasterReport />
+                        </Suspense>
+                      }
+                    />
+                    <Route
                       path="logohub/audit/:id"
                       element={
                         <Suspense fallback={<PageSkeleton />}>
