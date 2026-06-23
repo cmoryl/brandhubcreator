@@ -234,59 +234,116 @@ const BrandPresetShelf = ({ onPick }: { onPick: (g: StudioGradient) => void }) =
     [],
   );
 
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [shelfOpen, setShelfOpen] = useState(true);
+  const toggleGroup = (g: string) =>
+    setCollapsed((prev) => ({ ...prev, [g]: !prev[g] }));
+  const allCollapsed = BRAND_PRESET_GROUPS.every((g) => collapsed[g]);
+  const collapseAll = () => {
+    if (allCollapsed) {
+      setCollapsed({});
+    } else {
+      const next: Record<string, boolean> = {};
+      BRAND_PRESET_GROUPS.forEach((g) => { next[g] = true; });
+      setCollapsed(next);
+    }
+  };
+
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden">
       {/* Header */}
       <div className="p-3 border-b border-border flex items-center justify-between gap-2">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-              TransPerfect Brand Presets
-            </span>
-            <span className="text-[10px] text-muted-foreground/70">{BRAND_PRESETS.length}</span>
-          </div>
-          <p className="text-[11px] text-muted-foreground/80 mt-0.5">
-            Master Brand palette · tuned for WCAG AA on recommended text.
-          </p>
-        </div>
         <button
           type="button"
-          onClick={() => onPick(createStudioGradient({ name: "Untitled" }))}
-          className="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-[11px] font-medium transition-colors"
+          onClick={() => setShelfOpen((o) => !o)}
+          className="min-w-0 flex items-start gap-2 text-left group"
+          aria-expanded={shelfOpen}
         >
-          <Plus className="w-3 h-3" />
-          Blank canvas
+          <ChevronDown
+            className={`h-3.5 w-3.5 mt-0.5 text-muted-foreground transition-transform ${shelfOpen ? "" : "-rotate-90"}`}
+          />
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">
+                TransPerfect Brand Presets
+              </span>
+              <span className="text-[10px] text-muted-foreground/70">{BRAND_PRESETS.length}</span>
+            </div>
+            <p className="text-[11px] text-muted-foreground/80 mt-0.5">
+              Master Brand palette · tuned for WCAG AA on recommended text.
+            </p>
+          </div>
         </button>
+        <div className="flex items-center gap-1.5 shrink-0">
+          {shelfOpen && (
+            <button
+              type="button"
+              onClick={collapseAll}
+              className="text-[10px] font-medium text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-secondary transition-colors"
+            >
+              {allCollapsed ? "Expand all" : "Collapse all"}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => onPick(createStudioGradient({ name: "Untitled" }))}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-[11px] font-medium transition-colors"
+          >
+            <Plus className="w-3 h-3" />
+            Blank canvas
+          </button>
+        </div>
       </div>
 
       {/* Groups */}
-      <div className="p-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-5">
-        {BRAND_PRESET_GROUPS.map((group) => {
-          const items = scored.filter((s) => s.preset.group === group);
-          if (!items.length) return null;
-          return (
-            <section key={group} className="space-y-1.5">
-              <h3 className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-wider px-1">
-                {group}
-              </h3>
-              <div className="flex flex-col gap-1">
-                {items.map(({ preset, gradient, score }) => (
-                  <PresetTile
-                    key={preset.name}
-                    preset={preset}
-                    gradient={gradient}
-                    score={score}
-                    onPick={onPick}
-                  />
-                ))}
-              </div>
-            </section>
-          );
-        })}
-      </div>
+      {shelfOpen && (
+        <div className="p-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-3">
+          {BRAND_PRESET_GROUPS.map((group) => {
+            const items = scored.filter((s) => s.preset.group === group);
+            if (!items.length) return null;
+            const isCollapsed = !!collapsed[group];
+            return (
+              <section key={group} className="space-y-1.5">
+                <button
+                  type="button"
+                  onClick={() => toggleGroup(group)}
+                  className="w-full flex items-center justify-between gap-2 px-1 py-1 rounded hover:bg-secondary/60 transition-colors group/hdr"
+                  aria-expanded={!isCollapsed}
+                >
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <ChevronDown
+                      className={`h-3 w-3 text-muted-foreground/70 transition-transform ${isCollapsed ? "-rotate-90" : ""}`}
+                    />
+                    <h3 className="text-[10px] font-bold text-muted-foreground/70 group-hover/hdr:text-foreground uppercase tracking-wider truncate">
+                      {group}
+                    </h3>
+                  </div>
+                  <span className="text-[9px] font-mono text-muted-foreground/60 shrink-0">
+                    {items.length}
+                  </span>
+                </button>
+                {!isCollapsed && (
+                  <div className="flex flex-col gap-1">
+                    {items.map(({ preset, gradient, score }) => (
+                      <PresetTile
+                        key={preset.name}
+                        preset={preset}
+                        gradient={gradient}
+                        score={score}
+                        onPick={onPick}
+                      />
+                    ))}
+                  </div>
+                )}
+              </section>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };
+
 
 const PresetTile = ({
   preset, gradient, score, onPick,
