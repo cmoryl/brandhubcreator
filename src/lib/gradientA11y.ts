@@ -283,3 +283,99 @@ export const DEFAULT_BRAND_PALETTE: { name: string; hex: string; group: string }
   { name: "Light Gray", hex: "#F2F2F2", group: "Neutral" },
   { name: "Blue White", hex: "#E0E8F5", group: "Neutral" },
 ];
+
+/* ------------------ Accessible color alternative suggestions -------------- */
+
+export interface AltSuggestion {
+  hex: string;
+  ratio: number;
+  level: WcagLevel;
+  strategy: "darker" | "lighter" | "desaturated" | "neutral";
+  /** delta-E-ish perceptual distance from the original (lower = closer). */
+  distance: number;
+}
+
+const perceptualDistance = (a: RGB, b: RGB): number => {
+  // Cheap weighted RGB distance — good enough for ranking "closeness".
+  const dr = a.r - b.r, dg = a.g - b.g, db = a.b - b.b;
+  return Math.sqrt(2 * dr * dr + 4 * dg * dg + 3 * db * db);
+};
+
+const adjustLightness = (
+  baseHex: string,
+  target: RGB,
+  targetRatio: number,
+  direction: "lighter" | "darker",
+): AltSuggestion | null => {
+  const base = parseColor(baseHex);
+  const { h, s } = rgbToHsl(base);
+  const start = rgbToHsl(base).l;
+  // Walk lightness in 2% steps, max 50 iterations.
+  for (let i = 1; i <= 50; i++) {
+    const delta = (i * 0.02) * (direction === "lighter" ? 1 : -1);
+    const l = Math.max(0.02, Math.min(0.98, start + delta));
+    const rgb = hslToRgb(h, s, l);
+    const ratio = contrastRatio(rgb, target);
+    if (ratio >= targetRatio) {
+      return {
+        hex: rgbToHex(rgb),
+        ratio,
+        level: wcagLevel(ratio),
+        strategy: direction,
+        distance: perceptualDistance(base, rgb),
+      };
+    }
+  }
+  return null;
+};
+
+const desaturatedCandidate = (
+  baseHex: string,
+  target: RGB,
+  targetRatio: number,
+): AltSuggestion | null => {
+  const base = parseColor(baseHex);
+  const { h, l } = rgbToHsl(base);
+  // Drop saturation to ~20%, then adjust lightness toward whichever side helps.
+  const targetIsLight = relativeLuminance(target) > 0.5;
+  for (let i = 1; i <= 50; i++) {
+    const delta = (i * 0.02) * (targetIsLight ? -1 : 1);
+    const newL = Math.max(0.04, Math.min(0.96, l + delta));
+    const rgb = hslToRgb(h, 0.2, newL);
+    const ratio = contrastRatio(rgb, target);
+    if (ratio >= targetRatio) {
+      return {
+        hex: rgbToHex(rgb),
+        ratio,
+        level: wcagLevel(ratio),
+        strategy: "desaturated",
+        distance: perceptualDistance(base, rgb),
+      };
+    }
+  }
+  return null;
+};
+
+/**
+ * Suggest up to 3 accessible alternatives for `baseHex` so that contrast vs
+ * `targetTextHex` meets `targetRatio` (defaults to WCAG AA 4.5:1).
+ * Returned suggestions are ranked by perceptual closeness.
+ */
+export function suggestAccessibleAlternatives(
+  baseHex: string,
+  targetTextHex: string,
+  targetRatio = 4.5,
+): AltSuggestion[] {
+  const target = parseColor(targetTextHex);
+  const candidates: AltSuggestion[] = [];
+  const darker = adjustLightness(baseHex, target, targetRatio, "darker");
+  const lighter = adjustLightness(baseHex, target, targetRatio, "lighter");
+  const desat = desaturatedCandidate(baseHex, target, targetRatio);
+  for (const c of [darker, lighter, desat]) if (c) candidates.push(c);
+  // Dedupe by hex, sort by closeness.
+  const seen = new Set<string>();
+  return candidates
+    .filter((c) => (seen.has(c.hex) ? false : (seen.add(c.hex), true)))
+    .sort((a, b) => a.distance - b.distance)
+    .slice(0, 3);
+}
