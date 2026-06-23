@@ -29,6 +29,7 @@ const GradientStudio = () => {
   });
 
   const [params] = useSearchParams();
+  const [tab, setTab] = useState<string>("editor");
   const [gradient, setGradient] = useState<StudioGradient>(() => {
     const seed = params.get("css");
     if (seed) {
