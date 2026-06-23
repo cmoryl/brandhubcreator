@@ -208,7 +208,7 @@ const BrandPresetShelf = ({ onPick }: { onPick: (g: StudioGradient) => void }) =
               <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{group}</span>
               <span className="text-[10px] text-muted-foreground">{items.length} preset{items.length === 1 ? "" : "s"}</span>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+            <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
               {items.map(({ preset, gradient, score }) => (
                 <PresetCard key={preset.name} preset={preset} gradient={gradient} score={score} onPick={onPick} />
               ))}
@@ -241,36 +241,28 @@ const PresetCard = ({
     <button
       type="button"
       onClick={() => onPick(preset.build())}
-      className="group text-left rounded-lg border border-border bg-card overflow-hidden hover:border-primary/60 hover:shadow-sm transition"
+      title={`${preset.name} — ${preset.description} · ${ratio.toFixed(2)}:1 ${level}`}
+      className="group text-left rounded-md border border-border bg-card overflow-hidden hover:border-primary/60 hover:shadow-sm transition"
     >
       <div
-        className="relative aspect-[16/10] flex items-end p-3"
+        className="relative aspect-square flex items-center justify-center"
         style={{ background: toCssGradient(gradient) }}
       >
         <span
-          className="text-base font-bold drop-shadow-sm"
+          className="text-sm font-bold leading-none drop-shadow-sm"
           style={{ color: recommended === "light" ? "#FFFFFF" : "#0A0A0A" }}
         >
           Aa
         </span>
         <span
-          className="ml-auto text-[10px] font-medium px-1.5 py-0.5 rounded"
-          style={{
-            background: recommended === "light" ? "rgba(255,255,255,0.18)" : "rgba(0,0,0,0.12)",
-            color: recommended === "light" ? "#FFFFFF" : "#0A0A0A",
-          }}
+          className={`absolute top-1 right-1 text-[9px] font-semibold px-1 py-0 rounded leading-tight border ${tone}`}
         >
-          {recommended} text
+          {level}
         </span>
       </div>
-      <div className="p-2.5 space-y-1">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-xs font-semibold text-foreground truncate">{preset.name}</span>
-          <Badge variant="outline" className={`text-[10px] shrink-0 ${tone}`}>
-            {ratio.toFixed(1)} · {level}
-          </Badge>
-        </div>
-        <p className="text-[11px] text-muted-foreground line-clamp-2">{preset.description}</p>
+      <div className="px-1.5 py-1">
+        <span className="block text-[10px] font-medium text-foreground truncate leading-tight">{preset.name}</span>
+        <span className="block text-[9px] font-mono text-muted-foreground leading-tight">{ratio.toFixed(1)}:1</span>
       </div>
     </button>
   );
