@@ -14,6 +14,7 @@ import { GradientComponentPreview } from "@/components/gradient-studio/GradientC
 import { GradientStatePreview } from "@/components/gradient-studio/GradientStatePreview";
 import { AIGradientDesigner } from "@/components/gradient-studio/AIGradientDesigner";
 import { SavedGradients } from "@/components/gradient-studio/SavedGradients";
+import { ImageGradientAnalyzer } from "@/components/gradient-studio/ImageGradientAnalyzer";
 import { scoreGradient } from "@/lib/gradientA11y";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -75,6 +76,7 @@ const GradientStudio = () => {
           <TabsList>
             <TabsTrigger value="editor">Editor</TabsTrigger>
             <TabsTrigger value="ai">AI Designer</TabsTrigger>
+            <TabsTrigger value="image">From Image</TabsTrigger>
             <TabsTrigger value="combinations">Combinations &amp; A11y</TabsTrigger>
             <TabsTrigger value="saved">Saved</TabsTrigger>
           </TabsList>
@@ -134,6 +136,20 @@ const GradientStudio = () => {
               </div>
               <AIGradientDesigner
                 brandPalette={palette}
+                onUseGradient={(g) => { setGradient(g); setTab("editor"); }}
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="image">
+            <div className="bg-card border border-border rounded-xl p-4 sm:p-6">
+              <div className="mb-4">
+                <h2 className="text-sm font-semibold text-foreground">Analyze a gradient image</h2>
+                <p className="text-xs text-muted-foreground">
+                  Upload a gradient screenshot or photo. We extract its palette, rebuild it as mesh &amp; linear gradients, grade each for WCAG contrast, and let admins save the result to the shared library.
+                </p>
+              </div>
+              <ImageGradientAnalyzer
                 onUseGradient={(g) => { setGradient(g); setTab("editor"); }}
               />
             </div>
