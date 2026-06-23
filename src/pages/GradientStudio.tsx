@@ -9,6 +9,10 @@ import {
 import { GradientPreview } from "@/components/gradient-studio/GradientPreview";
 import { GradientStudioEditor } from "@/components/gradient-studio/GradientStudioEditor";
 import { GradientExportPanel } from "@/components/gradient-studio/GradientExportPanel";
+import { GradientCombinationMatrix } from "@/components/gradient-studio/GradientCombinationMatrix";
+import { scoreGradient } from "@/lib/gradientA11y";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 
 const PRESETS: { name: string; build: () => StudioGradient }[] = [
   {
@@ -106,48 +110,106 @@ const GradientStudio = () => {
           </p>
         </header>
 
-        {/* Presets */}
-        <div className="flex gap-2 flex-wrap">
-          {PRESETS.map((p) => (
-            <button
-              key={p.name}
-              onClick={() => setGradient(p.build())}
-              className="text-xs px-3 py-1.5 rounded-full border border-border bg-card hover:bg-secondary transition-colors"
-            >
-              {p.name}
-            </button>
-          ))}
-          <button
-            onClick={() => setGradient(createStudioGradient())}
-            className="text-xs px-3 py-1.5 rounded-full border border-dashed border-border text-muted-foreground hover:bg-secondary"
-          >
-            + Blank
-          </button>
-        </div>
+        <Tabs defaultValue="editor" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="editor">Editor</TabsTrigger>
+            <TabsTrigger value="combinations">Combinations &amp; A11y</TabsTrigger>
+          </TabsList>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
-          {/* Preview + export */}
-          <div className="space-y-4">
-            <GradientPreview
-              gradient={gradient}
-              className="w-full rounded-2xl border border-border shadow-sm"
-              style={{ aspectRatio: "16 / 10" }}
-            />
-            <div className="bg-card border border-border rounded-xl p-4 space-y-3">
-              <h2 className="text-sm font-semibold text-foreground">Export</h2>
-              <GradientExportPanel gradient={gradient} />
+          <TabsContent value="editor" className="space-y-4">
+            {/* Presets */}
+            <div className="flex gap-2 flex-wrap">
+              {PRESETS.map((p) => (
+                <button
+                  key={p.name}
+                  onClick={() => setGradient(p.build())}
+                  className="text-xs px-3 py-1.5 rounded-full border border-border bg-card hover:bg-secondary transition-colors"
+                >
+                  {p.name}
+                </button>
+              ))}
+              <button
+                onClick={() => setGradient(createStudioGradient())}
+                className="text-xs px-3 py-1.5 rounded-full border border-dashed border-border text-muted-foreground hover:bg-secondary"
+              >
+                + Blank
+              </button>
             </div>
-          </div>
 
-          {/* Editor sidebar */}
-          <aside className="bg-card border border-border rounded-xl p-4 lg:sticky lg:top-6 h-fit">
-            <GradientStudioEditor
-              gradient={gradient}
-              onChange={setGradient}
-              palette={palette}
-            />
-          </aside>
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
+              {/* Preview + a11y + export */}
+              <div className="space-y-4">
+                <GradientPreview
+                  gradient={gradient}
+                  className="w-full rounded-2xl border border-border shadow-sm"
+                  style={{ aspectRatio: "16 / 10" }}
+                />
+                <A11ySummary gradient={gradient} />
+                <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+                  <h2 className="text-sm font-semibold text-foreground">Export</h2>
+                  <GradientExportPanel gradient={gradient} />
+                </div>
+              </div>
+
+              {/* Editor sidebar */}
+              <aside className="bg-card border border-border rounded-xl p-4 lg:sticky lg:top-6 h-fit">
+                <GradientStudioEditor
+                  gradient={gradient}
+                  onChange={setGradient}
+                  palette={palette}
+                />
+              </aside>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="combinations">
+            <div className="bg-card border border-border rounded-xl p-4 sm:p-6">
+              <div className="mb-4">
+                <h2 className="text-sm font-semibold text-foreground">Combination matrix</h2>
+                <p className="text-xs text-muted-foreground">
+                  Generates every 2-color gradient from your palette and grades each one against light &amp; dark text using WCAG contrast (worst-case ratio across the gradient).
+                </p>
+              </div>
+              <GradientCombinationMatrix
+                initialPalette={palette}
+                onUseGradient={(g) => setGradient(g)}
+              />
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+};
+
+const A11ySummary = ({ gradient }: { gradient: StudioGradient }) => {
+  const score = scoreGradient(gradient);
+  const tone = (level: string) =>
+    level === "AAA" || level === "AA" ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
+    : level === "AA-Large" ? "bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-500/30"
+    : "bg-destructive/15 text-destructive border-destructive/30";
+  return (
+    <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-foreground">Accessibility (worst-case)</h2>
+        <span className="text-[11px] text-muted-foreground">Recommended text: <strong className="text-foreground">{score.recommendedText}</strong></span>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-md border border-border p-3 flex flex-col gap-1 bg-[#0a0a0a] text-white">
+          <span className="text-xs opacity-80">Light text (#FFF)</span>
+          <span className="text-lg font-semibold">{score.minRatioWhite.toFixed(2)} : 1</span>
+          <Badge variant="outline" className={`text-[10px] w-fit ${tone(score.whiteLevel)}`}>{score.whiteLevel}</Badge>
         </div>
+        <div className="rounded-md border border-border p-3 flex flex-col gap-1 bg-white text-[#111]">
+          <span className="text-xs opacity-80">Dark text (#111)</span>
+          <span className="text-lg font-semibold">{score.minRatioDark.toFixed(2)} : 1</span>
+          <Badge variant="outline" className={`text-[10px] w-fit ${tone(score.darkLevel)}`}>{score.darkLevel}</Badge>
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-1">
+        {score.samples.map((hex, i) => (
+          <span key={i} className="w-5 h-5 rounded border border-border" style={{ background: hex }} title={hex} />
+        ))}
       </div>
     </div>
   );
