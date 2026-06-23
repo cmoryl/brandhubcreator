@@ -275,46 +275,77 @@ export const ImageGradientAnalyzer = ({ onUseGradient }: Props) => {
 
             {selectedStops.length > 0 && (
               <div>
-                <Label className="text-[11px] text-muted-foreground">Stop order</Label>
+                <Label className="text-[11px] text-muted-foreground">Stop order — drag chips to reorder</Label>
                 <div className="flex flex-wrap gap-1.5 mt-1">
-                  {selectedStops.map((hex, i) => (
-                    <div
-                      key={hex}
-                      className="flex items-center gap-1 rounded-full border border-border bg-card pl-1 pr-1 py-0.5"
-                    >
-                      <span className="w-5 h-5 rounded-full border border-border" style={{ background: hex }} />
-                      <span className="font-mono text-[10px] text-muted-foreground">{hex}</span>
-                      <button
-                        type="button"
-                        onClick={() => moveStop(hex, -1)}
-                        disabled={i === 0}
-                        className="h-5 w-5 inline-flex items-center justify-center rounded hover:bg-secondary disabled:opacity-30"
-                        aria-label="Move left"
+                  {selectedStops.map((hex, i) => {
+                    const isDragging = dragHex === hex;
+                    const isOver = dragOverHex === hex && dragHex && dragHex !== hex;
+                    return (
+                      <div
+                        key={hex}
+                        draggable
+                        onDragStart={(e) => {
+                          setDragHex(hex);
+                          e.dataTransfer.effectAllowed = "move";
+                          e.dataTransfer.setData("text/plain", hex);
+                        }}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.dataTransfer.dropEffect = "move";
+                          if (dragOverHex !== hex) setDragOverHex(hex);
+                        }}
+                        onDragLeave={() => {
+                          if (dragOverHex === hex) setDragOverHex(null);
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          const from = dragHex ?? e.dataTransfer.getData("text/plain");
+                          if (from) reorderStop(from, hex);
+                          setDragHex(null);
+                          setDragOverHex(null);
+                        }}
+                        onDragEnd={() => { setDragHex(null); setDragOverHex(null); }}
+                        className={`flex items-center gap-1 rounded-full border bg-card pl-1 pr-1 py-0.5 cursor-grab active:cursor-grabbing transition ${
+                          isDragging ? "opacity-40 border-primary" : isOver ? "border-primary ring-2 ring-primary/40" : "border-border"
+                        }`}
+                        title="Drag to reorder"
                       >
-                        <ArrowUp className="h-3 w-3 -rotate-90" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => moveStop(hex, 1)}
-                        disabled={i === selectedStops.length - 1}
-                        className="h-5 w-5 inline-flex items-center justify-center rounded hover:bg-secondary disabled:opacity-30"
-                        aria-label="Move right"
-                      >
-                        <ArrowDown className="h-3 w-3 -rotate-90" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => toggleStop(hex)}
-                        className="h-5 w-5 inline-flex items-center justify-center rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
-                        aria-label="Remove stop"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  ))}
+                        <span className="text-[9px] font-bold text-muted-foreground w-3 text-center select-none">{i + 1}</span>
+                        <span className="w-5 h-5 rounded-full border border-border" style={{ background: hex }} />
+                        <span className="font-mono text-[10px] text-muted-foreground select-none">{hex}</span>
+                        <button
+                          type="button"
+                          onClick={() => moveStop(hex, -1)}
+                          disabled={i === 0}
+                          className="h-5 w-5 inline-flex items-center justify-center rounded hover:bg-secondary disabled:opacity-30"
+                          aria-label="Move left"
+                        >
+                          <ArrowUp className="h-3 w-3 -rotate-90" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveStop(hex, 1)}
+                          disabled={i === selectedStops.length - 1}
+                          className="h-5 w-5 inline-flex items-center justify-center rounded hover:bg-secondary disabled:opacity-30"
+                          aria-label="Move right"
+                        >
+                          <ArrowDown className="h-3 w-3 -rotate-90" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => toggleStop(hex)}
+                          className="h-5 w-5 inline-flex items-center justify-center rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                          aria-label="Remove stop"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
+
 
             <div className="flex items-center gap-3">
               <Label className="text-[11px] text-muted-foreground w-12">Angle</Label>
