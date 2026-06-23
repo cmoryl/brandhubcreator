@@ -105,7 +105,7 @@ export const GradientStudioEditor = ({ gradient, onChange, palette }: Props) => 
         <ToggleGroup
           type="single"
           value={gradient.type}
-          onValueChange={(v) => v && patch({ type: v as GradientType })}
+          onValueChange={handleTypeChange}
           className="justify-start"
         >
           <ToggleGroupItem value="linear" className="text-xs">Linear</ToggleGroupItem>
