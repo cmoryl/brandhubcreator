@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useSEO } from "@/hooks/useSEO";
 import {
@@ -15,6 +15,9 @@ import { GradientStatePreview } from "@/components/gradient-studio/GradientState
 import { AIGradientDesigner } from "@/components/gradient-studio/AIGradientDesigner";
 import { SavedGradients } from "@/components/gradient-studio/SavedGradients";
 import { ImageGradientAnalyzer } from "@/components/gradient-studio/ImageGradientAnalyzer";
+import { StudioToolbar } from "@/components/gradient-studio/StudioToolbar";
+import { GradientVariations } from "@/components/gradient-studio/GradientVariations";
+import { useGradientHistory } from "@/hooks/useGradientHistory";
 import { scoreGradient } from "@/lib/gradientA11y";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -33,14 +36,27 @@ const GradientStudio = () => {
 
   const [params] = useSearchParams();
   const [tab, setTab] = useState<string>("editor");
-  const [gradient, setGradient] = useState<StudioGradient>(() => {
+  const initialGradient = useMemo<StudioGradient>(() => {
     const seed = params.get("css");
     if (seed) {
       const parsed = extractStudioGradient(seed);
       if (parsed) return parsed;
     }
     return BRAND_PRESETS[0].build();
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const { gradient, setGradient, undo, redo, canUndo, canRedo } = useGradientHistory(initialGradient);
+
+  const randomize = useCallback(() => {
+    // Pick a random preset and apply a random rotation so users always get something fresh.
+    const preset = BRAND_PRESETS[Math.floor(Math.random() * BRAND_PRESETS.length)];
+    const base = preset.build();
+    setGradient({ ...base, id: crypto.randomUUID(), angle: Math.floor(Math.random() * 360) });
+  }, [setGradient]);
+
+  const renameGradient = useCallback((name: string) => {
+    setGradient((g) => ({ ...g, name }));
+  }, [setGradient]);
 
   // Brand palette (from URL ?palette=hex,hex,hex)
   const palette = useMemo(() => {
@@ -65,6 +81,15 @@ const GradientStudio = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <StudioToolbar
+        gradient={gradient}
+        onRename={renameGradient}
+        onRandomize={randomize}
+        onUndo={undo}
+        onRedo={redo}
+        canUndo={canUndo}
+        canRedo={canRedo}
+      />
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <header className="space-y-1">
           <h1 className="text-3xl font-semibold tracking-tight text-foreground">Gradient Studio</h1>
@@ -90,12 +115,17 @@ const GradientStudio = () => {
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
               {/* Preview + a11y + export */}
               <div className="space-y-4">
-                <GradientPreview
-                  gradient={gradient}
-                  className="w-full rounded-2xl border border-border shadow-sm"
-                  style={{ aspectRatio: "16 / 10" }}
-                />
+                <div className="relative">
+                  <GradientPreview
+                    gradient={gradient}
+                    className="w-full rounded-2xl border border-border shadow-sm"
+                    style={{ aspectRatio: "16 / 10" }}
+                  />
+                  <PreviewA11yBadge gradient={gradient} />
+                </div>
+                <GradientVariations gradient={gradient} onPick={setGradient} />
                 <A11ySummary gradient={gradient} />
+
                 <div className="bg-card border border-border rounded-xl p-4 space-y-3">
                   <div>
                     <h2 className="text-sm font-semibold text-foreground">Component preview &amp; a11y</h2>
@@ -187,6 +217,31 @@ const GradientStudio = () => {
           </TabsContent>
         </Tabs>
       </div>
+    </div>
+  );
+};
+
+
+const PreviewA11yBadge = ({ gradient }: { gradient: StudioGradient }) => {
+  const score = scoreGradient(gradient);
+  const light = score.minRatioWhite;
+  const dark = score.minRatioDark;
+  const pill = (label: string, ratio: number, level: string, fg: string, bg: string) => {
+    const ok = level === "AAA" || level === "AA";
+    const mid = level === "AA-Large";
+    const ring = ok ? "ring-emerald-400/60" : mid ? "ring-amber-400/60" : "ring-destructive/60";
+    return (
+      <div className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-mono font-semibold ring-1 ${ring} shadow-sm`} style={{ background: bg, color: fg }}>
+        <span className="opacity-70">{label}</span>
+        <span>{ratio.toFixed(2)}:1</span>
+        <span className="px-1 rounded bg-black/20 dark:bg-white/15">{level === "AA-Large" ? "AA Lg" : level}</span>
+      </div>
+    );
+  };
+  return (
+    <div className="absolute top-3 right-3 flex flex-col items-end gap-1.5 pointer-events-none">
+      {pill("Aa", light, score.whiteLevel, "#fff", "rgba(15,15,15,0.55)")}
+      {pill("Aa", dark, score.darkLevel, "#111", "rgba(255,255,255,0.7)")}
     </div>
   );
 };
