@@ -76,6 +76,7 @@ const GradientStudio = () => {
             <TabsTrigger value="editor">Editor</TabsTrigger>
             <TabsTrigger value="ai">AI Designer</TabsTrigger>
             <TabsTrigger value="combinations">Combinations &amp; A11y</TabsTrigger>
+            <TabsTrigger value="saved">Saved</TabsTrigger>
           </TabsList>
 
           <TabsContent value="editor" className="space-y-4">
