@@ -81,6 +81,15 @@ const GradientStudio = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <StudioToolbar
+        gradient={gradient}
+        onRename={renameGradient}
+        onRandomize={randomize}
+        onUndo={undo}
+        onRedo={redo}
+        canUndo={canUndo}
+        canRedo={canRedo}
+      />
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <header className="space-y-1">
           <h1 className="text-3xl font-semibold tracking-tight text-foreground">Gradient Studio</h1>
@@ -106,12 +115,17 @@ const GradientStudio = () => {
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
               {/* Preview + a11y + export */}
               <div className="space-y-4">
-                <GradientPreview
-                  gradient={gradient}
-                  className="w-full rounded-2xl border border-border shadow-sm"
-                  style={{ aspectRatio: "16 / 10" }}
-                />
+                <div className="relative">
+                  <GradientPreview
+                    gradient={gradient}
+                    className="w-full rounded-2xl border border-border shadow-sm"
+                    style={{ aspectRatio: "16 / 10" }}
+                  />
+                  <PreviewA11yBadge gradient={gradient} />
+                </div>
+                <GradientVariations gradient={gradient} onPick={setGradient} />
                 <A11ySummary gradient={gradient} />
+
                 <div className="bg-card border border-border rounded-xl p-4 space-y-3">
                   <div>
                     <h2 className="text-sm font-semibold text-foreground">Component preview &amp; a11y</h2>
