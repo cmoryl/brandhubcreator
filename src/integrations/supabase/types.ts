@@ -5930,6 +5930,48 @@ export type Database = {
           },
         ]
       }
+      saved_gradients: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          css: string | null
+          description: string | null
+          gradient: Json
+          id: string
+          is_public: boolean
+          name: string
+          tags: string[]
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          css?: string | null
+          description?: string | null
+          gradient: Json
+          id?: string
+          is_public?: boolean
+          name: string
+          tags?: string[]
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          css?: string | null
+          description?: string | null
+          gradient?: Json
+          id?: string
+          is_public?: boolean
+          name?: string
+          tags?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       saved_report_prompts: {
         Row: {
           category: string | null
