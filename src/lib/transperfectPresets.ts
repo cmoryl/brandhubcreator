@@ -197,6 +197,25 @@ export const BRAND_PRESETS: BrandPreset[] = [
 
   /* ─────────────────────────────── Mesh ───────────────────────────────── */
   {
+    name: "Periwinkle Bloom",
+    group: "Mesh",
+    description: "Sky → royal blue → lavender mesh, sampled from the brand reference image.",
+    recommendedText: "dark",
+    build: () => createStudioGradient({
+      name: "TP Periwinkle Bloom",
+      type: "mesh",
+      meshBlur: 110,
+      meshPoints: [
+        mesh("#64D0FD", 8, 14),
+        mesh("#4666F0", 50, 10),
+        mesh("#ADA7FB", 92, 14),
+        mesh("#7AD4FD", 10, 88),
+        mesh("#4362E9", 50, 55),
+        mesh("#AB96FC", 92, 88),
+      ],
+    }),
+  },
+  {
     name: "Brand Aurora Mesh",
     group: "Mesh",
     description: "Multi-point Blue 500 / Blue 800 / Lavender mesh. Splash screens.",
