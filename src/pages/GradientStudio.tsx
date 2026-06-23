@@ -307,6 +307,7 @@ const PreviewStopChips = ({ gradient }: { gradient: StudioGradient }) => {
 };
 
 
+const PreviewA11yBadge = ({ gradient }: { gradient: StudioGradient }) => {
   const score = scoreGradient(gradient);
   const light = score.minRatioWhite;
   const dark = score.minRatioDark;
