@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
     const bytes = Uint8Array.from(atob(svg_base64), (c) => c.charCodeAt(0));
     const slug = slugify(row.name);
     const ts = Date.now();
-    const path = `${slug}/${logo_id}/wordmark-black-${ts}.svg`;
+    const path = `${slug}/${logo_id}/wordmark-${variant}-${ts}.svg`;
     const { error: upErr } = await admin.storage.from(BUCKET).upload(path, bytes, {
       contentType: "image/svg+xml",
       upsert: true,
@@ -47,12 +47,11 @@ Deno.serve(async (req) => {
     if (sErr || !signed) throw new Error(`sign ${sErr?.message}`);
 
     const existing = Array.isArray(row.files) ? row.files as any[] : [];
-    // Remove any existing wordmark+black entries (any format)
-    const kept = existing.filter((f) => !(f && f.variant === "black" && (f.lockup === "wordmark" || !f.lockup)));
+    const kept = existing.filter((f) => !(f && f.variant === variant && (f.lockup === "wordmark" || !f.lockup)));
     const newFile = {
       url: signed.signedUrl,
       format: "svg",
-      variant: "black",
+      variant,
       lockup: "wordmark",
       source: "manual-upload-revised",
     };
