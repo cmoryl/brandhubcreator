@@ -11,6 +11,7 @@ import { GradientStudioEditor } from "@/components/gradient-studio/GradientStudi
 import { GradientExportPanel } from "@/components/gradient-studio/GradientExportPanel";
 import { GradientCombinationMatrix } from "@/components/gradient-studio/GradientCombinationMatrix";
 import { GradientComponentPreview } from "@/components/gradient-studio/GradientComponentPreview";
+import { GradientStatePreview } from "@/components/gradient-studio/GradientStatePreview";
 import { scoreGradient } from "@/lib/gradientA11y";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
