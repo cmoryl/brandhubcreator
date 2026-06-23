@@ -16,54 +16,10 @@ import { scoreGradient } from "@/lib/gradientA11y";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 
-const PRESETS: { name: string; build: () => StudioGradient }[] = [
-  {
-    name: "Sunset",
-    build: () =>
-      createStudioGradient({
-        name: "Sunset",
-        type: "linear",
-        angle: 135,
-        stops: [
-          { id: crypto.randomUUID(), color: "#ff9a9e", position: 0 },
-          { id: crypto.randomUUID(), color: "#fad0c4", position: 50 },
-          { id: crypto.randomUUID(), color: "#fbc2eb", position: 100 },
-        ],
-      }),
-  },
-  {
-    name: "Aurora Mesh",
-    build: () => createStudioGradient({ name: "Aurora Mesh", type: "mesh" }),
-  },
-  {
-    name: "Conic Prism",
-    build: () =>
-      createStudioGradient({
-        name: "Conic Prism",
-        type: "conic",
-        angle: 0,
-        stops: [
-          { id: crypto.randomUUID(), color: "#ff006e", position: 0 },
-          { id: crypto.randomUUID(), color: "#8338ec", position: 33 },
-          { id: crypto.randomUUID(), color: "#3a86ff", position: 66 },
-          { id: crypto.randomUUID(), color: "#ff006e", position: 100 },
-        ],
-      }),
-  },
-  {
-    name: "Grain Field",
-    build: () =>
-      createStudioGradient({
-        name: "Grain Field",
-        type: "radial",
-        stops: [
-          { id: crypto.randomUUID(), color: "#1e3a8a", position: 0 },
-          { id: crypto.randomUUID(), color: "#0f172a", position: 100 },
-        ],
-        noise: { enabled: true, opacity: 0.22, scale: 1.1 },
-      }),
-  },
-];
+import { BRAND_PRESETS, BRAND_PRESET_GROUPS, BrandPreset } from "@/lib/transperfectPresets";
+import { toCssGradient, StudioGradient as _StudioGradient } from "@/lib/gradientStudio";
+
+
 
 const GradientStudio = () => {
   useSEO({
