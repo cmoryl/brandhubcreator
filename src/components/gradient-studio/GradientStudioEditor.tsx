@@ -267,7 +267,7 @@ export const GradientStudioEditor = ({ gradient, onChange, palette }: Props) => 
           <div className="flex items-center justify-between">
             <Label className="text-xs">Mesh Points</Label>
             <div className="flex gap-1">
-              <Button size="sm" variant="ghost" className="h-7 gap-1" onClick={() => patch({ meshPoints: DEFAULT_MESH() })}>
+              <Button size="sm" variant="ghost" className="h-7 gap-1" onClick={() => patch({ meshPoints: meshFromStops() })}>
                 <RefreshCw className="h-3.5 w-3.5" /> Reset
               </Button>
               <Button size="sm" variant="ghost" className="h-7 gap-1" onClick={addMesh}>
