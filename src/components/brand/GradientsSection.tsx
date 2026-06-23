@@ -302,10 +302,6 @@ export const GradientsSection = ({
 /* Studio dialog                                                              */
 /* -------------------------------------------------------------------------- */
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { GradientExportPanel } from '@/components/gradient-studio/GradientExportPanel';
-import { useEffect, useState as useReactState } from 'react';
-import type { StudioGradient } from '@/lib/gradientStudio';
 
 interface StudioDialogProps {
   open: boolean;
