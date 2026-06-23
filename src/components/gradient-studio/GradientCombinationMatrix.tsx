@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { Plus, Trash2, Sparkles, X } from "lucide-react";
+import { Plus, Trash2, Sparkles, X, ChevronDown, ChevronUp } from "lucide-react";
+import { GradientComponentPreview } from "./GradientComponentPreview";
 import {
   generateCombinations,
   DEFAULT_BRAND_PALETTE,
@@ -226,6 +227,7 @@ const ComboCard = ({
 }) => {
   const { gradient, score } = combo;
   const css = toCssGradient(gradient);
+  const [open, setOpen] = useState(false);
   return (
     <div className="group rounded-lg border border-border bg-card overflow-hidden flex flex-col">
       <div
@@ -262,13 +264,24 @@ const ComboCard = ({
             Dark · {score.minRatioDark.toFixed(2)} · {score.darkLevel}
           </Badge>
         </div>
-        <Button
-          size="sm" variant="ghost"
-          className="w-full h-7 text-[11px] mt-1"
-          onClick={onUse}
-        >
-          Open in editor
-        </Button>
+        <div className="flex gap-1 pt-1">
+          <Button
+            size="sm" variant="outline"
+            className="flex-1 h-7 text-[11px] gap-1"
+            onClick={() => setOpen((o) => !o)}
+          >
+            {open ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+            {open ? "Hide" : "Preview"} components
+          </Button>
+          <Button size="sm" variant="ghost" className="flex-1 h-7 text-[11px]" onClick={onUse}>
+            Open in editor
+          </Button>
+        </div>
+        {open && (
+          <div className="pt-2">
+            <GradientComponentPreview gradient={gradient} compact />
+          </div>
+        )}
       </div>
     </div>
   );

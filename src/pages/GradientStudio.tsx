@@ -10,6 +10,7 @@ import { GradientPreview } from "@/components/gradient-studio/GradientPreview";
 import { GradientStudioEditor } from "@/components/gradient-studio/GradientStudioEditor";
 import { GradientExportPanel } from "@/components/gradient-studio/GradientExportPanel";
 import { GradientCombinationMatrix } from "@/components/gradient-studio/GradientCombinationMatrix";
+import { GradientComponentPreview } from "@/components/gradient-studio/GradientComponentPreview";
 import { scoreGradient } from "@/lib/gradientA11y";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -145,6 +146,13 @@ const GradientStudio = () => {
                   style={{ aspectRatio: "16 / 10" }}
                 />
                 <A11ySummary gradient={gradient} />
+                <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+                  <div>
+                    <h2 className="text-sm font-semibold text-foreground">Component preview &amp; a11y</h2>
+                    <p className="text-xs text-muted-foreground">Live components rendered on the gradient with per-element WCAG checks.</p>
+                  </div>
+                  <GradientComponentPreview gradient={gradient} />
+                </div>
                 <div className="bg-card border border-border rounded-xl p-4 space-y-3">
                   <h2 className="text-sm font-semibold text-foreground">Export</h2>
                   <GradientExportPanel gradient={gradient} />
