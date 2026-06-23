@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { ColorChip } from "./ColorChip";
+import { MeshGridEditor } from "./MeshGridEditor";
+import { toCssGradient } from "@/lib/gradientStudio";
 
 interface Props {
   gradient: StudioGradient;
@@ -186,7 +188,12 @@ export const GradientStudioEditor = ({ gradient, onChange, palette }: Props) => 
           </div>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-3">
+          <MeshGridEditor
+            points={gradient.meshPoints}
+            onChange={(meshPoints) => patch({ meshPoints })}
+            previewBackground={toCssGradient(gradient)}
+          />
           <div className="flex items-center justify-between">
             <Label className="text-xs">Mesh Points</Label>
             <div className="flex gap-1">
