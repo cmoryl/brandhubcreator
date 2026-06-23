@@ -147,7 +147,7 @@ const GradientStudio = () => {
               </div>
               <GradientCombinationMatrix
                 initialPalette={palette}
-                onUseGradient={(g) => setGradient(g)}
+                onUseGradient={(g) => { setGradient(g); setTab("editor"); }}
               />
             </div>
           </TabsContent>
