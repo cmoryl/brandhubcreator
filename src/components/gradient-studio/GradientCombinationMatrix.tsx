@@ -266,6 +266,7 @@ const ComboCard = ({
         </div>
         <div className="flex gap-1 pt-1">
           <Button
+            type="button"
             size="sm" variant="outline"
             className="flex-1 h-7 text-[11px] gap-1"
             onClick={() => setOpen((o) => !o)}
@@ -273,7 +274,7 @@ const ComboCard = ({
             {open ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
             {open ? "Hide" : "Preview"} components
           </Button>
-          <Button size="sm" variant="ghost" className="flex-1 h-7 text-[11px]" onClick={onUse}>
+          <Button type="button" size="sm" variant="default" className="flex-1 h-7 text-[11px]" onClick={onUse}>
             Open in editor
           </Button>
         </div>
