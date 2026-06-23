@@ -221,6 +221,8 @@ export const GradientsSection = ({
                 <X className="h-3.5 w-3.5" />
               </button>
             </div>
+            );
+          })()}
 
             {/* Gradient info */}
             <div className="p-4 space-y-3">
