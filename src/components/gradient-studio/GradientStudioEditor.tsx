@@ -45,11 +45,42 @@ export const GradientStudioEditor = ({ gradient, onChange, palette }: Props) => 
 
   const updateMesh = (id: string, p: Partial<MeshPoint>) =>
     patch({ meshPoints: gradient.meshPoints.map((m) => (m.id === id ? { ...m, ...p } : m)) });
+
+  // Build mesh points from the current gradient's stop colors so switching to
+  // Mesh keeps the existing palette instead of falling back to defaults.
+  const meshFromStops = useCallback((): MeshPoint[] => {
+    const colors = gradient.stops.map((s) => s.color).filter(Boolean);
+    if (!colors.length) return DEFAULT_MESH();
+    // Anchor positions: corners first, then edge midpoints, then center.
+    const anchors: Array<{ x: number; y: number }> = [
+      { x: 15, y: 15 }, { x: 85, y: 15 }, { x: 85, y: 85 }, { x: 15, y: 85 },
+      { x: 50, y: 10 }, { x: 90, y: 50 }, { x: 50, y: 90 }, { x: 10, y: 50 },
+      { x: 50, y: 50 },
+    ];
+    const count = Math.max(2, Math.min(anchors.length, colors.length));
+    return Array.from({ length: count }, (_, i) => ({
+      id: crypto.randomUUID(),
+      color: colors[i % colors.length],
+      x: anchors[i].x,
+      y: anchors[i].y,
+    }));
+  }, [gradient.stops]);
+
+  const handleTypeChange = (v: string) => {
+    if (!v) return;
+    const next = v as GradientType;
+    if (next === "mesh" && gradient.type !== "mesh") {
+      patch({ type: next, meshPoints: meshFromStops() });
+    } else {
+      patch({ type: next });
+    }
+  };
+
   const addMesh = () =>
     patch({
       meshPoints: [
         ...gradient.meshPoints,
-        { id: crypto.randomUUID(), color: "#ffffff", x: 50, y: 50 },
+        { id: crypto.randomUUID(), color: gradient.stops[0]?.color ?? "#ffffff", x: 50, y: 50 },
       ],
     });
   const removeMesh = (id: string) => {
@@ -74,7 +105,7 @@ export const GradientStudioEditor = ({ gradient, onChange, palette }: Props) => 
         <ToggleGroup
           type="single"
           value={gradient.type}
-          onValueChange={(v) => v && patch({ type: v as GradientType })}
+          onValueChange={handleTypeChange}
           className="justify-start"
         >
           <ToggleGroupItem value="linear" className="text-xs">Linear</ToggleGroupItem>
@@ -236,7 +267,7 @@ export const GradientStudioEditor = ({ gradient, onChange, palette }: Props) => 
           <div className="flex items-center justify-between">
             <Label className="text-xs">Mesh Points</Label>
             <div className="flex gap-1">
-              <Button size="sm" variant="ghost" className="h-7 gap-1" onClick={() => patch({ meshPoints: DEFAULT_MESH() })}>
+              <Button size="sm" variant="ghost" className="h-7 gap-1" onClick={() => patch({ meshPoints: meshFromStops() })}>
                 <RefreshCw className="h-3.5 w-3.5" /> Reset
               </Button>
               <Button size="sm" variant="ghost" className="h-7 gap-1" onClick={addMesh}>
