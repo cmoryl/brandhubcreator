@@ -18,6 +18,7 @@ import { ImageGradientAnalyzer } from "@/components/gradient-studio/ImageGradien
 import { scoreGradient } from "@/lib/gradientA11y";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Plus } from "lucide-react";
 
 import { BRAND_PRESETS, BRAND_PRESET_GROUPS, BrandPreset } from "@/lib/transperfectPresets";
 import { toCssGradient } from "@/lib/gradientStudio";
@@ -234,44 +235,60 @@ const BrandPresetShelf = ({ onPick }: { onPick: (g: StudioGradient) => void }) =
   );
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-baseline justify-between flex-wrap gap-2">
-        <div>
-          <h2 className="text-sm font-semibold text-foreground">TransPerfect brand presets</h2>
-          <p className="text-xs text-muted-foreground">
-            Built from the Master Brand palette only. Every preset is tuned to pass WCAG AA for its recommended text color.
+    <div className="rounded-xl border border-border bg-card overflow-hidden">
+      {/* Header */}
+      <div className="p-3 border-b border-border flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+              TransPerfect Brand Presets
+            </span>
+            <span className="text-[10px] text-muted-foreground/70">{BRAND_PRESETS.length}</span>
+          </div>
+          <p className="text-[11px] text-muted-foreground/80 mt-0.5">
+            Master Brand palette · tuned for WCAG AA on recommended text.
           </p>
         </div>
         <button
+          type="button"
           onClick={() => onPick(createStudioGradient({ name: "Untitled" }))}
-          className="text-xs px-3 py-1.5 rounded-full border border-dashed border-border text-muted-foreground hover:bg-secondary"
+          className="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-[11px] font-medium transition-colors"
         >
-          + Blank canvas
+          <Plus className="w-3 h-3" />
+          Blank canvas
         </button>
       </div>
 
-      {BRAND_PRESET_GROUPS.map((group) => {
-        const items = scored.filter((s) => s.preset.group === group);
-        if (!items.length) return null;
-        return (
-          <div key={group} className="space-y-1.5">
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{group}</span>
-              <span className="text-[10px] text-muted-foreground">{items.length} preset{items.length === 1 ? "" : "s"}</span>
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {items.map(({ preset, gradient, score }) => (
-                <PresetPill key={preset.name} preset={preset} gradient={gradient} score={score} onPick={onPick} />
-              ))}
-            </div>
-          </div>
-        );
-      })}
+      {/* Groups */}
+      <div className="p-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-5">
+        {BRAND_PRESET_GROUPS.map((group) => {
+          const items = scored.filter((s) => s.preset.group === group);
+          if (!items.length) return null;
+          return (
+            <section key={group} className="space-y-1.5">
+              <h3 className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-wider px-1">
+                {group}
+              </h3>
+              <div className="flex flex-col gap-1">
+                {items.map(({ preset, gradient, score }) => (
+                  <PresetTile
+                    key={preset.name}
+                    preset={preset}
+                    gradient={gradient}
+                    score={score}
+                    onPick={onPick}
+                  />
+                ))}
+              </div>
+            </section>
+          );
+        })}
+      </div>
     </div>
   );
 };
 
-const PresetPill = ({
+const PresetTile = ({
   preset, gradient, score, onPick,
 }: {
   preset: BrandPreset;
@@ -282,29 +299,38 @@ const PresetPill = ({
   const recommended = preset.recommendedText;
   const ratio = recommended === "light" ? score.minRatioWhite : score.minRatioDark;
   const level = recommended === "light" ? score.whiteLevel : score.darkLevel;
-  const tone =
+  const badgeTone =
     level === "AAA" || level === "AA"
-      ? "text-emerald-700 dark:text-emerald-300"
+      ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
       : level === "AA-Large"
-      ? "text-amber-700 dark:text-amber-300"
-      : "text-destructive";
+      ? "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20"
+      : "bg-destructive/10 text-destructive border-destructive/20";
 
   return (
     <button
       type="button"
       onClick={() => onPick(preset.build())}
       title={`${preset.name} — ${preset.description} · ${ratio.toFixed(2)}:1 ${level}`}
-      className="group inline-flex items-center gap-1.5 h-7 pl-1 pr-2.5 rounded-full border border-border bg-card text-xs font-medium text-foreground hover:border-primary/60 hover:bg-secondary transition"
+      className="w-full flex items-center justify-between p-2 rounded-lg bg-secondary/40 border border-border/60 hover:bg-secondary hover:border-border transition-all group"
     >
+      <div className="flex items-center gap-2.5 min-w-0">
+        <span
+          className="w-7 h-7 rounded-md border border-border/80 shadow-inner shrink-0"
+          style={{ background: toCssGradient(gradient) }}
+        />
+        <span className="text-xs font-medium text-foreground/90 group-hover:text-foreground truncate">
+          {preset.name}
+        </span>
+      </div>
       <span
-        className="w-5 h-5 rounded-full border border-border shrink-0"
-        style={{ background: toCssGradient(gradient) }}
-      />
-      <span className="truncate max-w-[140px]">{preset.name}</span>
-      <span className={`text-[9px] font-mono ${tone}`}>{level}</span>
+        className={`shrink-0 text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border uppercase tracking-tighter ${badgeTone}`}
+      >
+        {level === "AA-Large" ? "AA Lg" : level}
+      </span>
     </button>
   );
 };
 
 
 export default GradientStudio;
+
