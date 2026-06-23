@@ -17,8 +17,8 @@ const slugify = (s: string) =>
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
-    const { logo_id, svg_base64 } = await req.json();
-    if (!logo_id || !svg_base64) {
+    const { logo_id, svg_base64, variant = "black" } = await req.json();
+    if (!logo_id || !svg_base64 || !["black", "white"].includes(variant)) {
       return new Response(JSON.stringify({ ok: false, error: "missing fields" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
