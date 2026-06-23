@@ -188,12 +188,18 @@ export const GradientsSection = ({
             className="group relative bg-card rounded-xl overflow-hidden shadow-sm border border-border animate-scale-in"
             style={{ animationDelay: `${index * 50}ms` }}
           >
-          {/* Gradient preview */}
-          <div
-            className={`${isListView ? 'w-24 h-full' : 'h-32'} relative cursor-pointer`}
-            style={{ background: gradient.css }}
-            onClick={() => copyCSS(gradient.css, gradient.id)}
-          >
+          {/* Gradient preview (Studio-aware when GS metadata is present) */}
+          {(() => {
+            const studio = extractStudioGradient(gradient.css);
+            return (
+              <div
+                className={`${isListView ? 'w-24 h-full' : 'h-32'} relative cursor-pointer`}
+                style={studio ? undefined : { background: stripStudioMeta(gradient.css) }}
+                onClick={() => copyCSS(stripStudioMeta(gradient.css), gradient.id)}
+              >
+                {studio && (
+                  <GradientPreview gradient={studio} className="absolute inset-0" />
+                )}
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30">
                 {copiedId === gradient.id ? (
                   <div className="flex items-center gap-1 text-white text-sm font-medium">
