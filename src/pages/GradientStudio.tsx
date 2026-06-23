@@ -13,6 +13,7 @@ import { GradientCombinationMatrix } from "@/components/gradient-studio/Gradient
 import { GradientComponentPreview } from "@/components/gradient-studio/GradientComponentPreview";
 import { GradientStatePreview } from "@/components/gradient-studio/GradientStatePreview";
 import { AIGradientDesigner } from "@/components/gradient-studio/AIGradientDesigner";
+import { SavedGradients } from "@/components/gradient-studio/SavedGradients";
 import { scoreGradient } from "@/lib/gradientA11y";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
