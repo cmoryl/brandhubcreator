@@ -59,6 +59,25 @@ const GradientStudio = () => {
     setGradient((g) => ({ ...g, name }));
   }, [setGradient]);
 
+  // Which stop chip is selected for inline accessibility inspection.
+  const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
+
+  const updateStopColor = useCallback((stopId: string, newHex: string) => {
+    setGradient((g) => {
+      if (g.type === "mesh") {
+        return { ...g, meshPoints: g.meshPoints.map((p) => p.id === stopId ? { ...p, color: newHex } : p) };
+      }
+      return { ...g, stops: g.stops.map((s) => s.id === stopId ? { ...s, color: newHex } : s) };
+    });
+  }, [setGradient]);
+
+  // Resolve the currently selected stop's hex (mesh + stops both supported).
+  const selectedStop = useMemo(() => {
+    if (!selectedStopId) return null;
+    const pool = gradient.type === "mesh" ? gradient.meshPoints : gradient.stops;
+    return pool.find((s) => s.id === selectedStopId) ?? null;
+  }, [selectedStopId, gradient]);
+
   // Brand palette (from URL ?palette=hex,hex,hex)
   const palette = useMemo(() => {
     const raw = params.get("palette");
