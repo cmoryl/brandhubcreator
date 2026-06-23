@@ -166,6 +166,17 @@ export const GradientsSection = ({
                 <span className="hidden sm:inline">Add Gradient</span>
                 <span className="sm:hidden">Add</span>
               </Button>
+              <Button asChild size="sm" variant="outline" className="gap-2 ml-auto">
+                <Link
+                  to={`/gradient-studio${palette.length ? `?palette=${encodeURIComponent(palette.join(','))}` : ''}`}
+                  target="_blank"
+                  rel="noopener"
+                >
+                  <Wand2 className="h-4 w-4" />
+                  <span className="hidden sm:inline">Open Gradient Studio</span>
+                  <ExternalLink className="h-3 w-3" />
+                </Link>
+              </Button>
             </>
           )}
       </div>
