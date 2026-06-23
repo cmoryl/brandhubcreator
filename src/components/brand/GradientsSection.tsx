@@ -1,11 +1,20 @@
 import { useState } from 'react';
-import { Plus, X, Pencil, Copy, Check, Sparkles, Loader2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Plus, X, Pencil, Copy, Check, Sparkles, Loader2, Wand2, ExternalLink } from 'lucide-react';
 import { BrandGradient, BrandColor, LayoutPreset } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { SectionHeader } from './SectionHeader';
 import { LayoutSelector, useLayoutClasses } from './LayoutSelector';
 import { GradientEditor } from './GradientEditor';
 import { GradientAccessibilityBadge } from './GradientAccessibilityBadge';
+import { GradientStudioEditor } from '@/components/gradient-studio/GradientStudioEditor';
+import { GradientPreview } from '@/components/gradient-studio/GradientPreview';
+import {
+  createStudioGradient,
+  extractStudioGradient,
+  serializeWithMeta,
+  stripStudioMeta,
+} from '@/lib/gradientStudio';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
