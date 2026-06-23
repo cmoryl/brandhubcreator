@@ -91,20 +91,25 @@ const GradientStudio = () => {
         canRedo={canRedo}
       />
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <header className="space-y-1">
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground">Gradient Studio</h1>
-          <p className="text-sm text-muted-foreground">
-            Design linear, radial, conic & mesh gradients. Add noise and animation. Export to CSS, Tailwind, SVG and raster.
-          </p>
-        </header>
+        <StudioHero gradient={gradient} />
 
         <Tabs value={tab} onValueChange={setTab} className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="editor">Editor</TabsTrigger>
-            <TabsTrigger value="ai">AI Designer</TabsTrigger>
-            <TabsTrigger value="image">From Image</TabsTrigger>
-            <TabsTrigger value="combinations">Combinations &amp; A11y</TabsTrigger>
-            <TabsTrigger value="saved">Saved</TabsTrigger>
+          <TabsList className="bg-secondary/50 p-1 h-auto rounded-xl border border-border/60">
+            <TabsTrigger value="editor" className="gap-1.5 rounded-lg data-[state=active]:shadow-sm">
+              <Sliders className="w-3.5 h-3.5" /> Editor
+            </TabsTrigger>
+            <TabsTrigger value="ai" className="gap-1.5 rounded-lg data-[state=active]:shadow-sm">
+              <Sparkles className="w-3.5 h-3.5" /> AI Designer
+            </TabsTrigger>
+            <TabsTrigger value="image" className="gap-1.5 rounded-lg data-[state=active]:shadow-sm">
+              <ImageIcon className="w-3.5 h-3.5" /> From Image
+            </TabsTrigger>
+            <TabsTrigger value="combinations" className="gap-1.5 rounded-lg data-[state=active]:shadow-sm">
+              <Grid3x3 className="w-3.5 h-3.5" /> Combinations
+            </TabsTrigger>
+            <TabsTrigger value="saved" className="gap-1.5 rounded-lg data-[state=active]:shadow-sm">
+              <Bookmark className="w-3.5 h-3.5" /> Saved
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="editor" className="space-y-4">
@@ -115,16 +120,28 @@ const GradientStudio = () => {
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
               {/* Preview + a11y + export */}
               <div className="space-y-4">
-                <div className="relative">
-                  <GradientPreview
-                    gradient={gradient}
-                    className="w-full rounded-2xl border border-border shadow-sm"
-                    style={{ aspectRatio: "16 / 10" }}
+                <div className="relative group">
+                  {/* Soft ambient glow that reflects the current gradient */}
+                  <div
+                    aria-hidden
+                    className="absolute -inset-4 rounded-3xl opacity-50 blur-3xl pointer-events-none transition-opacity group-hover:opacity-75"
+                    style={{ background: toCssGradient(gradient) }}
                   />
-                  <PreviewA11yBadge gradient={gradient} />
+                  <div className="relative rounded-2xl border border-border bg-card overflow-hidden shadow-lg">
+                    <GradientPreview
+                      gradient={gradient}
+                      className="w-full"
+                      style={{ aspectRatio: "16 / 10" }}
+                    />
+                    {/* Inner ring for definition over light gradients */}
+                    <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-black/5 pointer-events-none" />
+                    <PreviewA11yBadge gradient={gradient} />
+                    <PreviewStopChips gradient={gradient} />
+                  </div>
                 </div>
                 <GradientVariations gradient={gradient} onPick={setGradient} />
                 <A11ySummary gradient={gradient} />
+
 
                 <div className="bg-card border border-border rounded-xl p-4 space-y-3">
                   <div>
