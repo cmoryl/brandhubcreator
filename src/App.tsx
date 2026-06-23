@@ -113,6 +113,7 @@ const PublicLogoHubMonoCutoutAudit = lazyWithRetry(() => import("./pages/PublicL
 const PublicLogoHubBrandAudit = lazyWithRetry(() => import("./pages/PublicLogoHubBrandAudit"));
 const PublicLogoHubSvgAudit = lazyWithRetry(() => import("./pages/PublicLogoHubSvgAudit"));
 const PublicLogoHubRasterReport = lazyWithRetry(() => import("./pages/PublicLogoHubRasterReport"));
+const PublicLogoHubIconAudit = lazyWithRetry(() => import("./pages/PublicLogoHubIconAudit"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
