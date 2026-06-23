@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
     const slug = slugify(row.name);
     const ts = Date.now();
     const contentType = format === "svg" ? "image/svg+xml" : "image/png";
-    const path = `${slug}/${logo_id}/wordmark-${variant}-${ts}.${format}`;
+    const path = `${slug}/${logo_id}/${lockup}-${variant}-${ts}.${format}`;
     const { error: upErr } = await admin.storage.from(BUCKET).upload(path, bytes, {
       contentType,
       upsert: true,
@@ -48,13 +48,13 @@ Deno.serve(async (req) => {
     if (sErr || !signed) throw new Error(`sign ${sErr?.message}`);
 
     const existing = Array.isArray(row.files) ? row.files as any[] : [];
-    // Remove only the same variant+format combo so SVG and PNG variants can coexist
-    const kept = existing.filter((f) => !(f && f.variant === variant && f.format === format && (f.lockup === "wordmark" || !f.lockup)));
+    // Remove same lockup+variant+format combo (treat missing lockup as 'wordmark' for back-compat)
+    const kept = existing.filter((f) => !(f && f.variant === variant && f.format === format && ((f.lockup ?? "wordmark") === lockup)));
     const newFile = {
       url: signed.signedUrl,
       format,
       variant,
-      lockup: "wordmark",
+      lockup,
       source: "manual-upload-revised",
     };
     const merged = [...kept, newFile];
