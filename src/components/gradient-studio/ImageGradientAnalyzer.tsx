@@ -232,8 +232,6 @@ const SaveImageGradientDialog = ({
   const [isPublic, setIsPublic] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Reset on open
-  useState(() => {});
   if (!gradient) return null;
   const css = toCssGradient(gradient);
 
