@@ -18,7 +18,8 @@ import { ImageGradientAnalyzer } from "@/components/gradient-studio/ImageGradien
 import { StudioToolbar } from "@/components/gradient-studio/StudioToolbar";
 import { GradientVariations } from "@/components/gradient-studio/GradientVariations";
 import { useGradientHistory } from "@/hooks/useGradientHistory";
-import { scoreGradient } from "@/lib/gradientA11y";
+import { scoreGradient, parseColor, contrastRatio } from "@/lib/gradientA11y";
+import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Plus, ChevronDown, Sliders, Sparkles, Image as ImageIcon, Grid3x3, Bookmark } from "lucide-react";
