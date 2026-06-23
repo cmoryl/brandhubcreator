@@ -14,6 +14,7 @@ import { GradientComponentPreview } from "@/components/gradient-studio/GradientC
 import { GradientStatePreview } from "@/components/gradient-studio/GradientStatePreview";
 import { AIGradientDesigner } from "@/components/gradient-studio/AIGradientDesigner";
 import { SavedGradients } from "@/components/gradient-studio/SavedGradients";
+import { ImageGradientAnalyzer } from "@/components/gradient-studio/ImageGradientAnalyzer";
 import { scoreGradient } from "@/lib/gradientA11y";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
