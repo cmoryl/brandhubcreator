@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
     const { logo_id, svg_base64, variant = "black", format = "svg" } = await req.json();
-    if (!logo_id || !svg_base64 || !["black", "white"].includes(variant) || !["svg", "png"].includes(format)) {
+    if (!logo_id || !svg_base64 || !["black", "white", "color"].includes(variant) || !["svg", "png"].includes(format)) {
       return new Response(JSON.stringify({ ok: false, error: "missing fields" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
