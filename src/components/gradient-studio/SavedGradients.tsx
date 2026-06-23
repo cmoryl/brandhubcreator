@@ -264,7 +264,7 @@ const SaveDialog = ({
     const payload = {
       name: name.trim(),
       description: description.trim() || null,
-      gradient: gradient as unknown as Record<string, unknown>,
+      gradient: gradient as unknown as never,
       css,
       category,
       tags,
@@ -284,7 +284,7 @@ const SaveDialog = ({
     } else {
       const { data, error } = await supabase
         .from("saved_gradients")
-        .insert({ ...payload, created_by: user?.id ?? null })
+        .insert([{ ...payload, created_by: user?.id ?? null }])
         .select()
         .single();
       setSaving(false);
