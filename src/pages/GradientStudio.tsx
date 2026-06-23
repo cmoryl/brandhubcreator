@@ -221,6 +221,31 @@ const GradientStudio = () => {
   );
 };
 
+
+const PreviewA11yBadge = ({ gradient }: { gradient: StudioGradient }) => {
+  const score = scoreGradient(gradient);
+  const light = score.minRatioWhite;
+  const dark = score.minRatioDark;
+  const pill = (label: string, ratio: number, level: string, fg: string, bg: string) => {
+    const ok = level === "AAA" || level === "AA";
+    const mid = level === "AA-Large";
+    const ring = ok ? "ring-emerald-400/60" : mid ? "ring-amber-400/60" : "ring-destructive/60";
+    return (
+      <div className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-mono font-semibold ring-1 ${ring} shadow-sm`} style={{ background: bg, color: fg }}>
+        <span className="opacity-70">{label}</span>
+        <span>{ratio.toFixed(2)}:1</span>
+        <span className="px-1 rounded bg-black/20 dark:bg-white/15">{level === "AA-Large" ? "AA Lg" : level}</span>
+      </div>
+    );
+  };
+  return (
+    <div className="absolute top-3 right-3 flex flex-col items-end gap-1.5 pointer-events-none">
+      {pill("Aa", light, score.whiteLevel, "#fff", "rgba(15,15,15,0.55)")}
+      {pill("Aa", dark, score.darkLevel, "#111", "rgba(255,255,255,0.7)")}
+    </div>
+  );
+};
+
 const A11ySummary = ({ gradient }: { gradient: StudioGradient }) => {
   const score = scoreGradient(gradient);
   const tone = (level: string) =>
