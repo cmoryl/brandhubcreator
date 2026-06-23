@@ -239,7 +239,74 @@ const GradientStudio = () => {
 };
 
 
-const PreviewA11yBadge = ({ gradient }: { gradient: StudioGradient }) => {
+const StudioHero = ({ gradient }: { gradient: StudioGradient }) => {
+  const typeLabel = gradient.type[0].toUpperCase() + gradient.type.slice(1);
+  return (
+    <header className="relative overflow-hidden rounded-2xl border border-border bg-card">
+      {/* Live gradient backdrop, dimmed */}
+      <div
+        aria-hidden
+        className="absolute inset-0 opacity-40"
+        style={{ background: toCssGradient(gradient) }}
+      />
+      <div
+        aria-hidden
+        className="absolute inset-0 bg-gradient-to-r from-card via-card/85 to-card/40"
+      />
+      <div className="relative px-5 sm:px-7 py-6 flex flex-wrap items-end justify-between gap-4">
+        <div className="space-y-1.5">
+          <div className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+            Gradient Studio
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-foreground">
+            Design gradients that pass <span className="text-primary">a11y</span>.
+          </h1>
+          <p className="text-sm text-muted-foreground max-w-xl">
+            Linear, radial, conic & mesh — with live WCAG scoring, smart variations, and exports to CSS, Tailwind, SVG, PNG & JPG.
+          </p>
+        </div>
+        <dl className="flex items-center gap-2 text-[10px] font-mono">
+          <Stat label="Type" value={typeLabel} />
+          <Stat label="Stops" value={String(gradient.stops.length)} />
+          <Stat label="Angle" value={`${Math.round(gradient.angle)}°`} />
+        </dl>
+      </div>
+    </header>
+  );
+};
+
+const Stat = ({ label, value }: { label: string; value: string }) => (
+  <div className="px-2.5 py-1.5 rounded-md bg-background/70 backdrop-blur border border-border/60">
+    <div className="text-[9px] uppercase tracking-wider text-muted-foreground/70">{label}</div>
+    <div className="text-xs font-semibold text-foreground tabular-nums">{value}</div>
+  </div>
+);
+
+const PreviewStopChips = ({ gradient }: { gradient: StudioGradient }) => {
+  const stops = gradient.type === "mesh" ? gradient.meshPoints : gradient.stops;
+  if (!stops.length) return null;
+  const sample = stops.slice(0, 4);
+  return (
+    <div className="absolute bottom-3 left-3 flex items-center gap-1 pointer-events-none">
+      {sample.map((s) => (
+        <div
+          key={s.id}
+          className="flex items-center gap-1 px-1.5 py-1 rounded-md text-[9px] font-mono font-semibold text-white/95 bg-black/45 backdrop-blur-sm ring-1 ring-white/15 shadow-sm"
+          title={s.color}
+        >
+          <span
+            className="w-2.5 h-2.5 rounded-sm border border-white/40"
+            style={{ background: s.color }}
+          />
+          {s.color.toUpperCase()}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+
   const score = scoreGradient(gradient);
   const light = score.minRatioWhite;
   const dark = score.minRatioDark;
