@@ -278,6 +278,19 @@ export const GradientsSection = ({
           </button>
         )}
       </div>
+
+      {/* Studio dialog — full editor for the selected gradient */}
+      <StudioDialog
+        open={!!studioId}
+        gradient={studioGradient}
+        palette={palette}
+        onClose={() => setStudioId(null)}
+        onSave={(g) => {
+          if (!studioId) return;
+          updateGradient(studioId, { name: g.name, css: serializeWithMeta(g) });
+          setStudioId(null);
+        }}
+      />
     </section>
   );
 };
