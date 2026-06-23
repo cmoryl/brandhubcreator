@@ -13,6 +13,7 @@ import { GradientCombinationMatrix } from "@/components/gradient-studio/Gradient
 import { GradientComponentPreview } from "@/components/gradient-studio/GradientComponentPreview";
 import { GradientStatePreview } from "@/components/gradient-studio/GradientStatePreview";
 import { AIGradientDesigner } from "@/components/gradient-studio/AIGradientDesigner";
+import { SavedGradients } from "@/components/gradient-studio/SavedGradients";
 import { scoreGradient } from "@/lib/gradientA11y";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -75,6 +76,7 @@ const GradientStudio = () => {
             <TabsTrigger value="editor">Editor</TabsTrigger>
             <TabsTrigger value="ai">AI Designer</TabsTrigger>
             <TabsTrigger value="combinations">Combinations &amp; A11y</TabsTrigger>
+            <TabsTrigger value="saved">Saved</TabsTrigger>
           </TabsList>
 
           <TabsContent value="editor" className="space-y-4">
@@ -147,6 +149,21 @@ const GradientStudio = () => {
               </div>
               <GradientCombinationMatrix
                 initialPalette={palette}
+                onUseGradient={(g) => { setGradient(g); setTab("editor"); }}
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="saved">
+            <div className="bg-card border border-border rounded-xl p-4 sm:p-6">
+              <div className="mb-4">
+                <h2 className="text-sm font-semibold text-foreground">Saved gradients</h2>
+                <p className="text-xs text-muted-foreground">
+                  Admin-curated library of reusable gradients. Admins can save the current editor gradient; everyone can browse and load them into the editor.
+                </p>
+              </div>
+              <SavedGradients
+                currentGradient={gradient}
                 onUseGradient={(g) => { setGradient(g); setTab("editor"); }}
               />
             </div>
