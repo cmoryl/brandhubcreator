@@ -294,3 +294,57 @@ export const GradientsSection = ({
     </section>
   );
 };
+
+/* -------------------------------------------------------------------------- */
+/* Studio dialog                                                              */
+/* -------------------------------------------------------------------------- */
+
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { GradientExportPanel } from '@/components/gradient-studio/GradientExportPanel';
+import { useEffect, useState as useReactState } from 'react';
+import type { StudioGradient } from '@/lib/gradientStudio';
+
+interface StudioDialogProps {
+  open: boolean;
+  gradient: StudioGradient | null;
+  palette: string[];
+  onClose: () => void;
+  onSave: (g: StudioGradient) => void;
+}
+
+const StudioDialog = ({ open, gradient, palette, onClose, onSave }: StudioDialogProps) => {
+  const [draft, setDraft] = useReactState<StudioGradient | null>(gradient);
+  useEffect(() => { setDraft(gradient); }, [gradient]);
+
+  if (!draft) return null;
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-5xl max-h-[92vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Gradient Studio</DialogTitle>
+        </DialogHeader>
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
+          <div className="space-y-3">
+            <GradientPreview
+              gradient={draft}
+              className="w-full rounded-lg border border-border"
+              style={{ aspectRatio: '16 / 10' }}
+            />
+            <div className="bg-muted/30 border border-border rounded-lg p-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Export</h3>
+              <GradientExportPanel gradient={draft} />
+            </div>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-3">
+            <GradientStudioEditor gradient={draft} onChange={setDraft} palette={palette} />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button onClick={() => onSave(draft)}>Save</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
