@@ -153,6 +153,21 @@ const GradientStudio = () => {
               />
             </div>
           </TabsContent>
+
+          <TabsContent value="saved">
+            <div className="bg-card border border-border rounded-xl p-4 sm:p-6">
+              <div className="mb-4">
+                <h2 className="text-sm font-semibold text-foreground">Saved gradients</h2>
+                <p className="text-xs text-muted-foreground">
+                  Admin-curated library of reusable gradients. Admins can save the current editor gradient; everyone can browse and load them into the editor.
+                </p>
+              </div>
+              <SavedGradients
+                currentGradient={gradient}
+                onUseGradient={(g) => { setGradient(g); setTab("editor"); }}
+              />
+            </div>
+          </TabsContent>
         </Tabs>
       </div>
     </div>
