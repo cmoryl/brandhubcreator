@@ -287,25 +287,67 @@ const Stat = ({ label, value }: { label: string; value: string }) => (
 const PreviewStopChips = ({ gradient }: { gradient: StudioGradient }) => {
   const stops = gradient.type === "mesh" ? gradient.meshPoints : gradient.stops;
   if (!stops.length) return null;
-  const sample = stops.slice(0, 4);
+  const sample = stops.slice(0, 5);
+  const WHITE = { r: 255, g: 255, b: 255 };
+  const BLACK = { r: 17, g: 17, b: 17 };
+
+  const copy = async (hex: string) => {
+    try {
+      await navigator.clipboard.writeText(hex.toUpperCase());
+      toast.success(`Copied ${hex.toUpperCase()}`);
+    } catch {
+      toast.error("Could not copy");
+    }
+  };
+
   return (
-    <div className="absolute bottom-3 left-3 flex items-center gap-1 pointer-events-none">
-      {sample.map((s) => (
-        <div
-          key={s.id}
-          className="flex items-center gap-1 px-1.5 py-1 rounded-md text-[9px] font-mono font-semibold text-white/95 bg-black/45 backdrop-blur-sm ring-1 ring-white/15 shadow-sm"
-          title={s.color}
-        >
-          <span
-            className="w-2.5 h-2.5 rounded-sm border border-white/40"
-            style={{ background: s.color }}
-          />
-          {s.color.toUpperCase()}
-        </div>
-      ))}
+    <div className="absolute bottom-3 left-3 right-3 flex items-center gap-1.5 flex-wrap">
+      {sample.map((s) => {
+        const rgb = parseColor(s.color);
+        const cW = contrastRatio(rgb, WHITE);
+        const cB = contrastRatio(rgb, BLACK);
+        const best = Math.max(cW, cB);
+        const fg = cW >= cB ? "#fff" : "#111";
+        const level = best >= 7 ? "AAA" : best >= 4.5 ? "AA" : best >= 3 ? "AA Lg" : "Fail";
+        const dot =
+          best >= 4.5 ? "bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.7)]"
+          : best >= 3 ? "bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.7)]"
+          : "bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.7)]";
+        return (
+          <button
+            key={s.id}
+            type="button"
+            onClick={() => copy(s.color)}
+            title={`${s.color.toUpperCase()} · best text ${best.toFixed(2)}:1 ${level} — click to copy`}
+            className="group/chip inline-flex items-center gap-1.5 pl-1 pr-2 py-1 rounded-full text-[10px] font-mono font-semibold ring-1 ring-black/10 dark:ring-white/15 shadow-md backdrop-blur-md transition-all duration-200 hover:scale-105 hover:ring-2 hover:ring-white/60 active:scale-95 cursor-pointer"
+            style={{
+              background: `${s.color}E6`,
+              color: fg,
+            }}
+          >
+            <span
+              className="w-4 h-4 rounded-full ring-1 ring-black/20 dark:ring-white/30 shadow-inner shrink-0"
+              style={{ background: s.color }}
+              aria-hidden
+            />
+            <span className="tracking-tight">{s.color.toUpperCase()}</span>
+            <span className="flex items-center gap-1 pl-1.5 ml-0.5 border-l border-current/20 opacity-90">
+              <span className={`w-1.5 h-1.5 rounded-full ${dot}`} aria-hidden />
+              <span className="tabular-nums text-[9px] opacity-80">{best.toFixed(1)}</span>
+            </span>
+          </button>
+        );
+      })}
+      {stops.length > sample.length && (
+        <span className="text-[10px] font-mono font-medium text-white/85 bg-black/45 backdrop-blur-md px-2 py-1 rounded-full ring-1 ring-white/15">
+          +{stops.length - sample.length}
+        </span>
+      )}
     </div>
   );
 };
+
+
 
 
 const PreviewA11yBadge = ({ gradient }: { gradient: StudioGradient }) => {
