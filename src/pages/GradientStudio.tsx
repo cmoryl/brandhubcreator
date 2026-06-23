@@ -12,6 +12,7 @@ import { GradientExportPanel } from "@/components/gradient-studio/GradientExport
 import { GradientCombinationMatrix } from "@/components/gradient-studio/GradientCombinationMatrix";
 import { GradientComponentPreview } from "@/components/gradient-studio/GradientComponentPreview";
 import { GradientStatePreview } from "@/components/gradient-studio/GradientStatePreview";
+import { AIGradientDesigner } from "@/components/gradient-studio/AIGradientDesigner";
 import { scoreGradient } from "@/lib/gradientA11y";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -71,6 +72,7 @@ const GradientStudio = () => {
         <Tabs defaultValue="editor" className="space-y-4">
           <TabsList>
             <TabsTrigger value="editor">Editor</TabsTrigger>
+            <TabsTrigger value="ai">AI Designer</TabsTrigger>
             <TabsTrigger value="combinations">Combinations &amp; A11y</TabsTrigger>
           </TabsList>
 
@@ -116,6 +118,21 @@ const GradientStudio = () => {
                   palette={palette}
                 />
               </aside>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="ai">
+            <div className="bg-card border border-border rounded-xl p-4 sm:p-6">
+              <div className="mb-4">
+                <h2 className="text-sm font-semibold text-foreground">AI Gradient Designer</h2>
+                <p className="text-xs text-muted-foreground">
+                  Describe what you want and the AI builds it from the TransPerfect palette, or upload a reference image to extract its palette and rebuild it as a mesh / linear gradient.
+                </p>
+              </div>
+              <AIGradientDesigner
+                brandPalette={palette}
+                onUseGradient={(g) => setGradient(g)}
+              />
             </div>
           </TabsContent>
 
