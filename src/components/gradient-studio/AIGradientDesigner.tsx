@@ -289,7 +289,7 @@ const ResultCard = ({
           <span className="text-[11px] font-medium text-foreground truncate">{label ?? gradient.name}</span>
           <Badge variant="outline" className={`text-[10px] ${tone}`}>{ratio.toFixed(1)} · {level}</Badge>
         </div>
-        <Button size="sm" variant="ghost" className="w-full h-7 text-[11px]" onClick={onUse}>
+        <Button type="button" size="sm" variant="default" className="w-full h-7 text-[11px]" onClick={onUse}>
           Use in editor
         </Button>
       </div>

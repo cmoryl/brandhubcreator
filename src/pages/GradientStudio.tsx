@@ -238,14 +238,14 @@ const BrandPresetShelf = ({ onPick }: { onPick: (g: StudioGradient) => void }) =
         const items = scored.filter((s) => s.preset.group === group);
         if (!items.length) return null;
         return (
-          <div key={group} className="space-y-2">
+          <div key={group} className="space-y-1.5">
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{group}</span>
               <span className="text-[10px] text-muted-foreground">{items.length} preset{items.length === 1 ? "" : "s"}</span>
             </div>
-            <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {items.map(({ preset, gradient, score }) => (
-                <PresetCard key={preset.name} preset={preset} gradient={gradient} score={score} onPick={onPick} />
+                <PresetPill key={preset.name} preset={preset} gradient={gradient} score={score} onPick={onPick} />
               ))}
             </div>
           </div>
@@ -255,7 +255,7 @@ const BrandPresetShelf = ({ onPick }: { onPick: (g: StudioGradient) => void }) =
   );
 };
 
-const PresetCard = ({
+const PresetPill = ({
   preset, gradient, score, onPick,
 }: {
   preset: BrandPreset;
@@ -267,40 +267,28 @@ const PresetCard = ({
   const ratio = recommended === "light" ? score.minRatioWhite : score.minRatioDark;
   const level = recommended === "light" ? score.whiteLevel : score.darkLevel;
   const tone =
-    level === "AAA" ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
-    : level === "AA" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
-    : level === "AA-Large" ? "bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-500/30"
-    : "bg-destructive/15 text-destructive border-destructive/30";
+    level === "AAA" || level === "AA"
+      ? "text-emerald-700 dark:text-emerald-300"
+      : level === "AA-Large"
+      ? "text-amber-700 dark:text-amber-300"
+      : "text-destructive";
 
   return (
     <button
       type="button"
       onClick={() => onPick(preset.build())}
       title={`${preset.name} — ${preset.description} · ${ratio.toFixed(2)}:1 ${level}`}
-      className="group text-left rounded-md border border-border bg-card overflow-hidden hover:border-primary/60 hover:shadow-sm transition"
+      className="group inline-flex items-center gap-1.5 h-7 pl-1 pr-2.5 rounded-full border border-border bg-card text-xs font-medium text-foreground hover:border-primary/60 hover:bg-secondary transition"
     >
-      <div
-        className="relative aspect-square flex items-center justify-center"
+      <span
+        className="w-5 h-5 rounded-full border border-border shrink-0"
         style={{ background: toCssGradient(gradient) }}
-      >
-        <span
-          className="text-sm font-bold leading-none drop-shadow-sm"
-          style={{ color: recommended === "light" ? "#FFFFFF" : "#0A0A0A" }}
-        >
-          Aa
-        </span>
-        <span
-          className={`absolute top-1 right-1 text-[9px] font-semibold px-1 py-0 rounded leading-tight border ${tone}`}
-        >
-          {level}
-        </span>
-      </div>
-      <div className="px-1.5 py-1">
-        <span className="block text-[10px] font-medium text-foreground truncate leading-tight">{preset.name}</span>
-        <span className="block text-[9px] font-mono text-muted-foreground leading-tight">{ratio.toFixed(1)}:1</span>
-      </div>
+      />
+      <span className="truncate max-w-[140px]">{preset.name}</span>
+      <span className={`text-[9px] font-mono ${tone}`}>{level}</span>
     </button>
   );
 };
+
 
 export default GradientStudio;
