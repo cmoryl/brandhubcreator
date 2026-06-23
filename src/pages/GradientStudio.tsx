@@ -155,6 +155,13 @@ const GradientStudio = () => {
                   <GradientComponentPreview gradient={gradient} />
                 </div>
                 <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+                  <div>
+                    <h2 className="text-sm font-semibold text-foreground">Interactive states &amp; a11y</h2>
+                    <p className="text-xs text-muted-foreground">Buttons and links rendered in default, hover, active, focus, and disabled states with WCAG checks for each.</p>
+                  </div>
+                  <GradientStatePreview gradient={gradient} />
+                </div>
+                <div className="bg-card border border-border rounded-xl p-4 space-y-3">
                   <h2 className="text-sm font-semibold text-foreground">Export</h2>
                   <GradientExportPanel gradient={gradient} />
                 </div>
