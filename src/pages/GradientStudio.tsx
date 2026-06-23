@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useSEO } from "@/hooks/useSEO";
 import {
@@ -15,6 +15,9 @@ import { GradientStatePreview } from "@/components/gradient-studio/GradientState
 import { AIGradientDesigner } from "@/components/gradient-studio/AIGradientDesigner";
 import { SavedGradients } from "@/components/gradient-studio/SavedGradients";
 import { ImageGradientAnalyzer } from "@/components/gradient-studio/ImageGradientAnalyzer";
+import { StudioToolbar } from "@/components/gradient-studio/StudioToolbar";
+import { GradientVariations } from "@/components/gradient-studio/GradientVariations";
+import { useGradientHistory } from "@/hooks/useGradientHistory";
 import { scoreGradient } from "@/lib/gradientA11y";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -33,14 +36,27 @@ const GradientStudio = () => {
 
   const [params] = useSearchParams();
   const [tab, setTab] = useState<string>("editor");
-  const [gradient, setGradient] = useState<StudioGradient>(() => {
+  const initialGradient = useMemo<StudioGradient>(() => {
     const seed = params.get("css");
     if (seed) {
       const parsed = extractStudioGradient(seed);
       if (parsed) return parsed;
     }
     return BRAND_PRESETS[0].build();
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const { gradient, setGradient, undo, redo, canUndo, canRedo } = useGradientHistory(initialGradient);
+
+  const randomize = useCallback(() => {
+    // Pick a random preset and apply a random rotation so users always get something fresh.
+    const preset = BRAND_PRESETS[Math.floor(Math.random() * BRAND_PRESETS.length)];
+    const base = preset.build();
+    setGradient({ ...base, id: crypto.randomUUID(), angle: Math.floor(Math.random() * 360) });
+  }, [setGradient]);
+
+  const renameGradient = useCallback((name: string) => {
+    setGradient((g) => ({ ...g, name }));
+  }, [setGradient]);
 
   // Brand palette (from URL ?palette=hex,hex,hex)
   const palette = useMemo(() => {
