@@ -17,8 +17,8 @@ const slugify = (s: string) =>
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
-    const { logo_id, svg_base64, variant = "black" } = await req.json();
-    if (!logo_id || !svg_base64 || !["black", "white"].includes(variant)) {
+    const { logo_id, svg_base64, variant = "black", format = "svg" } = await req.json();
+    if (!logo_id || !svg_base64 || !["black", "white"].includes(variant) || !["svg", "png"].includes(format)) {
       return new Response(JSON.stringify({ ok: false, error: "missing fields" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -37,9 +37,10 @@ Deno.serve(async (req) => {
     const bytes = Uint8Array.from(atob(svg_base64), (c) => c.charCodeAt(0));
     const slug = slugify(row.name);
     const ts = Date.now();
-    const path = `${slug}/${logo_id}/wordmark-${variant}-${ts}.svg`;
+    const contentType = format === "svg" ? "image/svg+xml" : "image/png";
+    const path = `${slug}/${logo_id}/wordmark-${variant}-${ts}.${format}`;
     const { error: upErr } = await admin.storage.from(BUCKET).upload(path, bytes, {
-      contentType: "image/svg+xml",
+      contentType,
       upsert: true,
     });
     if (upErr) throw new Error(`upload ${upErr.message}`);
@@ -47,10 +48,11 @@ Deno.serve(async (req) => {
     if (sErr || !signed) throw new Error(`sign ${sErr?.message}`);
 
     const existing = Array.isArray(row.files) ? row.files as any[] : [];
-    const kept = existing.filter((f) => !(f && f.variant === variant && (f.lockup === "wordmark" || !f.lockup)));
+    // Remove only the same variant+format combo so SVG and PNG variants can coexist
+    const kept = existing.filter((f) => !(f && f.variant === variant && f.format === format && (f.lockup === "wordmark" || !f.lockup)));
     const newFile = {
       url: signed.signedUrl,
-      format: "svg",
+      format,
       variant,
       lockup: "wordmark",
       source: "manual-upload-revised",
