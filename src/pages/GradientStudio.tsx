@@ -17,6 +17,8 @@ import { SavedGradients } from "@/components/gradient-studio/SavedGradients";
 import { ImageGradientAnalyzer } from "@/components/gradient-studio/ImageGradientAnalyzer";
 import { StudioToolbar } from "@/components/gradient-studio/StudioToolbar";
 import { GradientVariations } from "@/components/gradient-studio/GradientVariations";
+import { StopAccessibilityPanel } from "@/components/gradient-studio/StopAccessibilityPanel";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useGradientHistory } from "@/hooks/useGradientHistory";
 import { scoreGradient, parseColor, contrastRatio } from "@/lib/gradientA11y";
 import { toast } from "sonner";
