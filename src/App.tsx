@@ -551,6 +551,14 @@ const App = () => (
                       }
                     />
                     <Route
+                      path="gradient-studio"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <GradientStudio />
+                        </Suspense>
+                      }
+                    />
+                    <Route
                       path="logohub"
                       element={
                         <Suspense fallback={<PageSkeleton />}>
