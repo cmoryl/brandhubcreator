@@ -56,6 +56,8 @@ export const ImageGradientAnalyzer = ({ onUseGradient }: Props) => {
 
   const [saveOpen, setSaveOpen] = useState(false);
   const [saveTarget, setSaveTarget] = useState<StudioGradient | null>(null);
+  const [dragHex, setDragHex] = useState<string | null>(null);
+  const [dragOverHex, setDragOverHex] = useState<string | null>(null);
 
   const handleFile = useCallback(async (file: File) => {
     setBusy(true);
