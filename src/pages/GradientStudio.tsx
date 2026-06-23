@@ -17,6 +17,8 @@ import { SavedGradients } from "@/components/gradient-studio/SavedGradients";
 import { ImageGradientAnalyzer } from "@/components/gradient-studio/ImageGradientAnalyzer";
 import { StudioToolbar } from "@/components/gradient-studio/StudioToolbar";
 import { GradientVariations } from "@/components/gradient-studio/GradientVariations";
+import { StopAccessibilityPanel } from "@/components/gradient-studio/StopAccessibilityPanel";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useGradientHistory } from "@/hooks/useGradientHistory";
 import { scoreGradient, parseColor, contrastRatio } from "@/lib/gradientA11y";
 import { toast } from "sonner";
@@ -58,6 +60,25 @@ const GradientStudio = () => {
   const renameGradient = useCallback((name: string) => {
     setGradient((g) => ({ ...g, name }));
   }, [setGradient]);
+
+  // Which stop chip is selected for inline accessibility inspection.
+  const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
+
+  const updateStopColor = useCallback((stopId: string, newHex: string) => {
+    setGradient((g) => {
+      if (g.type === "mesh") {
+        return { ...g, meshPoints: g.meshPoints.map((p) => p.id === stopId ? { ...p, color: newHex } : p) };
+      }
+      return { ...g, stops: g.stops.map((s) => s.id === stopId ? { ...s, color: newHex } : s) };
+    });
+  }, [setGradient]);
+
+  // Resolve the currently selected stop's hex (mesh + stops both supported).
+  const selectedStop = useMemo(() => {
+    if (!selectedStopId) return null;
+    const pool = gradient.type === "mesh" ? gradient.meshPoints : gradient.stops;
+    return pool.find((s) => s.id === selectedStopId) ?? null;
+  }, [selectedStopId, gradient]);
 
   // Brand palette (from URL ?palette=hex,hex,hex)
   const palette = useMemo(() => {
@@ -137,9 +158,20 @@ const GradientStudio = () => {
                     {/* Inner ring for definition over light gradients */}
                     <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-black/5 pointer-events-none" />
                     <PreviewA11yBadge gradient={gradient} />
-                    <PreviewStopChips gradient={gradient} />
+                    <PreviewStopChips
+                      gradient={gradient}
+                      selectedStopId={selectedStopId}
+                      onSelect={(id) => setSelectedStopId((cur) => (cur === id ? null : id))}
+                    />
                   </div>
                 </div>
+                {selectedStop && (
+                  <StopAccessibilityPanel
+                    hex={selectedStop.color}
+                    onApply={(newHex) => updateStopColor(selectedStop.id, newHex)}
+                    onClose={() => setSelectedStopId(null)}
+                  />
+                )}
                 <GradientVariations gradient={gradient} onPick={setGradient} />
                 <A11ySummary gradient={gradient} />
 
@@ -284,21 +316,20 @@ const Stat = ({ label, value }: { label: string; value: string }) => (
   </div>
 );
 
-const PreviewStopChips = ({ gradient }: { gradient: StudioGradient }) => {
+const PreviewStopChips = ({
+  gradient,
+  selectedStopId,
+  onSelect,
+}: {
+  gradient: StudioGradient;
+  selectedStopId: string | null;
+  onSelect: (id: string) => void;
+}) => {
   const stops = gradient.type === "mesh" ? gradient.meshPoints : gradient.stops;
   if (!stops.length) return null;
   const sample = stops.slice(0, 5);
   const WHITE = { r: 255, g: 255, b: 255 };
   const BLACK = { r: 17, g: 17, b: 17 };
-
-  const copy = async (hex: string) => {
-    try {
-      await navigator.clipboard.writeText(hex.toUpperCase());
-      toast.success(`Copied ${hex.toUpperCase()}`);
-    } catch {
-      toast.error("Could not copy");
-    }
-  };
 
   return (
     <div className="absolute bottom-3 left-3 right-3 flex items-center gap-1.5 flex-wrap">
@@ -308,34 +339,88 @@ const PreviewStopChips = ({ gradient }: { gradient: StudioGradient }) => {
         const cB = contrastRatio(rgb, BLACK);
         const best = Math.max(cW, cB);
         const fg = cW >= cB ? "#fff" : "#111";
-        const level = best >= 7 ? "AAA" : best >= 4.5 ? "AA" : best >= 3 ? "AA Lg" : "Fail";
+        const passAA = best >= 4.5;
+        const passLg = best >= 3;
+        const level = best >= 7 ? "AAA" : passAA ? "AA" : passLg ? "AA Large" : "Fail";
         const dot =
-          best >= 4.5 ? "bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.7)]"
-          : best >= 3 ? "bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.7)]"
+          passAA ? "bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.7)]"
+          : passLg ? "bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.7)]"
           : "bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.7)]";
+        const isSelected = selectedStopId === s.id;
         return (
-          <button
-            key={s.id}
-            type="button"
-            onClick={() => copy(s.color)}
-            title={`${s.color.toUpperCase()} · best text ${best.toFixed(2)}:1 ${level} — click to copy`}
-            className="group/chip inline-flex items-center gap-1.5 pl-1 pr-2 py-1 rounded-full text-[10px] font-mono font-semibold ring-1 ring-black/10 dark:ring-white/15 shadow-md backdrop-blur-md transition-all duration-200 hover:scale-105 hover:ring-2 hover:ring-white/60 active:scale-95 cursor-pointer"
-            style={{
-              background: `${s.color}E6`,
-              color: fg,
-            }}
-          >
-            <span
-              className="w-4 h-4 rounded-full ring-1 ring-black/20 dark:ring-white/30 shadow-inner shrink-0"
-              style={{ background: s.color }}
-              aria-hidden
-            />
-            <span className="tracking-tight">{s.color.toUpperCase()}</span>
-            <span className="flex items-center gap-1 pl-1.5 ml-0.5 border-l border-current/20 opacity-90">
-              <span className={`w-1.5 h-1.5 rounded-full ${dot}`} aria-hidden />
-              <span className="tabular-nums text-[9px] opacity-80">{best.toFixed(1)}</span>
-            </span>
-          </button>
+          <Tooltip key={s.id} delayDuration={200}>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={() => onSelect(s.id)}
+                aria-pressed={isSelected}
+                aria-label={`${s.color.toUpperCase()} — ${level}, ${best.toFixed(2)} to 1. Click for details.`}
+                className={[
+                  "group/chip inline-flex items-center gap-1.5 pl-1 pr-2 py-1 rounded-full text-[10px] font-mono font-semibold backdrop-blur-md shadow-md cursor-pointer",
+                  "transition-all duration-200 hover:scale-105 active:scale-95",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                  isSelected
+                    ? "ring-2 ring-primary scale-105 shadow-lg"
+                    : "ring-1 ring-black/10 dark:ring-white/15 hover:ring-2 hover:ring-white/60",
+                ].join(" ")}
+                style={{
+                  background: `${s.color}E6`,
+                  color: fg,
+                }}
+              >
+                <span
+                  className="w-4 h-4 rounded-full ring-1 ring-black/20 dark:ring-white/30 shadow-inner shrink-0"
+                  style={{ background: s.color }}
+                  aria-hidden
+                />
+                <span className="tracking-tight">{s.color.toUpperCase()}</span>
+                <span className="flex items-center gap-1 pl-1.5 ml-0.5 border-l border-current/20 opacity-90">
+                  <span className={`w-1.5 h-1.5 rounded-full ${dot}`} aria-hidden />
+                  <span className="tabular-nums text-[9px] opacity-80">{best.toFixed(1)}</span>
+                </span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-[260px] p-2.5 space-y-1.5">
+              <div className="flex items-center gap-2">
+                <span
+                  className="w-4 h-4 rounded ring-1 ring-border"
+                  style={{ background: s.color }}
+                  aria-hidden
+                />
+                <span className="font-mono font-bold text-[11px]">{s.color.toUpperCase()}</span>
+                <span
+                  className={[
+                    "ml-auto text-[9px] font-mono font-bold px-1.5 py-0.5 rounded",
+                    passAA ? "bg-emerald-500/20 text-emerald-300"
+                    : passLg ? "bg-amber-500/20 text-amber-300"
+                    : "bg-destructive/20 text-destructive-foreground",
+                  ].join(" ")}
+                >
+                  {level}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-1.5 text-[10px]">
+                <div className="rounded p-1.5 bg-white/10 text-white/90">
+                  <div className="opacity-70 text-[9px] uppercase tracking-wider">vs #FFF</div>
+                  <div className="font-mono font-bold tabular-nums">{cW.toFixed(2)}:1</div>
+                </div>
+                <div className="rounded p-1.5 bg-black/30 text-white/90">
+                  <div className="opacity-70 text-[9px] uppercase tracking-wider">vs #111</div>
+                  <div className="font-mono font-bold tabular-nums">{cB.toFixed(2)}:1</div>
+                </div>
+              </div>
+              <p className="text-[10px] text-muted-foreground leading-snug pt-0.5">
+                {passAA
+                  ? "Meets WCAG AA for normal body text."
+                  : passLg
+                  ? "Only safe for large/bold text. Click for AA-grade alternatives."
+                  : "Fails WCAG on both light and dark text. Click for fixes."}
+              </p>
+              <div className="text-[9px] text-muted-foreground/80 pt-0.5 border-t border-border/50">
+                {isSelected ? "Click chip again to close" : "Click for details & alternatives"}
+              </div>
+            </TooltipContent>
+          </Tooltip>
         );
       })}
       {stops.length > sample.length && (
@@ -346,6 +431,7 @@ const PreviewStopChips = ({ gradient }: { gradient: StudioGradient }) => {
     </div>
   );
 };
+
 
 
 
