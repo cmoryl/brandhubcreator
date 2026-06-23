@@ -239,18 +239,28 @@ export const GradientsSection = ({
                   <div className="flex items-start justify-between">
                     <div>
                       <h3 className="font-medium text-foreground">{gradient.name}</h3>
-                      <p className="text-xs font-mono text-muted-foreground mt-1 truncate max-w-[180px]">{gradient.css}</p>
+                      <p className="text-xs font-mono text-muted-foreground mt-1 truncate max-w-[180px]">{stripStudioMeta(gradient.css)}</p>
                     </div>
-                    <button
-                      onClick={() => setEditingId(gradient.id)}
-                      className="p-1.5 rounded-md hover:bg-secondary transition-colors"
-                    >
-                      <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => setStudioId(gradient.id)}
+                        title="Open in Gradient Studio"
+                        className="p-1.5 rounded-md hover:bg-secondary transition-colors"
+                      >
+                        <Wand2 className="h-3.5 w-3.5 text-muted-foreground" />
+                      </button>
+                      <button
+                        onClick={() => setEditingId(gradient.id)}
+                        title="Quick edit"
+                        className="p-1.5 rounded-md hover:bg-secondary transition-colors"
+                      >
+                        <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                      </button>
+                    </div>
                   </div>
                   {/* OKLCH Accessibility Badge */}
                   <div className="pt-2 border-t border-border">
-                    <GradientAccessibilityBadge css={gradient.css} />
+                    <GradientAccessibilityBadge css={stripStudioMeta(gradient.css)} />
                   </div>
                 </>
               )}
