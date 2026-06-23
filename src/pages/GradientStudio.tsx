@@ -21,7 +21,7 @@ import { useGradientHistory } from "@/hooks/useGradientHistory";
 import { scoreGradient } from "@/lib/gradientA11y";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Plus, ChevronDown } from "lucide-react";
+import { Plus, ChevronDown, Sliders, Sparkles, Image as ImageIcon, Grid3x3, Bookmark } from "lucide-react";
 
 import { BRAND_PRESETS, BRAND_PRESET_GROUPS, BrandPreset } from "@/lib/transperfectPresets";
 import { toCssGradient } from "@/lib/gradientStudio";
@@ -91,20 +91,25 @@ const GradientStudio = () => {
         canRedo={canRedo}
       />
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <header className="space-y-1">
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground">Gradient Studio</h1>
-          <p className="text-sm text-muted-foreground">
-            Design linear, radial, conic & mesh gradients. Add noise and animation. Export to CSS, Tailwind, SVG and raster.
-          </p>
-        </header>
+        <StudioHero gradient={gradient} />
 
         <Tabs value={tab} onValueChange={setTab} className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="editor">Editor</TabsTrigger>
-            <TabsTrigger value="ai">AI Designer</TabsTrigger>
-            <TabsTrigger value="image">From Image</TabsTrigger>
-            <TabsTrigger value="combinations">Combinations &amp; A11y</TabsTrigger>
-            <TabsTrigger value="saved">Saved</TabsTrigger>
+          <TabsList className="bg-secondary/50 p-1 h-auto rounded-xl border border-border/60">
+            <TabsTrigger value="editor" className="gap-1.5 rounded-lg data-[state=active]:shadow-sm">
+              <Sliders className="w-3.5 h-3.5" /> Editor
+            </TabsTrigger>
+            <TabsTrigger value="ai" className="gap-1.5 rounded-lg data-[state=active]:shadow-sm">
+              <Sparkles className="w-3.5 h-3.5" /> AI Designer
+            </TabsTrigger>
+            <TabsTrigger value="image" className="gap-1.5 rounded-lg data-[state=active]:shadow-sm">
+              <ImageIcon className="w-3.5 h-3.5" /> From Image
+            </TabsTrigger>
+            <TabsTrigger value="combinations" className="gap-1.5 rounded-lg data-[state=active]:shadow-sm">
+              <Grid3x3 className="w-3.5 h-3.5" /> Combinations
+            </TabsTrigger>
+            <TabsTrigger value="saved" className="gap-1.5 rounded-lg data-[state=active]:shadow-sm">
+              <Bookmark className="w-3.5 h-3.5" /> Saved
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="editor" className="space-y-4">
@@ -115,16 +120,28 @@ const GradientStudio = () => {
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
               {/* Preview + a11y + export */}
               <div className="space-y-4">
-                <div className="relative">
-                  <GradientPreview
-                    gradient={gradient}
-                    className="w-full rounded-2xl border border-border shadow-sm"
-                    style={{ aspectRatio: "16 / 10" }}
+                <div className="relative group">
+                  {/* Soft ambient glow that reflects the current gradient */}
+                  <div
+                    aria-hidden
+                    className="absolute -inset-4 rounded-3xl opacity-50 blur-3xl pointer-events-none transition-opacity group-hover:opacity-75"
+                    style={{ background: toCssGradient(gradient) }}
                   />
-                  <PreviewA11yBadge gradient={gradient} />
+                  <div className="relative rounded-2xl border border-border bg-card overflow-hidden shadow-lg">
+                    <GradientPreview
+                      gradient={gradient}
+                      className="w-full"
+                      style={{ aspectRatio: "16 / 10" }}
+                    />
+                    {/* Inner ring for definition over light gradients */}
+                    <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-black/5 pointer-events-none" />
+                    <PreviewA11yBadge gradient={gradient} />
+                    <PreviewStopChips gradient={gradient} />
+                  </div>
                 </div>
                 <GradientVariations gradient={gradient} onPick={setGradient} />
                 <A11ySummary gradient={gradient} />
+
 
                 <div className="bg-card border border-border rounded-xl p-4 space-y-3">
                   <div>
@@ -217,6 +234,74 @@ const GradientStudio = () => {
           </TabsContent>
         </Tabs>
       </div>
+    </div>
+  );
+};
+
+
+const StudioHero = ({ gradient }: { gradient: StudioGradient }) => {
+  const typeLabel = gradient.type[0].toUpperCase() + gradient.type.slice(1);
+  return (
+    <header className="relative overflow-hidden rounded-2xl border border-border bg-card">
+      {/* Live gradient backdrop, dimmed */}
+      <div
+        aria-hidden
+        className="absolute inset-0 opacity-40"
+        style={{ background: toCssGradient(gradient) }}
+      />
+      <div
+        aria-hidden
+        className="absolute inset-0 bg-gradient-to-r from-card via-card/85 to-card/40"
+      />
+      <div className="relative px-5 sm:px-7 py-6 flex flex-wrap items-end justify-between gap-4">
+        <div className="space-y-1.5">
+          <div className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+            Gradient Studio
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-foreground">
+            Design gradients that pass <span className="text-primary">a11y</span>.
+          </h1>
+          <p className="text-sm text-muted-foreground max-w-xl">
+            Linear, radial, conic & mesh — with live WCAG scoring, smart variations, and exports to CSS, Tailwind, SVG, PNG & JPG.
+          </p>
+        </div>
+        <dl className="flex items-center gap-2 text-[10px] font-mono">
+          <Stat label="Type" value={typeLabel} />
+          <Stat label="Stops" value={String(gradient.stops.length)} />
+          <Stat label="Angle" value={`${Math.round(gradient.angle)}°`} />
+        </dl>
+      </div>
+    </header>
+  );
+};
+
+const Stat = ({ label, value }: { label: string; value: string }) => (
+  <div className="px-2.5 py-1.5 rounded-md bg-background/70 backdrop-blur border border-border/60">
+    <div className="text-[9px] uppercase tracking-wider text-muted-foreground/70">{label}</div>
+    <div className="text-xs font-semibold text-foreground tabular-nums">{value}</div>
+  </div>
+);
+
+const PreviewStopChips = ({ gradient }: { gradient: StudioGradient }) => {
+  const stops = gradient.type === "mesh" ? gradient.meshPoints : gradient.stops;
+  if (!stops.length) return null;
+  const sample = stops.slice(0, 4);
+  return (
+    <div className="absolute bottom-3 left-3 flex items-center gap-1 pointer-events-none">
+      {sample.map((s) => (
+        <div
+          key={s.id}
+          className="flex items-center gap-1 px-1.5 py-1 rounded-md text-[9px] font-mono font-semibold text-white/95 bg-black/45 backdrop-blur-sm ring-1 ring-white/15 shadow-sm"
+          title={s.color}
+        >
+          <span
+            className="w-2.5 h-2.5 rounded-sm border border-white/40"
+            style={{ background: s.color }}
+          />
+          {s.color.toUpperCase()}
+        </div>
+      ))}
     </div>
   );
 };
