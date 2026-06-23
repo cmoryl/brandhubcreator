@@ -87,17 +87,56 @@ export const GradientStudioEditor = ({ gradient, onChange, palette }: Props) => 
       {/* Geometry */}
       {(gradient.type === "linear" || gradient.type === "conic") && (
         <div className="space-y-1.5">
-          <div className="flex justify-between text-xs">
+          <div className="flex justify-between items-center text-xs">
             <Label className="text-xs">Angle</Label>
-            <span className="font-mono text-muted-foreground">{gradient.angle}°</span>
+            <div className="flex items-center gap-1">
+              <Input
+                type="number"
+                min={0}
+                max={360}
+                value={gradient.angle}
+                onChange={(e) => {
+                  const v = parseInt(e.target.value, 10);
+                  if (!Number.isNaN(v)) patch({ angle: Math.max(0, Math.min(360, v)) });
+                }}
+                className="h-7 w-16 text-xs font-mono text-right"
+              />
+              <span className="font-mono text-muted-foreground text-xs">°</span>
+            </div>
           </div>
           <Slider
             min={0} max={360} step={1}
             value={[gradient.angle]}
             onValueChange={([v]) => patch({ angle: v })}
           />
+          <div className="flex flex-wrap gap-1 pt-1">
+            {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => (
+              <button
+                key={a}
+                type="button"
+                onClick={() => patch({ angle: a })}
+                className={
+                  "px-2 h-6 rounded border text-[10px] font-mono transition-colors " +
+                  (gradient.angle === a
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:bg-accent")
+                }
+              >
+                {a}°
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => patch({ angle: (gradient.angle + 45) % 360 })}
+              className="px-2 h-6 rounded border border-border text-[10px] text-muted-foreground hover:bg-accent ml-auto"
+              title="Rotate +45°"
+            >
+              +45°
+            </button>
+          </div>
         </div>
       )}
+
 
       {gradient.type === "radial" && (
         <div className="grid grid-cols-2 gap-2">

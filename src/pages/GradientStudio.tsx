@@ -29,6 +29,7 @@ const GradientStudio = () => {
   });
 
   const [params] = useSearchParams();
+  const [tab, setTab] = useState<string>("editor");
   const [gradient, setGradient] = useState<StudioGradient>(() => {
     const seed = params.get("css");
     if (seed) {
@@ -69,7 +70,7 @@ const GradientStudio = () => {
           </p>
         </header>
 
-        <Tabs defaultValue="editor" className="space-y-4">
+        <Tabs value={tab} onValueChange={setTab} className="space-y-4">
           <TabsList>
             <TabsTrigger value="editor">Editor</TabsTrigger>
             <TabsTrigger value="ai">AI Designer</TabsTrigger>
@@ -131,7 +132,7 @@ const GradientStudio = () => {
               </div>
               <AIGradientDesigner
                 brandPalette={palette}
-                onUseGradient={(g) => setGradient(g)}
+                onUseGradient={(g) => { setGradient(g); setTab("editor"); }}
               />
             </div>
           </TabsContent>
@@ -146,7 +147,7 @@ const GradientStudio = () => {
               </div>
               <GradientCombinationMatrix
                 initialPalette={palette}
-                onUseGradient={(g) => setGradient(g)}
+                onUseGradient={(g) => { setGradient(g); setTab("editor"); }}
               />
             </div>
           </TabsContent>
