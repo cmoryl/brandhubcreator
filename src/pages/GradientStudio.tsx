@@ -69,7 +69,7 @@ const GradientStudio = () => {
           </p>
         </header>
 
-        <Tabs defaultValue="editor" className="space-y-4">
+        <Tabs value={tab} onValueChange={setTab} className="space-y-4">
           <TabsList>
             <TabsTrigger value="editor">Editor</TabsTrigger>
             <TabsTrigger value="ai">AI Designer</TabsTrigger>
