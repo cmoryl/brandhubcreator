@@ -17,7 +17,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 
 import { BRAND_PRESETS, BRAND_PRESET_GROUPS, BrandPreset } from "@/lib/transperfectPresets";
-import { toCssGradient, StudioGradient as _StudioGradient } from "@/lib/gradientStudio";
+import { toCssGradient } from "@/lib/gradientStudio";
 
 
 
@@ -34,7 +34,7 @@ const GradientStudio = () => {
       const parsed = extractStudioGradient(seed);
       if (parsed) return parsed;
     }
-    return PRESETS[0].build();
+    return BRAND_PRESETS[0].build();
   });
 
   // Brand palette (from URL ?palette=hex,hex,hex)
@@ -75,24 +75,9 @@ const GradientStudio = () => {
           </TabsList>
 
           <TabsContent value="editor" className="space-y-4">
-            {/* Presets */}
-            <div className="flex gap-2 flex-wrap">
-              {PRESETS.map((p) => (
-                <button
-                  key={p.name}
-                  onClick={() => setGradient(p.build())}
-                  className="text-xs px-3 py-1.5 rounded-full border border-border bg-card hover:bg-secondary transition-colors"
-                >
-                  {p.name}
-                </button>
-              ))}
-              <button
-                onClick={() => setGradient(createStudioGradient())}
-                className="text-xs px-3 py-1.5 rounded-full border border-dashed border-border text-muted-foreground hover:bg-secondary"
-              >
-                + Blank
-              </button>
-            </div>
+            {/* Brand presets — TransPerfect Master Brand palette, WCAG-tuned */}
+            <BrandPresetShelf onPick={setGradient} />
+
 
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
               {/* Preview + a11y + export */}
