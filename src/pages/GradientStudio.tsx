@@ -11,6 +11,7 @@ import { GradientStudioEditor } from "@/components/gradient-studio/GradientStudi
 import { GradientExportPanel } from "@/components/gradient-studio/GradientExportPanel";
 import { GradientCombinationMatrix } from "@/components/gradient-studio/GradientCombinationMatrix";
 import { GradientComponentPreview } from "@/components/gradient-studio/GradientComponentPreview";
+import { GradientStatePreview } from "@/components/gradient-studio/GradientStatePreview";
 import { scoreGradient } from "@/lib/gradientA11y";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -152,6 +153,13 @@ const GradientStudio = () => {
                     <p className="text-xs text-muted-foreground">Live components rendered on the gradient with per-element WCAG checks.</p>
                   </div>
                   <GradientComponentPreview gradient={gradient} />
+                </div>
+                <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+                  <div>
+                    <h2 className="text-sm font-semibold text-foreground">Interactive states &amp; a11y</h2>
+                    <p className="text-xs text-muted-foreground">Buttons and links rendered in default, hover, active, focus, and disabled states with WCAG checks for each.</p>
+                  </div>
+                  <GradientStatePreview gradient={gradient} />
                 </div>
                 <div className="bg-card border border-border rounded-xl p-4 space-y-3">
                   <h2 className="text-sm font-semibold text-foreground">Export</h2>
