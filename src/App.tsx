@@ -112,6 +112,7 @@ const PublicLogoHubAudit = lazyWithRetry(() => import("./pages/PublicLogoHubAudi
 const PublicLogoHubMonoCutoutAudit = lazyWithRetry(() => import("./pages/PublicLogoHubMonoCutoutAudit"));
 const PublicLogoHubBrandAudit = lazyWithRetry(() => import("./pages/PublicLogoHubBrandAudit"));
 const PublicLogoHubSvgAudit = lazyWithRetry(() => import("./pages/PublicLogoHubSvgAudit"));
+const PublicLogoHubRasterReport = lazyWithRetry(() => import("./pages/PublicLogoHubRasterReport"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -576,6 +577,14 @@ const App = () => (
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <PublicLogoHubSvgAudit />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="logohub/raster-report"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <PublicLogoHubRasterReport />
                         </Suspense>
                       }
                     />
