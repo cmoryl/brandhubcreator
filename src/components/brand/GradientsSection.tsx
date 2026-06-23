@@ -41,10 +41,20 @@ export const GradientsSection = ({
   brandColors 
 }: GradientsSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [studioId, setStudioId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const { gridClass, cardClass, isListView } = useLayoutClasses(layout);
+  const palette = (brandColors ?? []).map((c) => c.hex).filter(Boolean);
+  const studioGradient = studioId
+    ? (() => {
+        const g = gradients.find((x) => x.id === studioId);
+        if (!g) return null;
+        const parsed = extractStudioGradient(g.css);
+        return parsed ?? createStudioGradient({ id: g.id, name: g.name });
+      })()
+    : null;
 
   const addGradient = () => {
     const newGradient: BrandGradient = {
