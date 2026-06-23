@@ -127,9 +127,22 @@ export const ImageGradientAnalyzer = ({ onUseGradient }: Props) => {
       return next;
     });
   };
+  const reorderStop = (fromHex: string, toHex: string) => {
+    if (fromHex === toHex) return;
+    setSelectedStops((prev) => {
+      const from = prev.indexOf(fromHex);
+      const to = prev.indexOf(toHex);
+      if (from < 0 || to < 0) return prev;
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
+  };
   const resetStops = () => {
     if (result) setSelectedStops(result.palette.slice(0, 2));
   };
+
 
   // ---- Mesh point helpers ----
   const updateMeshPoint = (id: string, patch: Partial<MeshPoint>) => {
