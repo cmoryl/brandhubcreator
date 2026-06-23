@@ -21,7 +21,7 @@ import { useGradientHistory } from "@/hooks/useGradientHistory";
 import { scoreGradient } from "@/lib/gradientA11y";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Plus, ChevronDown } from "lucide-react";
+import { Plus, ChevronDown, Sliders, Sparkles, Image as ImageIcon, Grid3x3, Bookmark } from "lucide-react";
 
 import { BRAND_PRESETS, BRAND_PRESET_GROUPS, BrandPreset } from "@/lib/transperfectPresets";
 import { toCssGradient } from "@/lib/gradientStudio";
