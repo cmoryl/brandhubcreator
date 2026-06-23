@@ -1,5 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { GradientExportPanel } from '@/components/gradient-studio/GradientExportPanel';
+import type { StudioGradient } from '@/lib/gradientStudio';
 import { Plus, X, Pencil, Copy, Check, Sparkles, Loader2, Wand2, ExternalLink } from 'lucide-react';
 import { BrandGradient, BrandColor, LayoutPreset } from '@/types/brand';
 import { Button } from '@/components/ui/button';
