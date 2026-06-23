@@ -312,7 +312,7 @@ interface StudioDialogProps {
 }
 
 const StudioDialog = ({ open, gradient, palette, onClose, onSave }: StudioDialogProps) => {
-  const [draft, setDraft] = useReactState<StudioGradient | null>(gradient);
+  const [draft, setDraft] = useState<StudioGradient | null>(gradient);
   useEffect(() => { setDraft(gradient); }, [gradient]);
 
   if (!draft) return null;
