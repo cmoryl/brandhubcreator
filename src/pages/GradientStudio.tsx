@@ -158,9 +158,20 @@ const GradientStudio = () => {
                     {/* Inner ring for definition over light gradients */}
                     <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-black/5 pointer-events-none" />
                     <PreviewA11yBadge gradient={gradient} />
-                    <PreviewStopChips gradient={gradient} />
+                    <PreviewStopChips
+                      gradient={gradient}
+                      selectedStopId={selectedStopId}
+                      onSelect={(id) => setSelectedStopId((cur) => (cur === id ? null : id))}
+                    />
                   </div>
                 </div>
+                {selectedStop && (
+                  <StopAccessibilityPanel
+                    hex={selectedStop.color}
+                    onApply={(newHex) => updateStopColor(selectedStop.id, newHex)}
+                    onClose={() => setSelectedStopId(null)}
+                  />
+                )}
                 <GradientVariations gradient={gradient} onPick={setGradient} />
                 <A11ySummary gradient={gradient} />
 
