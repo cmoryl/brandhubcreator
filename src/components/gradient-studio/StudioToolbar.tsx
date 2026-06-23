@@ -71,6 +71,12 @@ export const StudioToolbar = ({
 
   return (
     <div className="sticky top-0 z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2 bg-background/85 backdrop-blur border-b border-border">
+      {/* Ambient gradient underline reflecting the current gradient */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-px"
+        style={{ background: toCssGradient(gradient), opacity: 0.7 }}
+      />
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 min-w-0">
           <span
