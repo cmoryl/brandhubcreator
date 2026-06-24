@@ -166,16 +166,23 @@ const GradientStudio = () => {
                     <PreviewA11yBadge gradient={gradient} />
                     <PreviewStopChips
                       gradient={gradient}
-                      selectedStopId={selectedStopId}
-                      onSelect={(id) => setSelectedStopId((cur) => (cur === id ? null : id))}
+                      selectedIndex={panelOpen ? resolvedIndex : null}
+                      onSelect={(idx) => {
+                        if (resolvedIndex === idx && panelOpen) {
+                          setPanelOpen(false);
+                        } else {
+                          setSelectedIndex(idx);
+                          setPanelOpen(true);
+                        }
+                      }}
                     />
                   </div>
                 </div>
-                {selectedStop && (
+                {panelOpen && selectedStop && resolvedIndex !== null && (
                   <StopAccessibilityPanel
                     hex={selectedStop.color}
-                    onApply={(newHex) => updateStopColor(selectedStop.id, newHex)}
-                    onClose={() => setSelectedStopId(null)}
+                    onApply={(newHex) => updateStopColorAt(resolvedIndex, newHex)}
+                    onClose={() => setPanelOpen(false)}
                   />
                 )}
                 <GradientVariations gradient={gradient} onPick={setGradient} />
