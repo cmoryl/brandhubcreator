@@ -62,23 +62,29 @@ const GradientStudio = () => {
   }, [setGradient]);
 
   // Which stop chip is selected for inline accessibility inspection.
-  const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
+  // We persist by index (not id) so the selection survives remix/randomize
+  // and any other op that rebuilds stop ids. Panel open state is tracked
+  // separately so closing the panel doesn't forget which chip was picked.
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [panelOpen, setPanelOpen] = useState(false);
 
-  const updateStopColor = useCallback((stopId: string, newHex: string) => {
+  const updateStopColorAt = useCallback((index: number, newHex: string) => {
     setGradient((g) => {
       if (g.type === "mesh") {
-        return { ...g, meshPoints: g.meshPoints.map((p) => p.id === stopId ? { ...p, color: newHex } : p) };
+        return { ...g, meshPoints: g.meshPoints.map((p, i) => i === index ? { ...p, color: newHex } : p) };
       }
-      return { ...g, stops: g.stops.map((s) => s.id === stopId ? { ...s, color: newHex } : s) };
+      return { ...g, stops: g.stops.map((s, i) => i === index ? { ...s, color: newHex } : s) };
     });
   }, [setGradient]);
 
-  // Resolve the currently selected stop's hex (mesh + stops both supported).
-  const selectedStop = useMemo(() => {
-    if (!selectedStopId) return null;
-    const pool = gradient.type === "mesh" ? gradient.meshPoints : gradient.stops;
-    return pool.find((s) => s.id === selectedStopId) ?? null;
-  }, [selectedStopId, gradient]);
+  // Resolve the currently selected stop by index, clamped to current pool length
+  // so remix/randomize keeps "the third chip" selected even with new ids.
+  const stopsPool = gradient.type === "mesh" ? gradient.meshPoints : gradient.stops;
+  const resolvedIndex = useMemo(() => {
+    if (selectedIndex === null || stopsPool.length === 0) return null;
+    return Math.min(selectedIndex, stopsPool.length - 1);
+  }, [selectedIndex, stopsPool.length]);
+  const selectedStop = resolvedIndex !== null ? stopsPool[resolvedIndex] : null;
 
   // Brand palette (from URL ?palette=hex,hex,hex)
   const palette = useMemo(() => {
