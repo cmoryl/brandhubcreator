@@ -359,13 +359,13 @@ const PreviewStopChips = ({
           passAA ? "bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.7)]"
           : passLg ? "bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.7)]"
           : "bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.7)]";
-        const isSelected = selectedStopId === s.id;
+        const isSelected = selectedIndex === idx;
         return (
           <Tooltip key={s.id} delayDuration={200}>
             <TooltipTrigger asChild>
               <button
                 type="button"
-                onClick={() => onSelect(s.id)}
+                onClick={() => onSelect(idx)}
                 aria-pressed={isSelected}
                 aria-label={`${s.color.toUpperCase()} — ${level}, ${best.toFixed(2)} to 1. Click for details.`}
                 className={[
