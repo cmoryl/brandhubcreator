@@ -331,12 +331,12 @@ const Stat = ({ label, value }: { label: string; value: string }) => (
 
 const PreviewStopChips = ({
   gradient,
-  selectedStopId,
+  selectedIndex,
   onSelect,
 }: {
   gradient: StudioGradient;
-  selectedStopId: string | null;
-  onSelect: (id: string) => void;
+  selectedIndex: number | null;
+  onSelect: (index: number) => void;
 }) => {
   const stops = gradient.type === "mesh" ? gradient.meshPoints : gradient.stops;
   if (!stops.length) return null;
@@ -346,7 +346,7 @@ const PreviewStopChips = ({
 
   return (
     <div className="absolute bottom-3 left-3 right-3 flex items-center gap-1.5 flex-wrap">
-      {sample.map((s) => {
+      {sample.map((s, idx) => {
         const rgb = parseColor(s.color);
         const cW = contrastRatio(rgb, WHITE);
         const cB = contrastRatio(rgb, BLACK);
