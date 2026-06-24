@@ -62,23 +62,29 @@ const GradientStudio = () => {
   }, [setGradient]);
 
   // Which stop chip is selected for inline accessibility inspection.
-  const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
+  // We persist by index (not id) so the selection survives remix/randomize
+  // and any other op that rebuilds stop ids. Panel open state is tracked
+  // separately so closing the panel doesn't forget which chip was picked.
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [panelOpen, setPanelOpen] = useState(false);
 
-  const updateStopColor = useCallback((stopId: string, newHex: string) => {
+  const updateStopColorAt = useCallback((index: number, newHex: string) => {
     setGradient((g) => {
       if (g.type === "mesh") {
-        return { ...g, meshPoints: g.meshPoints.map((p) => p.id === stopId ? { ...p, color: newHex } : p) };
+        return { ...g, meshPoints: g.meshPoints.map((p, i) => i === index ? { ...p, color: newHex } : p) };
       }
-      return { ...g, stops: g.stops.map((s) => s.id === stopId ? { ...s, color: newHex } : s) };
+      return { ...g, stops: g.stops.map((s, i) => i === index ? { ...s, color: newHex } : s) };
     });
   }, [setGradient]);
 
-  // Resolve the currently selected stop's hex (mesh + stops both supported).
-  const selectedStop = useMemo(() => {
-    if (!selectedStopId) return null;
-    const pool = gradient.type === "mesh" ? gradient.meshPoints : gradient.stops;
-    return pool.find((s) => s.id === selectedStopId) ?? null;
-  }, [selectedStopId, gradient]);
+  // Resolve the currently selected stop by index, clamped to current pool length
+  // so remix/randomize keeps "the third chip" selected even with new ids.
+  const stopsPool = gradient.type === "mesh" ? gradient.meshPoints : gradient.stops;
+  const resolvedIndex = useMemo(() => {
+    if (selectedIndex === null || stopsPool.length === 0) return null;
+    return Math.min(selectedIndex, stopsPool.length - 1);
+  }, [selectedIndex, stopsPool.length]);
+  const selectedStop = resolvedIndex !== null ? stopsPool[resolvedIndex] : null;
 
   // Brand palette (from URL ?palette=hex,hex,hex)
   const palette = useMemo(() => {
@@ -160,16 +166,23 @@ const GradientStudio = () => {
                     <PreviewA11yBadge gradient={gradient} />
                     <PreviewStopChips
                       gradient={gradient}
-                      selectedStopId={selectedStopId}
-                      onSelect={(id) => setSelectedStopId((cur) => (cur === id ? null : id))}
+                      selectedIndex={panelOpen ? resolvedIndex : null}
+                      onSelect={(idx) => {
+                        if (resolvedIndex === idx && panelOpen) {
+                          setPanelOpen(false);
+                        } else {
+                          setSelectedIndex(idx);
+                          setPanelOpen(true);
+                        }
+                      }}
                     />
                   </div>
                 </div>
-                {selectedStop && (
+                {panelOpen && selectedStop && resolvedIndex !== null && (
                   <StopAccessibilityPanel
                     hex={selectedStop.color}
-                    onApply={(newHex) => updateStopColor(selectedStop.id, newHex)}
-                    onClose={() => setSelectedStopId(null)}
+                    onApply={(newHex) => updateStopColorAt(resolvedIndex, newHex)}
+                    onClose={() => setPanelOpen(false)}
                   />
                 )}
                 <GradientVariations gradient={gradient} onPick={setGradient} />
@@ -318,12 +331,12 @@ const Stat = ({ label, value }: { label: string; value: string }) => (
 
 const PreviewStopChips = ({
   gradient,
-  selectedStopId,
+  selectedIndex,
   onSelect,
 }: {
   gradient: StudioGradient;
-  selectedStopId: string | null;
-  onSelect: (id: string) => void;
+  selectedIndex: number | null;
+  onSelect: (index: number) => void;
 }) => {
   const stops = gradient.type === "mesh" ? gradient.meshPoints : gradient.stops;
   if (!stops.length) return null;
@@ -333,7 +346,7 @@ const PreviewStopChips = ({
 
   return (
     <div className="absolute bottom-3 left-3 right-3 flex items-center gap-1.5 flex-wrap">
-      {sample.map((s) => {
+      {sample.map((s, idx) => {
         const rgb = parseColor(s.color);
         const cW = contrastRatio(rgb, WHITE);
         const cB = contrastRatio(rgb, BLACK);
@@ -346,13 +359,13 @@ const PreviewStopChips = ({
           passAA ? "bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.7)]"
           : passLg ? "bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.7)]"
           : "bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.7)]";
-        const isSelected = selectedStopId === s.id;
+        const isSelected = selectedIndex === idx;
         return (
           <Tooltip key={s.id} delayDuration={200}>
             <TooltipTrigger asChild>
               <button
                 type="button"
-                onClick={() => onSelect(s.id)}
+                onClick={() => onSelect(idx)}
                 aria-pressed={isSelected}
                 aria-label={`${s.color.toUpperCase()} — ${level}, ${best.toFixed(2)} to 1. Click for details.`}
                 className={[
