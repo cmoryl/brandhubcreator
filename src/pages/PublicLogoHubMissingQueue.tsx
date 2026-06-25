@@ -337,7 +337,7 @@ export default function PublicLogoHubMissingQueue() {
                       logoId={r.id}
                       logoName={r.name}
                       existingFiles={r.files}
-                      defaultLockup="wordmark"
+                      defaultLockup={lockupScope === 'icon' ? 'icon' : 'wordmark'}
                       defaultVariant="color"
                       onUploaded={(nextFiles) => handleUploaded(r.id, nextFiles)}
                       trigger={
