@@ -270,8 +270,12 @@ export default function PublicLogoHubMissingQueue() {
       ) : (
         <div className="space-y-3">
           {filtered.map((r) => {
-            const missing = missingSlots(r.files);
-            const hasAny = r.files.length > 0;
+            const missing = missingSlots(r.files, lockupScope);
+            const visibleLockups: ClientLogoLockup[] =
+              lockupScope === 'wordmark' ? ['wordmark'] : lockupScope === 'icon' ? ['icon'] : ['wordmark', 'icon'];
+            const hasAny = visibleLockups.some((l) =>
+              r.files.some((f) => f.lockup === l || (l === 'wordmark' && !f.lockup)),
+            );
             return (
               <Card key={r.id} className="p-4">
                 <div className="flex flex-col md:flex-row md:items-start gap-4">
