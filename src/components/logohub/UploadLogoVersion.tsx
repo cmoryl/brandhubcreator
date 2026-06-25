@@ -68,11 +68,31 @@ export function UploadLogoVersion({
   const [lockup, setLockup] = useState<ClientLogoLockup>(defaultLockup);
   const [variant, setVariant] = useState<ClientLogoVariant>(defaultVariant);
   const [uploading, setUploading] = useState(false);
+  const [detection, setDetection] = useState<DetectedAssetMeta | null>(null);
+  const [lockupTouched, setLockupTouched] = useState(false);
+  const [variantTouched, setVariantTouched] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const reset = () => {
     setFile(null);
+    setDetection(null);
+    setLockupTouched(false);
+    setVariantTouched(false);
     if (inputRef.current) inputRef.current.value = '';
+  };
+
+  const handleFilePick = async (picked: File | null) => {
+    setFile(picked);
+    setDetection(null);
+    if (!picked) return;
+    try {
+      const meta = await detectAssetMeta(picked, { lockup, variant });
+      setDetection(meta);
+      if (!lockupTouched) setLockup(meta.lockup);
+      if (!variantTouched) setVariant(meta.variant);
+    } catch {
+      // non-fatal
+    }
   };
 
   const handleUpload = async () => {
