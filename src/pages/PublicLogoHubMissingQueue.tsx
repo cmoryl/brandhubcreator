@@ -126,25 +126,41 @@ export default function PublicLogoHubMissingQueue() {
     return rows.filter((r) => {
       if (search && !r.name.toLowerCase().includes(search.toLowerCase())) return false;
       if (categoryFilter !== 'all' && r.category !== categoryFilter) return false;
-      const empty = r.files.length === 0;
+      const scopeFiles = r.files;
+      const empty =
+        lockupScope === 'icon'
+          ? !scopeFiles.some((f) => f.lockup === 'icon')
+          : lockupScope === 'wordmark'
+            ? !scopeFiles.some((f) => f.lockup === 'wordmark' || !f.lockup)
+            : scopeFiles.length === 0;
+      const colorLockup: ClientLogoLockup = lockupScope === 'icon' ? 'icon' : 'wordmark';
       const missingColor =
-        !has(r.files, 'wordmark', 'color', 'svg') && !has(r.files, 'wordmark', 'color', 'png');
-      const missingAny = missingSlots(r.files).length > 0;
+        !has(scopeFiles, colorLockup, 'color', 'svg') &&
+        !has(scopeFiles, colorLockup, 'color', 'png');
+      const missingAny = missingSlots(scopeFiles, lockupScope).length > 0;
       if (filter === 'empty') return empty;
       if (filter === 'missing-color') return missingColor;
       if (filter === 'missing-any') return missingAny;
       return true;
     });
-  }, [rows, search, filter, categoryFilter]);
+  }, [rows, search, filter, categoryFilter, lockupScope]);
 
   const stats = useMemo(() => {
-    const empty = rows.filter((r) => r.files.length === 0).length;
+    const empty = rows.filter((r) =>
+      lockupScope === 'icon'
+        ? !r.files.some((f) => f.lockup === 'icon')
+        : lockupScope === 'wordmark'
+          ? !r.files.some((f) => f.lockup === 'wordmark' || !f.lockup)
+          : r.files.length === 0,
+    ).length;
+    const colorLockup: ClientLogoLockup = lockupScope === 'icon' ? 'icon' : 'wordmark';
     const missingColor = rows.filter(
       (r) =>
-        !has(r.files, 'wordmark', 'color', 'svg') && !has(r.files, 'wordmark', 'color', 'png'),
+        !has(r.files, colorLockup, 'color', 'svg') &&
+        !has(r.files, colorLockup, 'color', 'png'),
     ).length;
     return { total: rows.length, empty, missingColor };
-  }, [rows]);
+  }, [rows, lockupScope]);
 
   const handleUploaded = (id: string, nextFiles: ClientLogoFile[]) => {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, files: nextFiles } : r)));
