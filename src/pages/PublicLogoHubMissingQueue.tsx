@@ -216,13 +216,27 @@ export default function PublicLogoHubMissingQueue() {
           onChange={(e) => setSearch(e.target.value)}
           className="sm:max-w-xs"
         />
+        <Select value={lockupScope} onValueChange={(v) => setLockupScope(v as LockupScope)}>
+          <SelectTrigger className="sm:w-[160px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="both">Wordmarks + icons</SelectItem>
+            <SelectItem value="wordmark">Wordmarks only</SelectItem>
+            <SelectItem value="icon">Icons only</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={filter} onValueChange={(v) => setFilter(v as Filter)}>
           <SelectTrigger className="sm:w-[220px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="empty">Empty (no files)</SelectItem>
-            <SelectItem value="missing-color">Missing color wordmark</SelectItem>
+            <SelectItem value="empty">
+              Empty ({lockupScope === 'icon' ? 'no icon' : lockupScope === 'wordmark' ? 'no wordmark' : 'no files'})
+            </SelectItem>
+            <SelectItem value="missing-color">
+              Missing color {lockupScope === 'icon' ? 'icon' : 'wordmark'}
+            </SelectItem>
             <SelectItem value="missing-any">Missing any variant</SelectItem>
             <SelectItem value="all">All brands</SelectItem>
           </SelectContent>
