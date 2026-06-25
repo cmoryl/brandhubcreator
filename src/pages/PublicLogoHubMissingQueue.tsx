@@ -46,9 +46,10 @@ function has(files: ClientLogoFile[], lockup: ClientLogoLockup, variant: Variant
   );
 }
 
-function missingSlots(files: ClientLogoFile[]) {
+function missingSlots(files: ClientLogoFile[], lockupScope: LockupScope = 'both') {
   const missing: { lockup: ClientLogoLockup; variant: Variant; format: Format }[] = [];
-  const lockups: ClientLogoLockup[] = ['wordmark', 'icon'];
+  const lockups: ClientLogoLockup[] =
+    lockupScope === 'wordmark' ? ['wordmark'] : lockupScope === 'icon' ? ['icon'] : ['wordmark', 'icon'];
   for (const l of lockups) {
     for (const v of VARIANTS) {
       for (const f of FORMATS) {
@@ -58,6 +59,8 @@ function missingSlots(files: ClientLogoFile[]) {
   }
   return missing;
 }
+
+type LockupScope = 'both' | 'wordmark' | 'icon';
 
 function FragmentRow({ lockup, files }: { lockup: ClientLogoLockup; files: ClientLogoFile[] }) {
   return (
@@ -87,6 +90,7 @@ export default function PublicLogoHubMissingQueue() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<Filter>('empty');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [lockupScope, setLockupScope] = useState<LockupScope>('both');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -122,25 +126,41 @@ export default function PublicLogoHubMissingQueue() {
     return rows.filter((r) => {
       if (search && !r.name.toLowerCase().includes(search.toLowerCase())) return false;
       if (categoryFilter !== 'all' && r.category !== categoryFilter) return false;
-      const empty = r.files.length === 0;
+      const scopeFiles = r.files;
+      const empty =
+        lockupScope === 'icon'
+          ? !scopeFiles.some((f) => f.lockup === 'icon')
+          : lockupScope === 'wordmark'
+            ? !scopeFiles.some((f) => f.lockup === 'wordmark' || !f.lockup)
+            : scopeFiles.length === 0;
+      const colorLockup: ClientLogoLockup = lockupScope === 'icon' ? 'icon' : 'wordmark';
       const missingColor =
-        !has(r.files, 'wordmark', 'color', 'svg') && !has(r.files, 'wordmark', 'color', 'png');
-      const missingAny = missingSlots(r.files).length > 0;
+        !has(scopeFiles, colorLockup, 'color', 'svg') &&
+        !has(scopeFiles, colorLockup, 'color', 'png');
+      const missingAny = missingSlots(scopeFiles, lockupScope).length > 0;
       if (filter === 'empty') return empty;
       if (filter === 'missing-color') return missingColor;
       if (filter === 'missing-any') return missingAny;
       return true;
     });
-  }, [rows, search, filter, categoryFilter]);
+  }, [rows, search, filter, categoryFilter, lockupScope]);
 
   const stats = useMemo(() => {
-    const empty = rows.filter((r) => r.files.length === 0).length;
+    const empty = rows.filter((r) =>
+      lockupScope === 'icon'
+        ? !r.files.some((f) => f.lockup === 'icon')
+        : lockupScope === 'wordmark'
+          ? !r.files.some((f) => f.lockup === 'wordmark' || !f.lockup)
+          : r.files.length === 0,
+    ).length;
+    const colorLockup: ClientLogoLockup = lockupScope === 'icon' ? 'icon' : 'wordmark';
     const missingColor = rows.filter(
       (r) =>
-        !has(r.files, 'wordmark', 'color', 'svg') && !has(r.files, 'wordmark', 'color', 'png'),
+        !has(r.files, colorLockup, 'color', 'svg') &&
+        !has(r.files, colorLockup, 'color', 'png'),
     ).length;
     return { total: rows.length, empty, missingColor };
-  }, [rows]);
+  }, [rows, lockupScope]);
 
   const handleUploaded = (id: string, nextFiles: ClientLogoFile[]) => {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, files: nextFiles } : r)));
@@ -173,11 +193,19 @@ export default function PublicLogoHubMissingQueue() {
         </Card>
         <Card className="p-4">
           <div className="text-2xl font-bold text-destructive">{stats.empty}</div>
-          <div className="text-sm text-muted-foreground">No assets at all</div>
+          <div className="text-sm text-muted-foreground">
+            {lockupScope === 'icon'
+              ? 'No icon assets'
+              : lockupScope === 'wordmark'
+                ? 'No wordmark assets'
+                : 'No assets at all'}
+          </div>
         </Card>
         <Card className="p-4">
           <div className="text-2xl font-bold text-amber-600">{stats.missingColor}</div>
-          <div className="text-sm text-muted-foreground">Missing color wordmark</div>
+          <div className="text-sm text-muted-foreground">
+            Missing color {lockupScope === 'icon' ? 'icon' : 'wordmark'}
+          </div>
         </Card>
       </div>
 
@@ -188,13 +216,27 @@ export default function PublicLogoHubMissingQueue() {
           onChange={(e) => setSearch(e.target.value)}
           className="sm:max-w-xs"
         />
+        <Select value={lockupScope} onValueChange={(v) => setLockupScope(v as LockupScope)}>
+          <SelectTrigger className="sm:w-[160px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="both">Wordmarks + icons</SelectItem>
+            <SelectItem value="wordmark">Wordmarks only</SelectItem>
+            <SelectItem value="icon">Icons only</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={filter} onValueChange={(v) => setFilter(v as Filter)}>
           <SelectTrigger className="sm:w-[220px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="empty">Empty (no files)</SelectItem>
-            <SelectItem value="missing-color">Missing color wordmark</SelectItem>
+            <SelectItem value="empty">
+              Empty ({lockupScope === 'icon' ? 'no icon' : lockupScope === 'wordmark' ? 'no wordmark' : 'no files'})
+            </SelectItem>
+            <SelectItem value="missing-color">
+              Missing color {lockupScope === 'icon' ? 'icon' : 'wordmark'}
+            </SelectItem>
             <SelectItem value="missing-any">Missing any variant</SelectItem>
             <SelectItem value="all">All brands</SelectItem>
           </SelectContent>
@@ -228,8 +270,12 @@ export default function PublicLogoHubMissingQueue() {
       ) : (
         <div className="space-y-3">
           {filtered.map((r) => {
-            const missing = missingSlots(r.files);
-            const hasAny = r.files.length > 0;
+            const missing = missingSlots(r.files, lockupScope);
+            const visibleLockups: ClientLogoLockup[] =
+              lockupScope === 'wordmark' ? ['wordmark'] : lockupScope === 'icon' ? ['icon'] : ['wordmark', 'icon'];
+            const hasAny = visibleLockups.some((l) =>
+              r.files.some((f) => f.lockup === l || (l === 'wordmark' && !f.lockup)),
+            );
             return (
               <Card key={r.id} className="p-4">
                 <div className="flex flex-col md:flex-row md:items-start gap-4">
@@ -276,7 +322,7 @@ export default function PublicLogoHubMissingQueue() {
                           </div>
                         )),
                       )}
-                      {(['wordmark', 'icon'] as ClientLogoLockup[]).map((l) => (
+                      {visibleLockups.map((l) => (
                         <FragmentRow
                           key={`l-${l}`}
                           lockup={l}
@@ -291,7 +337,7 @@ export default function PublicLogoHubMissingQueue() {
                       logoId={r.id}
                       logoName={r.name}
                       existingFiles={r.files}
-                      defaultLockup="wordmark"
+                      defaultLockup={lockupScope === 'icon' ? 'icon' : 'wordmark'}
                       defaultVariant="color"
                       onUploaded={(nextFiles) => handleUploaded(r.id, nextFiles)}
                       trigger={
