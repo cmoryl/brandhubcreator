@@ -46,9 +46,10 @@ function has(files: ClientLogoFile[], lockup: ClientLogoLockup, variant: Variant
   );
 }
 
-function missingSlots(files: ClientLogoFile[]) {
+function missingSlots(files: ClientLogoFile[], lockupScope: LockupScope = 'both') {
   const missing: { lockup: ClientLogoLockup; variant: Variant; format: Format }[] = [];
-  const lockups: ClientLogoLockup[] = ['wordmark', 'icon'];
+  const lockups: ClientLogoLockup[] =
+    lockupScope === 'wordmark' ? ['wordmark'] : lockupScope === 'icon' ? ['icon'] : ['wordmark', 'icon'];
   for (const l of lockups) {
     for (const v of VARIANTS) {
       for (const f of FORMATS) {
@@ -58,6 +59,8 @@ function missingSlots(files: ClientLogoFile[]) {
   }
   return missing;
 }
+
+type LockupScope = 'both' | 'wordmark' | 'icon';
 
 function FragmentRow({ lockup, files }: { lockup: ClientLogoLockup; files: ClientLogoFile[] }) {
   return (
