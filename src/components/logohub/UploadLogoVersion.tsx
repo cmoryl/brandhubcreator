@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
-import { Upload, Loader2 } from 'lucide-react';
+import { Upload, Loader2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
@@ -27,6 +28,7 @@ import type {
   ClientLogoVariant,
 } from '@/types/brand';
 import { validateLogoUpload, LOGO_UPLOAD_LIMITS } from '@/lib/logoUploadValidation';
+import { detectAssetMeta, type DetectedAssetMeta } from '@/lib/logoAssetAutoDetect';
 
 const BUCKET = 'organization-assets';
 const FOLDER = 'client-logos';
