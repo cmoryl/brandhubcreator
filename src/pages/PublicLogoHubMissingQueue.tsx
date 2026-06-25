@@ -255,28 +255,11 @@ export default function PublicLogoHubMissingQueue() {
                         )),
                       )}
                       {(['wordmark', 'icon'] as ClientLogoLockup[]).map((l) => (
-                        <>
-                          <div key={`l-${l}`} className="font-medium text-muted-foreground capitalize self-center">
-                            {l}
-                          </div>
-                          {VARIANTS.map((v) =>
-                            FORMATS.map((f) => {
-                              const present = has(r.files, l, v, f);
-                              return (
-                                <div
-                                  key={`${l}-${v}-${f}`}
-                                  className="flex justify-center items-center"
-                                >
-                                  {present ? (
-                                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                                  ) : (
-                                    <XCircle className="h-4 w-4 text-destructive/50" />
-                                  )}
-                                </div>
-                              );
-                            }),
-                          )}
-                        </>
+                        <FragmentRow
+                          key={`l-${l}`}
+                          lockup={l}
+                          files={r.files}
+                        />
                       ))}
                     </div>
                   </div>
