@@ -253,7 +253,7 @@ export function UploadLogoVersion({
               ref={inputRef}
               type="file"
               accept=".svg,.png,image/svg+xml,image/png"
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              onChange={(e) => handleFilePick(e.target.files?.[0] ?? null)}
               className="block w-full text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded file:border file:border-border file:bg-muted/40 file:text-xs file:font-medium hover:file:bg-muted"
             />
             {file && (
