@@ -322,7 +322,7 @@ export default function PublicLogoHubMissingQueue() {
                           </div>
                         )),
                       )}
-                      {(['wordmark', 'icon'] as ClientLogoLockup[]).map((l) => (
+                      {visibleLockups.map((l) => (
                         <FragmentRow
                           key={`l-${l}`}
                           lockup={l}
