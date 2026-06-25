@@ -52,6 +52,21 @@ const SOURCES: Record<string, Src> = {
   "Coremedia":            { wmFile: "@search:CoreMedia logo" },
   "Amplience":            { wmFile: "@search:Amplience logo" },
 
+  // Life Sciences (Wikimedia Commons)
+  "Bayer":                              { wmFile: "Logo_Bayer.svg" },
+  "Boehringer Ingelheim":               { wmFile: "Boehringer Ingelheim Logo.svg" },
+  "Bristol-Myers Squibb":               { wmFile: "Bristol-Myers Squibb logo.svg" },
+  "Daiichi Sankyo":                     { wmFile: "@search:Daiichi Sankyo logo" },
+  "Merck":                              { wmFile: "Merck logo.svg" },
+  "Novartis":                           { wmFile: "Novartis-Logo.svg" },
+  "Novo Nordisk":                       { wmFile: "Novo Nordisk.svg" },
+  "Gedeon Richter":                     { wmFile: "@search:Gedeon Richter logo" },
+  "Smith & Nephew":                     { wmFile: "@search:Smith Nephew logo" },
+  "Karyopharm Therapeutics":            { wmFile: "@search:Karyopharm Therapeutics logo" },
+  "Clinipace":                          { wmFile: "@search:Clinipace logo" },
+  "CTI Clinical Trial and Consulting":  { wmFile: "@search:CTI Clinical Trial Consulting logo" },
+  "SCOPE International":                { wmFile: "@search:SCOPE International logo" },
+
   // No reliable public source — flagged for manual upload
   "1440.io":        { url: "" },
   "Byner":          { url: "" },
