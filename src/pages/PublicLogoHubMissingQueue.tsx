@@ -90,6 +90,7 @@ export default function PublicLogoHubMissingQueue() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<Filter>('empty');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [lockupScope, setLockupScope] = useState<LockupScope>('both');
 
   const load = useCallback(async () => {
     setLoading(true);
