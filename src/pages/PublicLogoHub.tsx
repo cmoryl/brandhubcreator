@@ -360,6 +360,12 @@ export default function PublicLogoHub() {
               >
                 Icon resolution audit →
               </a>
+              <a
+                href="/logohub/missing"
+                className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium hover:border-primary/50 hover:bg-accent transition-colors"
+              >
+                Missing logos queue →
+              </a>
             </div>
           </div>
           <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">

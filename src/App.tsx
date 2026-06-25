@@ -114,6 +114,7 @@ const PublicLogoHubBrandAudit = lazyWithRetry(() => import("./pages/PublicLogoHu
 const PublicLogoHubSvgAudit = lazyWithRetry(() => import("./pages/PublicLogoHubSvgAudit"));
 const PublicLogoHubRasterReport = lazyWithRetry(() => import("./pages/PublicLogoHubRasterReport"));
 const PublicLogoHubIconAudit = lazyWithRetry(() => import("./pages/PublicLogoHubIconAudit"));
+const PublicLogoHubMissingQueue = lazyWithRetry(() => import("./pages/PublicLogoHubMissingQueue"));
 const GradientStudio = lazyWithRetry(() => import("./pages/GradientStudio"));
 
 const queryClient = new QueryClient({
@@ -603,6 +604,14 @@ const App = () => (
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <PublicLogoHubIconAudit />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="logohub/missing"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <PublicLogoHubMissingQueue />
                         </Suspense>
                       }
                     />
