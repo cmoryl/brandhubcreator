@@ -193,11 +193,19 @@ export default function PublicLogoHubMissingQueue() {
         </Card>
         <Card className="p-4">
           <div className="text-2xl font-bold text-destructive">{stats.empty}</div>
-          <div className="text-sm text-muted-foreground">No assets at all</div>
+          <div className="text-sm text-muted-foreground">
+            {lockupScope === 'icon'
+              ? 'No icon assets'
+              : lockupScope === 'wordmark'
+                ? 'No wordmark assets'
+                : 'No assets at all'}
+          </div>
         </Card>
         <Card className="p-4">
           <div className="text-2xl font-bold text-amber-600">{stats.missingColor}</div>
-          <div className="text-sm text-muted-foreground">Missing color wordmark</div>
+          <div className="text-sm text-muted-foreground">
+            Missing color {lockupScope === 'icon' ? 'icon' : 'wordmark'}
+          </div>
         </Card>
       </div>
 
