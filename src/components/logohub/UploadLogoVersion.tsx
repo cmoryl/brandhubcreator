@@ -179,7 +179,13 @@ export function UploadLogoVersion({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label className="text-xs">Lockup</Label>
-              <Select value={lockup} onValueChange={(v) => setLockup(v as ClientLogoLockup)}>
+              <Select
+                value={lockup}
+                onValueChange={(v) => {
+                  setLockup(v as ClientLogoLockup);
+                  setLockupTouched(true);
+                }}
+              >
                 <SelectTrigger className="h-9">
                   <SelectValue />
                 </SelectTrigger>
@@ -191,7 +197,13 @@ export function UploadLogoVersion({
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Variant</Label>
-              <Select value={variant} onValueChange={(v) => setVariant(v as ClientLogoVariant)}>
+              <Select
+                value={variant}
+                onValueChange={(v) => {
+                  setVariant(v as ClientLogoVariant);
+                  setVariantTouched(true);
+                }}
+              >
                 <SelectTrigger className="h-9">
                   <SelectValue />
                 </SelectTrigger>
@@ -203,6 +215,34 @@ export function UploadLogoVersion({
               </Select>
             </div>
           </div>
+
+          {detection && file && (
+            <div className="flex items-start gap-2 rounded border border-border/60 bg-muted/30 px-2.5 py-2 text-[11px]">
+              <Sparkles className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="font-medium">Auto-matched →</span>
+                  <Badge variant="secondary" className="text-[10px] capitalize">
+                    {detection.lockup}
+                  </Badge>
+                  <Badge variant="secondary" className="text-[10px] capitalize">
+                    {detection.variant}
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] capitalize text-muted-foreground"
+                  >
+                    {detection.confidence} confidence
+                  </Badge>
+                </div>
+                {detection.reasons.length > 0 && (
+                  <p className="mt-0.5 text-muted-foreground truncate">
+                    {detection.reasons.join(' · ')}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="space-y-1.5">
             <Label className="text-xs">
