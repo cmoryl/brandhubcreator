@@ -59,6 +59,28 @@ function missingSlots(files: ClientLogoFile[]) {
   return missing;
 }
 
+function FragmentRow({ lockup, files }: { lockup: ClientLogoLockup; files: ClientLogoFile[] }) {
+  return (
+    <>
+      <div className="font-medium text-muted-foreground capitalize self-center">{lockup}</div>
+      {VARIANTS.map((v) =>
+        FORMATS.map((f) => {
+          const present = has(files, lockup, v, f);
+          return (
+            <div key={`${lockup}-${v}-${f}`} className="flex justify-center items-center">
+              {present ? (
+                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+              ) : (
+                <XCircle className="h-4 w-4 text-destructive/50" />
+              )}
+            </div>
+          );
+        }),
+      )}
+    </>
+  );
+}
+
 export default function PublicLogoHubMissingQueue() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
