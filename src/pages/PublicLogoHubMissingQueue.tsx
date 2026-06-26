@@ -222,6 +222,61 @@ export default function PublicLogoHubMissingQueue() {
     }
   };
 
+  const [bulkRunning, setBulkRunning] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number } | null>(null);
+  const handleBulkDeriveMono = async () => {
+    const lockupsToRun: ('icon' | 'wordmark')[] =
+      lockupScope === 'icon' ? ['icon'] : lockupScope === 'wordmark' ? ['wordmark'] : ['icon', 'wordmark'];
+    const jobs: { row: Row; lockup: 'icon' | 'wordmark' }[] = [];
+    for (const row of filtered) {
+      for (const lockup of lockupsToRun) {
+        const hasColor = row.files.some(
+          (f) => f.variant === 'color' && (f.lockup ?? 'wordmark') === lockup,
+        );
+        const missingMono =
+          !has(row.files, lockup, 'black', 'svg') ||
+          !has(row.files, lockup, 'black', 'png') ||
+          !has(row.files, lockup, 'white', 'svg') ||
+          !has(row.files, lockup, 'white', 'png');
+        if (hasColor && missingMono) jobs.push({ row, lockup });
+      }
+    }
+    if (jobs.length === 0) {
+      toast.info('Nothing to derive — every visible row already has B/W variants or no color source.');
+      return;
+    }
+    if (!confirm(`Derive B/W variants for ${jobs.length} ${jobs.length === 1 ? 'job' : 'jobs'} across ${filtered.length} brands?`)) return;
+
+    setBulkRunning(true);
+    setBulkProgress({ done: 0, total: jobs.length });
+    const t = toast.loading(`Bulk deriving B/W… 0/${jobs.length}`);
+    let ok = 0;
+    let fail = 0;
+    for (let i = 0; i < jobs.length; i++) {
+      const { row, lockup } = jobs[i];
+      try {
+        const { data, error } = await supabase.functions.invoke('derive-mono-icons', {
+          body: { logo_id: row.id, lockup },
+        });
+        if (error) throw error;
+        const r = data as { ok: boolean; files?: ClientLogoFile[]; error?: string };
+        if (!r.ok) throw new Error(r.error || 'derive failed');
+        if (r.files) handleUploaded(row.id, r.files);
+        ok++;
+      } catch (e) {
+        fail++;
+        console.error('bulk derive failed', row.name, lockup, e);
+      }
+      setBulkProgress({ done: i + 1, total: jobs.length });
+      toast.loading(`Bulk deriving B/W… ${i + 1}/${jobs.length}`, { id: t });
+    }
+    toast.success(`Bulk derive complete — ${ok} ok, ${fail} failed`, { id: t });
+    setBulkRunning(false);
+    setBulkProgress(null);
+  };
+
+
+
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
