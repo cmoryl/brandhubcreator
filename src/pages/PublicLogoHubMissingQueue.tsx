@@ -323,6 +323,64 @@ export default function PublicLogoHubMissingQueue() {
     setRasterProgress(null);
   };
 
+  const [iconBulkRunning, setIconBulkRunning] = useState(false);
+  const [iconBulkProgress, setIconBulkProgress] = useState<{ done: number; total: number } | null>(null);
+  const handleBulkDeepFetchIcons = async () => {
+    const jobs = filtered.filter((row) => {
+      if (!row.website_url) return false;
+      const hasColorIcon =
+        has(row.files, 'icon', 'color', 'svg') || has(row.files, 'icon', 'color', 'png');
+      return !hasColorIcon;
+    });
+    if (jobs.length === 0) {
+      toast.info('Nothing to fetch — every visible row already has a color icon or has no website URL.');
+      return;
+    }
+    if (!confirm(`Deep-fetch icons for ${jobs.length} brand${jobs.length === 1 ? '' : 's'}? B/W variants will be derived automatically when a color icon lands.`)) return;
+
+    setIconBulkRunning(true);
+    setIconBulkProgress({ done: 0, total: jobs.length });
+    const t = toast.loading(`Deep-fetching icons… 0/${jobs.length}`);
+    let ok = 0;
+    let fail = 0;
+    const failed: string[] = [];
+    for (let i = 0; i < jobs.length; i++) {
+      const row = jobs[i];
+      try {
+        const { data, error } = await supabase.functions.invoke('deep-icon-fetch', {
+          body: { website_url: row.website_url, logo_id: row.id, name: row.name, commit: true },
+        });
+        if (error) throw error;
+        const r = data as { ok: boolean; total?: number; commit?: { ok?: boolean; files?: ClientLogoFile[]; error?: string }; error?: string };
+        if (!r.ok) throw new Error(r.error || 'fetch failed');
+        if (r.commit?.ok && r.commit.files?.length) {
+          ok++;
+          // Refresh this row from server so derived B/W variants (auto-triggered) show up
+          const { data: fresh } = await supabase
+            .from('global_client_logos')
+            .select('files')
+            .eq('id', row.id)
+            .maybeSingle();
+          if (fresh?.files) handleUploaded(row.id, fresh.files as ClientLogoFile[]);
+        } else {
+          fail++;
+          failed.push(row.name);
+        }
+      } catch (e) {
+        fail++;
+        failed.push(row.name);
+        console.error('bulk deep-fetch failed', row.name, e);
+      }
+      setIconBulkProgress({ done: i + 1, total: jobs.length });
+      toast.loading(`Deep-fetching icons… ${i + 1}/${jobs.length}`, { id: t });
+    }
+    toast.success(`Deep-fetch complete — ${ok} ok, ${fail} failed${failed.length ? ` (${failed.slice(0, 3).join(', ')}${failed.length > 3 ? '…' : ''})` : ''}`, { id: t });
+    setIconBulkRunning(false);
+    setIconBulkProgress(null);
+  };
+
+
+
 
 
 
