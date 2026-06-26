@@ -466,6 +466,38 @@ export default function PublicLogoHubMissingQueue() {
         </Button>
       </div>
 
+      <div className="mb-4 flex flex-wrap items-center gap-2 rounded-md border border-dashed bg-muted/30 p-3">
+        <Sparkles className="h-4 w-4 text-muted-foreground" />
+        <div className="text-sm">
+          <span className="font-medium">Bulk deep-fetch icons</span>
+          <span className="text-muted-foreground ml-2">
+            Crawls each visible brand's website (favicon, apple-touch-icon, manifest, common paths),
+            commits the best color icon, then derives B/W variants. Skips rows without a website URL or
+            that already have a color icon. Filter by category (e.g. Legal) first.
+          </span>
+        </div>
+        <Button
+          size="sm"
+          variant="secondary"
+          className="ml-auto gap-1"
+          disabled={iconBulkRunning || loading || filtered.length === 0}
+          onClick={handleBulkDeepFetchIcons}
+        >
+          {iconBulkRunning ? (
+            <>
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              {iconBulkProgress ? `${iconBulkProgress.done}/${iconBulkProgress.total}` : 'Running…'}
+            </>
+          ) : (
+            <>
+              <Sparkles className="h-3.5 w-3.5" />
+              Deep-fetch icons for {filtered.length} visible
+            </>
+          )}
+        </Button>
+      </div>
+
+
 
 
 
