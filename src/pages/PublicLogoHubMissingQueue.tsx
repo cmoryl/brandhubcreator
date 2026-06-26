@@ -202,6 +202,27 @@ export default function PublicLogoHubMissingQueue() {
     }
   };
 
+  const [derivingId, setDerivingId] = useState<string | null>(null);
+  const handleDeriveMono = async (row: Row, lockup: 'icon' | 'wordmark') => {
+    setDerivingId(row.id);
+    const t = toast.loading(`Deriving B/W ${lockup} for ${row.name}…`);
+    try {
+      const { data, error } = await supabase.functions.invoke('derive-mono-icons', {
+        body: { logo_id: row.id, lockup },
+      });
+      if (error) throw error;
+      const r = data as { ok: boolean; produced?: ClientLogoFile[]; files?: ClientLogoFile[]; error?: string };
+      if (!r.ok) throw new Error(r.error || 'derive failed');
+      toast.success(`Derived ${r.produced?.length ?? 0} mono variants`, { id: t });
+      if (r.files) handleUploaded(row.id, r.files);
+    } catch (e) {
+      toast.error((e as Error).message, { id: t });
+    } finally {
+      setDerivingId(null);
+    }
+  };
+
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="flex items-center justify-between mb-6">
