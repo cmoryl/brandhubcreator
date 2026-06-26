@@ -378,6 +378,38 @@ export default function PublicLogoHubMissingQueue() {
         </Button>
       </div>
 
+      <div className="mb-4 flex flex-wrap items-center gap-2 rounded-md border border-dashed bg-muted/30 p-3">
+        <Sparkles className="h-4 w-4 text-muted-foreground" />
+        <div className="text-sm">
+          <span className="font-medium">Bulk rasterize wordmark PNGs</span>
+          <span className="text-muted-foreground ml-2">
+            Renders 2048px transparent PNGs from existing wordmark SVGs (color / black / white) for every
+            visible row that's missing the PNG. Filter by category (e.g. Legal) first.
+          </span>
+        </div>
+        <Button
+          size="sm"
+          variant="secondary"
+          className="ml-auto gap-1"
+          disabled={rasterRunning || loading || filtered.length === 0}
+          onClick={handleBulkRasterizeWordmarks}
+        >
+          {rasterRunning ? (
+            <>
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              {rasterProgress ? `${rasterProgress.done}/${rasterProgress.total}` : 'Running…'}
+            </>
+          ) : (
+            <>
+              <Sparkles className="h-3.5 w-3.5" />
+              Rasterize PNGs for {filtered.length} visible
+            </>
+          )}
+        </Button>
+      </div>
+
+
+
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
         <Card className="p-4">
