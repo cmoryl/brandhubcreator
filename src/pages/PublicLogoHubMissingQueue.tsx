@@ -382,6 +382,20 @@ export default function PublicLogoHubMissingQueue() {
                         </Button>
                       }
                     />
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="w-full gap-1"
+                      disabled={!r.website_url || fetchingId === r.id}
+                      onClick={() => handleDeepFetch(r)}
+                    >
+                      {fetchingId === r.id ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Sparkles className="h-3.5 w-3.5" />
+                      )}
+                      Deep fetch icon
+                    </Button>
                     <Button asChild size="sm" variant="outline" className="w-full">
                       <Link to={`/logohub/audit/${r.id}`}>Open audit</Link>
                     </Button>
