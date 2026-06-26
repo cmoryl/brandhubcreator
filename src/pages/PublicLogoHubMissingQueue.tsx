@@ -298,6 +298,37 @@ export default function PublicLogoHubMissingQueue() {
         </Button>
       </div>
 
+      <div className="mb-4 flex flex-wrap items-center gap-2 rounded-md border border-dashed bg-muted/30 p-3">
+        <Sparkles className="h-4 w-4 text-muted-foreground" />
+        <div className="text-sm">
+          <span className="font-medium">Bulk derive B/W</span>
+          <span className="text-muted-foreground ml-2">
+            Generates black & white SVG/PNG variants from existing color assets for every visible row
+            ({lockupScope === 'both' ? 'icons + wordmarks' : `${lockupScope}s`}).
+          </span>
+        </div>
+        <Button
+          size="sm"
+          variant="secondary"
+          className="ml-auto gap-1"
+          disabled={bulkRunning || loading || filtered.length === 0}
+          onClick={handleBulkDeriveMono}
+        >
+          {bulkRunning ? (
+            <>
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              {bulkProgress ? `${bulkProgress.done}/${bulkProgress.total}` : 'Running…'}
+            </>
+          ) : (
+            <>
+              <Sparkles className="h-3.5 w-3.5" />
+              Derive B/W for {filtered.length} visible
+            </>
+          )}
+        </Button>
+      </div>
+
+
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
         <Card className="p-4">
           <div className="text-2xl font-bold">{stats.total}</div>
