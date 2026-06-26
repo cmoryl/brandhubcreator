@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Loader2, CheckCircle2, XCircle, ExternalLink, Upload } from 'lucide-react';
+import { ArrowLeft, Loader2, CheckCircle2, XCircle, ExternalLink, Upload, Sparkles } from 'lucide-react';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -164,6 +165,41 @@ export default function PublicLogoHubMissingQueue() {
 
   const handleUploaded = (id: string, nextFiles: ClientLogoFile[]) => {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, files: nextFiles } : r)));
+  };
+
+  const [fetchingId, setFetchingId] = useState<string | null>(null);
+  const handleDeepFetch = async (row: Row) => {
+    if (!row.website_url) {
+      toast.error('No website URL on this brand');
+      return;
+    }
+    setFetchingId(row.id);
+    const t = toast.loading(`Deep-fetching icon for ${row.name}…`);
+    try {
+      const { data, error } = await supabase.functions.invoke('deep-icon-fetch', {
+        body: {
+          website_url: row.website_url,
+          logo_id: row.id,
+          name: row.name,
+          commit: true,
+        },
+      });
+      if (error) throw error;
+      const r = data as { ok: boolean; total?: number; commit?: { ok?: boolean; files?: ClientLogoFile[]; error?: string }; error?: string };
+      if (!r.ok) throw new Error(r.error || 'fetch failed');
+      if (!r.total) {
+        toast.error('No candidate icons discovered', { id: t });
+      } else if (r.commit?.ok && r.commit.files?.length) {
+        toast.success(`Saved icon (${r.total} candidates found)`, { id: t });
+        await load();
+      } else {
+        toast.error(r.commit?.error || `Found ${r.total} candidates but failed to save`, { id: t });
+      }
+    } catch (e) {
+      toast.error((e as Error).message, { id: t });
+    } finally {
+      setFetchingId(null);
+    }
   };
 
   return (
@@ -346,6 +382,20 @@ export default function PublicLogoHubMissingQueue() {
                         </Button>
                       }
                     />
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="w-full gap-1"
+                      disabled={!r.website_url || fetchingId === r.id}
+                      onClick={() => handleDeepFetch(r)}
+                    >
+                      {fetchingId === r.id ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Sparkles className="h-3.5 w-3.5" />
+                      )}
+                      Deep fetch icon
+                    </Button>
                     <Button asChild size="sm" variant="outline" className="w-full">
                       <Link to={`/logohub/audit/${r.id}`}>Open audit</Link>
                     </Button>
