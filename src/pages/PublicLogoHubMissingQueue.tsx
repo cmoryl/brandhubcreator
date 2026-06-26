@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Loader2, CheckCircle2, XCircle, ExternalLink, Upload } from 'lucide-react';
+import { ArrowLeft, Loader2, CheckCircle2, XCircle, ExternalLink, Upload, Sparkles } from 'lucide-react';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
