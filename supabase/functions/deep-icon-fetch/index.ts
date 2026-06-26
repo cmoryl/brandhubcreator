@@ -359,6 +359,27 @@ Deno.serve(async (req) => {
       );
       commitResult = await commitRes.json().catch(() => ({ ok: false }));
       void projectRef;
+
+      // Auto-derive black & white variants from the freshly committed color icon
+      if (commitResult?.ok && (commitResult.id || logo_id)) {
+        try {
+          const deriveRes = await fetch(
+            `${Deno.env.get("SUPABASE_URL")}/functions/v1/derive-mono-icons`,
+            {
+              method: "POST",
+              headers: {
+                Authorization: authHeader,
+                "Content-Type": "application/json",
+                apikey: Deno.env.get("SUPABASE_ANON_KEY")!,
+              },
+              body: JSON.stringify({ logo_id: commitResult.id ?? logo_id, lockup: "icon" }),
+            },
+          );
+          commitResult.derived = await deriveRes.json().catch(() => ({ ok: false }));
+        } catch (e) {
+          commitResult.derived = { ok: false, error: (e as Error).message };
+        }
+      }
     }
 
     return new Response(

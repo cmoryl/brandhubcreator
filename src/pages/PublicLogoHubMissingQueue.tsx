@@ -202,6 +202,27 @@ export default function PublicLogoHubMissingQueue() {
     }
   };
 
+  const [derivingId, setDerivingId] = useState<string | null>(null);
+  const handleDeriveMono = async (row: Row, lockup: 'icon' | 'wordmark') => {
+    setDerivingId(row.id);
+    const t = toast.loading(`Deriving B/W ${lockup} for ${row.name}…`);
+    try {
+      const { data, error } = await supabase.functions.invoke('derive-mono-icons', {
+        body: { logo_id: row.id, lockup },
+      });
+      if (error) throw error;
+      const r = data as { ok: boolean; produced?: ClientLogoFile[]; files?: ClientLogoFile[]; error?: string };
+      if (!r.ok) throw new Error(r.error || 'derive failed');
+      toast.success(`Derived ${r.produced?.length ?? 0} mono variants`, { id: t });
+      if (r.files) handleUploaded(row.id, r.files);
+    } catch (e) {
+      toast.error((e as Error).message, { id: t });
+    } finally {
+      setDerivingId(null);
+    }
+  };
+
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="flex items-center justify-between mb-6">
@@ -395,6 +416,20 @@ export default function PublicLogoHubMissingQueue() {
                         <Sparkles className="h-3.5 w-3.5" />
                       )}
                       Deep fetch icon
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="w-full gap-1"
+                      disabled={derivingId === r.id || !r.files.some((f) => f.variant === 'color' && ((f.lockup ?? 'wordmark') === (lockupScope === 'wordmark' ? 'wordmark' : 'icon')))}
+                      onClick={() => handleDeriveMono(r, lockupScope === 'wordmark' ? 'wordmark' : 'icon')}
+                    >
+                      {derivingId === r.id ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Sparkles className="h-3.5 w-3.5" />
+                      )}
+                      Derive B/W
                     </Button>
                     <Button asChild size="sm" variant="outline" className="w-full">
                       <Link to={`/logohub/audit/${r.id}`}>Open audit</Link>
