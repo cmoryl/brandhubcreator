@@ -417,6 +417,20 @@ export default function PublicLogoHubMissingQueue() {
                       )}
                       Deep fetch icon
                     </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="w-full gap-1"
+                      disabled={derivingId === r.id || !r.files.some((f) => f.variant === 'color' && ((f.lockup ?? 'wordmark') === (lockupScope === 'wordmark' ? 'wordmark' : 'icon')))}
+                      onClick={() => handleDeriveMono(r, lockupScope === 'wordmark' ? 'wordmark' : 'icon')}
+                    >
+                      {derivingId === r.id ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Sparkles className="h-3.5 w-3.5" />
+                      )}
+                      Derive B/W
+                    </Button>
                     <Button asChild size="sm" variant="outline" className="w-full">
                       <Link to={`/logohub/audit/${r.id}`}>Open audit</Link>
                     </Button>
