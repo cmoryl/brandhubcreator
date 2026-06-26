@@ -275,6 +275,56 @@ export default function PublicLogoHubMissingQueue() {
     setBulkProgress(null);
   };
 
+  const [rasterRunning, setRasterRunning] = useState(false);
+  const [rasterProgress, setRasterProgress] = useState<{ done: number; total: number } | null>(null);
+  const handleBulkRasterizeWordmarks = async () => {
+    const jobs: { row: Row; variants: ('color' | 'black' | 'white')[] }[] = [];
+    for (const row of filtered) {
+      const need: ('color' | 'black' | 'white')[] = [];
+      for (const v of ['color', 'black', 'white'] as const) {
+        const hasSvg = has(row.files, 'wordmark', v, 'svg');
+        const hasPng = has(row.files, 'wordmark', v, 'png');
+        if (hasSvg && !hasPng) need.push(v);
+      }
+      if (need.length) jobs.push({ row, variants: need });
+    }
+    if (jobs.length === 0) {
+      toast.info('Nothing to rasterize — every visible wordmark with an SVG already has a PNG.');
+      return;
+    }
+    const totalVariants = jobs.reduce((n, j) => n + j.variants.length, 0);
+    if (!confirm(`Rasterize ${totalVariants} wordmark PNGs across ${jobs.length} brands?`)) return;
+
+    setRasterRunning(true);
+    setRasterProgress({ done: 0, total: jobs.length });
+    const t = toast.loading(`Rasterizing wordmark PNGs… 0/${jobs.length}`);
+    let ok = 0;
+    let fail = 0;
+    for (let i = 0; i < jobs.length; i++) {
+      const { row, variants } = jobs[i];
+      try {
+        const { data, error } = await supabase.functions.invoke('rasterize-wordmark-png', {
+          body: { logo_id: row.id, variants },
+        });
+        if (error) throw error;
+        const r = data as { ok: boolean; files?: ClientLogoFile[]; error?: string };
+        if (!r.ok) throw new Error(r.error || 'rasterize failed');
+        if (r.files) handleUploaded(row.id, r.files);
+        ok++;
+      } catch (e) {
+        fail++;
+        console.error('bulk rasterize failed', row.name, e);
+      }
+      setRasterProgress({ done: i + 1, total: jobs.length });
+      toast.loading(`Rasterizing wordmark PNGs… ${i + 1}/${jobs.length}`, { id: t });
+    }
+    toast.success(`Rasterize complete — ${ok} ok, ${fail} failed`, { id: t });
+    setRasterRunning(false);
+    setRasterProgress(null);
+  };
+
+
+
 
 
 
@@ -327,6 +377,38 @@ export default function PublicLogoHubMissingQueue() {
           )}
         </Button>
       </div>
+
+      <div className="mb-4 flex flex-wrap items-center gap-2 rounded-md border border-dashed bg-muted/30 p-3">
+        <Sparkles className="h-4 w-4 text-muted-foreground" />
+        <div className="text-sm">
+          <span className="font-medium">Bulk rasterize wordmark PNGs</span>
+          <span className="text-muted-foreground ml-2">
+            Renders 2048px transparent PNGs from existing wordmark SVGs (color / black / white) for every
+            visible row that's missing the PNG. Filter by category (e.g. Legal) first.
+          </span>
+        </div>
+        <Button
+          size="sm"
+          variant="secondary"
+          className="ml-auto gap-1"
+          disabled={rasterRunning || loading || filtered.length === 0}
+          onClick={handleBulkRasterizeWordmarks}
+        >
+          {rasterRunning ? (
+            <>
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              {rasterProgress ? `${rasterProgress.done}/${rasterProgress.total}` : 'Running…'}
+            </>
+          ) : (
+            <>
+              <Sparkles className="h-3.5 w-3.5" />
+              Rasterize PNGs for {filtered.length} visible
+            </>
+          )}
+        </Button>
+      </div>
+
+
 
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
