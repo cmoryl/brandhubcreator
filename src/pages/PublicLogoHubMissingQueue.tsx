@@ -361,7 +361,7 @@ export default function PublicLogoHubMissingQueue() {
             .select('files')
             .eq('id', row.id)
             .maybeSingle();
-          if (fresh?.files) handleUploaded(row.id, fresh.files as ClientLogoFile[]);
+          if (fresh?.files) handleUploaded(row.id, (Array.isArray(fresh.files) ? fresh.files : []) as unknown as ClientLogoFile[]);
         } else {
           fail++;
           failed.push(row.name);
