@@ -167,6 +167,41 @@ export default function PublicLogoHubMissingQueue() {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, files: nextFiles } : r)));
   };
 
+  const [fetchingId, setFetchingId] = useState<string | null>(null);
+  const handleDeepFetch = async (row: Row) => {
+    if (!row.website_url) {
+      toast.error('No website URL on this brand');
+      return;
+    }
+    setFetchingId(row.id);
+    const t = toast.loading(`Deep-fetching icon for ${row.name}…`);
+    try {
+      const { data, error } = await supabase.functions.invoke('deep-icon-fetch', {
+        body: {
+          website_url: row.website_url,
+          logo_id: row.id,
+          name: row.name,
+          commit: true,
+        },
+      });
+      if (error) throw error;
+      const r = data as { ok: boolean; total?: number; commit?: { ok?: boolean; files?: ClientLogoFile[]; error?: string }; error?: string };
+      if (!r.ok) throw new Error(r.error || 'fetch failed');
+      if (!r.total) {
+        toast.error('No candidate icons discovered', { id: t });
+      } else if (r.commit?.ok && r.commit.files?.length) {
+        toast.success(`Saved icon (${r.total} candidates found)`, { id: t });
+        await load();
+      } else {
+        toast.error(r.commit?.error || `Found ${r.total} candidates but failed to save`, { id: t });
+      }
+    } catch (e) {
+      toast.error((e as Error).message, { id: t });
+    } finally {
+      setFetchingId(null);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="flex items-center justify-between mb-6">
