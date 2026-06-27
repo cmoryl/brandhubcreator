@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-27T02:54:53.213276Z",
+  "generated_at": "2026-06-27T03:04:51.986854Z",
   "required_sizes": [
     32,
     64,
@@ -28,13 +28,13 @@
           "h": 1080
         },
         {
-          "variant": "white",
+          "variant": "black",
           "format": "png",
           "w": 1920,
           "h": 1080
         },
         {
-          "variant": "black",
+          "variant": "white",
           "format": "png",
           "w": 1920,
           "h": 1080
@@ -45,42 +45,40 @@
     },
     {
       "name": "BioWare",
-      "count": 3,
-      "has_svg": false,
+      "count": 6,
+      "has_svg": true,
       "has_color": true,
       "has_black": true,
       "has_white": true,
-      "max_raster_px": 192,
-      "effective_max_px": 192,
+      "max_raster_px": 2048,
+      "effective_max_px": 4096,
       "sizes_ok": {
         "32": true,
         "64": true,
-        "256": false
+        "256": true
       },
       "raster_files": [
         {
           "variant": "color",
           "format": "png",
-          "w": 192,
-          "h": 192
-        },
-        {
-          "variant": "white",
-          "format": "png",
-          "w": 192,
-          "h": 192
+          "w": 2048,
+          "h": 362
         },
         {
           "variant": "black",
           "format": "png",
-          "w": 192,
-          "h": 192
+          "w": 2048,
+          "h": 362
+        },
+        {
+          "variant": "white",
+          "format": "png",
+          "w": 2048,
+          "h": 362
         }
       ],
-      "issues": [
-        "below_256px"
-      ],
-      "status": "fail"
+      "issues": [],
+      "status": "pass"
     },
     {
       "name": "Blizzard",
@@ -120,43 +118,40 @@
     },
     {
       "name": "Capcom",
-      "count": 3,
-      "has_svg": false,
+      "count": 6,
+      "has_svg": true,
       "has_color": true,
       "has_black": true,
       "has_white": true,
-      "max_raster_px": 57,
-      "effective_max_px": 57,
+      "max_raster_px": 2119,
+      "effective_max_px": 4096,
       "sizes_ok": {
         "32": true,
-        "64": false,
-        "256": false
+        "64": true,
+        "256": true
       },
       "raster_files": [
         {
           "variant": "color",
           "format": "png",
-          "w": 57,
-          "h": 57
-        },
-        {
-          "variant": "black",
-          "format": "png",
-          "w": 57,
-          "h": 57
+          "w": 2048,
+          "h": 2119
         },
         {
           "variant": "white",
           "format": "png",
-          "w": 57,
-          "h": 57
+          "w": 2048,
+          "h": 2119
+        },
+        {
+          "variant": "black",
+          "format": "png",
+          "w": 2048,
+          "h": 2119
         }
       ],
-      "issues": [
-        "below_64px",
-        "below_256px"
-      ],
-      "status": "fail"
+      "issues": [],
+      "status": "pass"
     },
     {
       "name": "EA Sports",
@@ -217,13 +212,13 @@
           "h": 630
         },
         {
-          "variant": "black",
+          "variant": "white",
           "format": "png",
           "w": 1120,
           "h": 630
         },
         {
-          "variant": "white",
+          "variant": "black",
           "format": "png",
           "w": 1120,
           "h": 630
@@ -248,12 +243,6 @@
       },
       "raster_files": [
         {
-          "variant": "color",
-          "format": "png",
-          "w": 376,
-          "h": 265
-        },
-        {
           "variant": "white",
           "format": "png",
           "w": 376,
@@ -261,6 +250,12 @@
         },
         {
           "variant": "black",
+          "format": "png",
+          "w": 376,
+          "h": 265
+        },
+        {
+          "variant": "color",
           "format": "png",
           "w": 376,
           "h": 265
@@ -271,42 +266,40 @@
     },
     {
       "name": "Gameloft",
-      "count": 3,
-      "has_svg": false,
+      "count": 6,
+      "has_svg": true,
       "has_color": true,
       "has_black": true,
       "has_white": true,
-      "max_raster_px": 72,
-      "effective_max_px": 72,
+      "max_raster_px": 2048,
+      "effective_max_px": 4096,
       "sizes_ok": {
         "32": true,
         "64": true,
-        "256": false
+        "256": true
       },
       "raster_files": [
         {
           "variant": "color",
           "format": "png",
-          "w": 72,
-          "h": 72
-        },
-        {
-          "variant": "white",
-          "format": "png",
-          "w": 72,
-          "h": 72
+          "w": 2048,
+          "h": 400
         },
         {
           "variant": "black",
           "format": "png",
-          "w": 72,
-          "h": 72
+          "w": 2048,
+          "h": 400
+        },
+        {
+          "variant": "white",
+          "format": "png",
+          "w": 2048,
+          "h": 400
         }
       ],
-      "issues": [
-        "below_256px"
-      ],
-      "status": "fail"
+      "issues": [],
+      "status": "pass"
     },
     {
       "name": "inXile Entertainment",
@@ -324,12 +317,6 @@
       },
       "raster_files": [
         {
-          "variant": "color",
-          "format": "png",
-          "w": 1122,
-          "h": 563
-        },
-        {
           "variant": "white",
           "format": "png",
           "w": 1122,
@@ -337,6 +324,12 @@
         },
         {
           "variant": "black",
+          "format": "png",
+          "w": 1122,
+          "h": 563
+        },
+        {
+          "variant": "color",
           "format": "png",
           "w": 1122,
           "h": 563
@@ -361,12 +354,6 @@
       },
       "raster_files": [
         {
-          "variant": "black",
-          "format": "png",
-          "w": 1901,
-          "h": 533
-        },
-        {
           "variant": "color",
           "format": "png",
           "w": 1901,
@@ -374,6 +361,12 @@
         },
         {
           "variant": "white",
+          "format": "png",
+          "w": 1901,
+          "h": 533
+        },
+        {
+          "variant": "black",
           "format": "png",
           "w": 1901,
           "h": 533
@@ -384,81 +377,77 @@
     },
     {
       "name": "Netmarble",
-      "count": 3,
-      "has_svg": false,
+      "count": 6,
+      "has_svg": true,
       "has_color": true,
       "has_black": true,
       "has_white": true,
-      "max_raster_px": 180,
-      "effective_max_px": 180,
+      "max_raster_px": 2048,
+      "effective_max_px": 4096,
       "sizes_ok": {
         "32": true,
         "64": true,
-        "256": false
+        "256": true
       },
       "raster_files": [
         {
-          "variant": "black",
+          "variant": "white",
           "format": "png",
-          "w": 180,
-          "h": 180
+          "w": 2048,
+          "h": 351
         },
         {
           "variant": "color",
           "format": "png",
-          "w": 180,
-          "h": 180
+          "w": 2048,
+          "h": 351
         },
         {
-          "variant": "white",
+          "variant": "black",
           "format": "png",
-          "w": 180,
-          "h": 180
+          "w": 2048,
+          "h": 351
         }
       ],
-      "issues": [
-        "below_256px"
-      ],
-      "status": "fail"
+      "issues": [],
+      "status": "pass"
     },
     {
       "name": "Nimble Giant Entertainment",
-      "count": 3,
-      "has_svg": false,
+      "count": 6,
+      "has_svg": true,
       "has_color": true,
       "has_black": true,
       "has_white": true,
-      "max_raster_px": 180,
-      "effective_max_px": 180,
+      "max_raster_px": 2048,
+      "effective_max_px": 4096,
       "sizes_ok": {
         "32": true,
         "64": true,
-        "256": false
+        "256": true
       },
       "raster_files": [
         {
-          "variant": "color",
-          "format": "png",
-          "w": 180,
-          "h": 180
-        },
-        {
           "variant": "white",
           "format": "png",
-          "w": 180,
-          "h": 180
+          "w": 2048,
+          "h": 1235
+        },
+        {
+          "variant": "color",
+          "format": "png",
+          "w": 2048,
+          "h": 1235
         },
         {
           "variant": "black",
           "format": "png",
-          "w": 180,
-          "h": 180
+          "w": 2048,
+          "h": 1235
         }
       ],
-      "issues": [
-        "below_256px"
-      ],
-      "status": "fail"
+      "issues": [],
+      "status": "pass"
     },
     {
       "name": "Outright Games",
@@ -467,37 +456,35 @@
       "has_color": true,
       "has_black": true,
       "has_white": true,
-      "max_raster_px": 192,
-      "effective_max_px": 192,
+      "max_raster_px": 595,
+      "effective_max_px": 595,
       "sizes_ok": {
         "32": true,
         "64": true,
-        "256": false
+        "256": true
       },
       "raster_files": [
         {
-          "variant": "color",
-          "format": "png",
-          "w": 192,
-          "h": 192
-        },
-        {
           "variant": "black",
           "format": "png",
-          "w": 192,
-          "h": 192
+          "w": 595,
+          "h": 167
         },
         {
           "variant": "white",
           "format": "png",
-          "w": 192,
-          "h": 192
+          "w": 595,
+          "h": 167
+        },
+        {
+          "variant": "color",
+          "format": "png",
+          "w": 595,
+          "h": 167
         }
       ],
-      "issues": [
-        "below_256px"
-      ],
-      "status": "fail"
+      "issues": [],
+      "status": "pass"
     },
     {
       "name": "Paradox Interactive",
@@ -515,12 +502,6 @@
       },
       "raster_files": [
         {
-          "variant": "black",
-          "format": "png",
-          "w": 512,
-          "h": 512
-        },
-        {
           "variant": "color",
           "format": "png",
           "w": 512,
@@ -528,6 +509,12 @@
         },
         {
           "variant": "white",
+          "format": "png",
+          "w": 512,
+          "h": 512
+        },
+        {
+          "variant": "black",
           "format": "png",
           "w": 512,
           "h": 512
@@ -578,12 +565,6 @@
       },
       "raster_files": [
         {
-          "variant": "black",
-          "format": "png",
-          "w": 2048,
-          "h": 515
-        },
-        {
           "variant": "color",
           "format": "png",
           "w": 2048,
@@ -591,6 +572,12 @@
         },
         {
           "variant": "white",
+          "format": "png",
+          "w": 2048,
+          "h": 515
+        },
+        {
+          "variant": "black",
           "format": "png",
           "w": 2048,
           "h": 515
@@ -601,42 +588,40 @@
     },
     {
       "name": "Rockstar Games",
-      "count": 3,
-      "has_svg": false,
+      "count": 6,
+      "has_svg": true,
       "has_color": true,
       "has_black": true,
       "has_white": true,
-      "max_raster_px": 180,
-      "effective_max_px": 180,
+      "max_raster_px": 2048,
+      "effective_max_px": 4096,
       "sizes_ok": {
         "32": true,
         "64": true,
-        "256": false
+        "256": true
       },
       "raster_files": [
         {
-          "variant": "black",
-          "format": "png",
-          "w": 180,
-          "h": 180
-        },
-        {
           "variant": "color",
           "format": "png",
-          "w": 180,
-          "h": 180
+          "w": 2048,
+          "h": 1885
         },
         {
           "variant": "white",
           "format": "png",
-          "w": 180,
-          "h": 180
+          "w": 2048,
+          "h": 1885
+        },
+        {
+          "variant": "black",
+          "format": "png",
+          "w": 2048,
+          "h": 1885
         }
       ],
-      "issues": [
-        "below_256px"
-      ],
-      "status": "fail"
+      "issues": [],
+      "status": "pass"
     },
     {
       "name": "Second Dinner",
@@ -654,6 +639,12 @@
       },
       "raster_files": [
         {
+          "variant": "white",
+          "format": "png",
+          "w": 1256,
+          "h": 741
+        },
+        {
           "variant": "color",
           "format": "png",
           "w": 1256,
@@ -661,12 +652,6 @@
         },
         {
           "variant": "black",
-          "format": "png",
-          "w": 1256,
-          "h": 741
-        },
-        {
-          "variant": "white",
           "format": "png",
           "w": 1256,
           "h": 741
@@ -691,6 +676,12 @@
       },
       "raster_files": [
         {
+          "variant": "white",
+          "format": "png",
+          "w": 2048,
+          "h": 683
+        },
+        {
           "variant": "color",
           "format": "png",
           "w": 2048,
@@ -698,12 +689,6 @@
         },
         {
           "variant": "black",
-          "format": "png",
-          "w": 2048,
-          "h": 683
-        },
-        {
-          "variant": "white",
           "format": "png",
           "w": 2048,
           "h": 683
@@ -728,7 +713,7 @@
       },
       "raster_files": [
         {
-          "variant": "black",
+          "variant": "white",
           "format": "png",
           "w": 1280,
           "h": 720
@@ -740,7 +725,7 @@
           "h": 720
         },
         {
-          "variant": "white",
+          "variant": "black",
           "format": "png",
           "w": 1280,
           "h": 720
@@ -769,42 +754,40 @@
     },
     {
       "name": "Tilting Point",
-      "count": 3,
-      "has_svg": false,
+      "count": 6,
+      "has_svg": true,
       "has_color": true,
       "has_black": true,
       "has_white": true,
-      "max_raster_px": 128,
-      "effective_max_px": 128,
+      "max_raster_px": 2048,
+      "effective_max_px": 4096,
       "sizes_ok": {
         "32": true,
         "64": true,
-        "256": false
+        "256": true
       },
       "raster_files": [
         {
           "variant": "white",
           "format": "png",
-          "w": 128,
-          "h": 128
+          "w": 2048,
+          "h": 509
         },
         {
           "variant": "color",
           "format": "png",
-          "w": 128,
-          "h": 128
+          "w": 2048,
+          "h": 509
         },
         {
           "variant": "black",
           "format": "png",
-          "w": 128,
-          "h": 128
+          "w": 2048,
+          "h": 509
         }
       ],
-      "issues": [
-        "below_256px"
-      ],
-      "status": "fail"
+      "issues": [],
+      "status": "pass"
     },
     {
       "name": "Tripwire Interactive",
@@ -813,38 +796,35 @@
       "has_color": true,
       "has_black": true,
       "has_white": true,
-      "max_raster_px": 32,
-      "effective_max_px": 32,
+      "max_raster_px": 599,
+      "effective_max_px": 599,
       "sizes_ok": {
         "32": true,
-        "64": false,
-        "256": false
+        "64": true,
+        "256": true
       },
       "raster_files": [
         {
-          "variant": "color",
-          "format": "png",
-          "w": 32,
-          "h": 32
-        },
-        {
           "variant": "white",
           "format": "png",
-          "w": 32,
-          "h": 32
+          "w": 599,
+          "h": 170
+        },
+        {
+          "variant": "color",
+          "format": "png",
+          "w": 599,
+          "h": 170
         },
         {
           "variant": "black",
           "format": "png",
-          "w": 32,
-          "h": 32
+          "w": 599,
+          "h": 170
         }
       ],
-      "issues": [
-        "below_64px",
-        "below_256px"
-      ],
-      "status": "fail"
+      "issues": [],
+      "status": "pass"
     },
     {
       "name": "Ubisoft",
@@ -862,7 +842,7 @@
       },
       "raster_files": [
         {
-          "variant": "color",
+          "variant": "white",
           "format": "png",
           "w": 2048,
           "h": 1873
@@ -874,7 +854,7 @@
           "h": 1873
         },
         {
-          "variant": "white",
+          "variant": "color",
           "format": "png",
           "w": 2048,
           "h": 1873
@@ -905,13 +885,13 @@
           "h": 1891
         },
         {
-          "variant": "black",
+          "variant": "color",
           "format": "png",
           "w": 2048,
           "h": 1891
         },
         {
-          "variant": "color",
+          "variant": "black",
           "format": "png",
           "w": 2048,
           "h": 1891
