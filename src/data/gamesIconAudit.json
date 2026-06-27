@@ -1,0 +1,924 @@
+{
+  "generated_at": "2026-06-27T02:54:53.213276Z",
+  "required_sizes": [
+    32,
+    64,
+    256
+  ],
+  "brands": [
+    {
+      "name": "2K",
+      "count": 3,
+      "has_svg": false,
+      "has_color": true,
+      "has_black": true,
+      "has_white": true,
+      "max_raster_px": 1920,
+      "effective_max_px": 1920,
+      "sizes_ok": {
+        "32": true,
+        "64": true,
+        "256": true
+      },
+      "raster_files": [
+        {
+          "variant": "color",
+          "format": "jpg",
+          "w": 1920,
+          "h": 1080
+        },
+        {
+          "variant": "white",
+          "format": "png",
+          "w": 1920,
+          "h": 1080
+        },
+        {
+          "variant": "black",
+          "format": "png",
+          "w": 1920,
+          "h": 1080
+        }
+      ],
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "name": "BioWare",
+      "count": 3,
+      "has_svg": false,
+      "has_color": true,
+      "has_black": true,
+      "has_white": true,
+      "max_raster_px": 192,
+      "effective_max_px": 192,
+      "sizes_ok": {
+        "32": true,
+        "64": true,
+        "256": false
+      },
+      "raster_files": [
+        {
+          "variant": "color",
+          "format": "png",
+          "w": 192,
+          "h": 192
+        },
+        {
+          "variant": "white",
+          "format": "png",
+          "w": 192,
+          "h": 192
+        },
+        {
+          "variant": "black",
+          "format": "png",
+          "w": 192,
+          "h": 192
+        }
+      ],
+      "issues": [
+        "below_256px"
+      ],
+      "status": "fail"
+    },
+    {
+      "name": "Blizzard",
+      "count": 3,
+      "has_svg": true,
+      "has_color": true,
+      "has_black": true,
+      "has_white": true,
+      "max_raster_px": 0,
+      "effective_max_px": 4096,
+      "sizes_ok": {
+        "32": true,
+        "64": true,
+        "256": true
+      },
+      "raster_files": [],
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "name": "Candivore",
+      "count": 3,
+      "has_svg": true,
+      "has_color": true,
+      "has_black": true,
+      "has_white": true,
+      "max_raster_px": 0,
+      "effective_max_px": 4096,
+      "sizes_ok": {
+        "32": true,
+        "64": true,
+        "256": true
+      },
+      "raster_files": [],
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "name": "Capcom",
+      "count": 3,
+      "has_svg": false,
+      "has_color": true,
+      "has_black": true,
+      "has_white": true,
+      "max_raster_px": 57,
+      "effective_max_px": 57,
+      "sizes_ok": {
+        "32": true,
+        "64": false,
+        "256": false
+      },
+      "raster_files": [
+        {
+          "variant": "color",
+          "format": "png",
+          "w": 57,
+          "h": 57
+        },
+        {
+          "variant": "black",
+          "format": "png",
+          "w": 57,
+          "h": 57
+        },
+        {
+          "variant": "white",
+          "format": "png",
+          "w": 57,
+          "h": 57
+        }
+      ],
+      "issues": [
+        "below_64px",
+        "below_256px"
+      ],
+      "status": "fail"
+    },
+    {
+      "name": "EA Sports",
+      "count": 3,
+      "has_svg": false,
+      "has_color": true,
+      "has_black": true,
+      "has_white": true,
+      "max_raster_px": 1120,
+      "effective_max_px": 1120,
+      "sizes_ok": {
+        "32": true,
+        "64": true,
+        "256": true
+      },
+      "raster_files": [
+        {
+          "variant": "color",
+          "format": "png",
+          "w": 1120,
+          "h": 630
+        },
+        {
+          "variant": "black",
+          "format": "png",
+          "w": 1120,
+          "h": 630
+        },
+        {
+          "variant": "white",
+          "format": "png",
+          "w": 1120,
+          "h": 630
+        }
+      ],
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "name": "Electronic Arts",
+      "count": 3,
+      "has_svg": false,
+      "has_color": true,
+      "has_black": true,
+      "has_white": true,
+      "max_raster_px": 1120,
+      "effective_max_px": 1120,
+      "sizes_ok": {
+        "32": true,
+        "64": true,
+        "256": true
+      },
+      "raster_files": [
+        {
+          "variant": "color",
+          "format": "png",
+          "w": 1120,
+          "h": 630
+        },
+        {
+          "variant": "black",
+          "format": "png",
+          "w": 1120,
+          "h": 630
+        },
+        {
+          "variant": "white",
+          "format": "png",
+          "w": 1120,
+          "h": 630
+        }
+      ],
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "name": "Fatshark",
+      "count": 3,
+      "has_svg": false,
+      "has_color": true,
+      "has_black": true,
+      "has_white": true,
+      "max_raster_px": 376,
+      "effective_max_px": 376,
+      "sizes_ok": {
+        "32": true,
+        "64": true,
+        "256": true
+      },
+      "raster_files": [
+        {
+          "variant": "color",
+          "format": "png",
+          "w": 376,
+          "h": 265
+        },
+        {
+          "variant": "white",
+          "format": "png",
+          "w": 376,
+          "h": 265
+        },
+        {
+          "variant": "black",
+          "format": "png",
+          "w": 376,
+          "h": 265
+        }
+      ],
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "name": "Gameloft",
+      "count": 3,
+      "has_svg": false,
+      "has_color": true,
+      "has_black": true,
+      "has_white": true,
+      "max_raster_px": 72,
+      "effective_max_px": 72,
+      "sizes_ok": {
+        "32": true,
+        "64": true,
+        "256": false
+      },
+      "raster_files": [
+        {
+          "variant": "color",
+          "format": "png",
+          "w": 72,
+          "h": 72
+        },
+        {
+          "variant": "white",
+          "format": "png",
+          "w": 72,
+          "h": 72
+        },
+        {
+          "variant": "black",
+          "format": "png",
+          "w": 72,
+          "h": 72
+        }
+      ],
+      "issues": [
+        "below_256px"
+      ],
+      "status": "fail"
+    },
+    {
+      "name": "inXile Entertainment",
+      "count": 3,
+      "has_svg": false,
+      "has_color": true,
+      "has_black": true,
+      "has_white": true,
+      "max_raster_px": 1122,
+      "effective_max_px": 1122,
+      "sizes_ok": {
+        "32": true,
+        "64": true,
+        "256": true
+      },
+      "raster_files": [
+        {
+          "variant": "color",
+          "format": "png",
+          "w": 1122,
+          "h": 563
+        },
+        {
+          "variant": "white",
+          "format": "png",
+          "w": 1122,
+          "h": 563
+        },
+        {
+          "variant": "black",
+          "format": "png",
+          "w": 1122,
+          "h": 563
+        }
+      ],
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "name": "Nanobit",
+      "count": 3,
+      "has_svg": false,
+      "has_color": true,
+      "has_black": true,
+      "has_white": true,
+      "max_raster_px": 1901,
+      "effective_max_px": 1901,
+      "sizes_ok": {
+        "32": true,
+        "64": true,
+        "256": true
+      },
+      "raster_files": [
+        {
+          "variant": "black",
+          "format": "png",
+          "w": 1901,
+          "h": 533
+        },
+        {
+          "variant": "color",
+          "format": "png",
+          "w": 1901,
+          "h": 533
+        },
+        {
+          "variant": "white",
+          "format": "png",
+          "w": 1901,
+          "h": 533
+        }
+      ],
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "name": "Netmarble",
+      "count": 3,
+      "has_svg": false,
+      "has_color": true,
+      "has_black": true,
+      "has_white": true,
+      "max_raster_px": 180,
+      "effective_max_px": 180,
+      "sizes_ok": {
+        "32": true,
+        "64": true,
+        "256": false
+      },
+      "raster_files": [
+        {
+          "variant": "black",
+          "format": "png",
+          "w": 180,
+          "h": 180
+        },
+        {
+          "variant": "color",
+          "format": "png",
+          "w": 180,
+          "h": 180
+        },
+        {
+          "variant": "white",
+          "format": "png",
+          "w": 180,
+          "h": 180
+        }
+      ],
+      "issues": [
+        "below_256px"
+      ],
+      "status": "fail"
+    },
+    {
+      "name": "Nimble Giant Entertainment",
+      "count": 3,
+      "has_svg": false,
+      "has_color": true,
+      "has_black": true,
+      "has_white": true,
+      "max_raster_px": 180,
+      "effective_max_px": 180,
+      "sizes_ok": {
+        "32": true,
+        "64": true,
+        "256": false
+      },
+      "raster_files": [
+        {
+          "variant": "color",
+          "format": "png",
+          "w": 180,
+          "h": 180
+        },
+        {
+          "variant": "white",
+          "format": "png",
+          "w": 180,
+          "h": 180
+        },
+        {
+          "variant": "black",
+          "format": "png",
+          "w": 180,
+          "h": 180
+        }
+      ],
+      "issues": [
+        "below_256px"
+      ],
+      "status": "fail"
+    },
+    {
+      "name": "Outright Games",
+      "count": 3,
+      "has_svg": false,
+      "has_color": true,
+      "has_black": true,
+      "has_white": true,
+      "max_raster_px": 192,
+      "effective_max_px": 192,
+      "sizes_ok": {
+        "32": true,
+        "64": true,
+        "256": false
+      },
+      "raster_files": [
+        {
+          "variant": "color",
+          "format": "png",
+          "w": 192,
+          "h": 192
+        },
+        {
+          "variant": "black",
+          "format": "png",
+          "w": 192,
+          "h": 192
+        },
+        {
+          "variant": "white",
+          "format": "png",
+          "w": 192,
+          "h": 192
+        }
+      ],
+      "issues": [
+        "below_256px"
+      ],
+      "status": "fail"
+    },
+    {
+      "name": "Paradox Interactive",
+      "count": 3,
+      "has_svg": false,
+      "has_color": true,
+      "has_black": true,
+      "has_white": true,
+      "max_raster_px": 512,
+      "effective_max_px": 512,
+      "sizes_ok": {
+        "32": true,
+        "64": true,
+        "256": true
+      },
+      "raster_files": [
+        {
+          "variant": "black",
+          "format": "png",
+          "w": 512,
+          "h": 512
+        },
+        {
+          "variant": "color",
+          "format": "png",
+          "w": 512,
+          "h": 512
+        },
+        {
+          "variant": "white",
+          "format": "png",
+          "w": 512,
+          "h": 512
+        }
+      ],
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "name": "Playwith",
+      "count": 0,
+      "has_svg": false,
+      "has_color": false,
+      "has_black": false,
+      "has_white": false,
+      "max_raster_px": 0,
+      "effective_max_px": 0,
+      "sizes_ok": {
+        "32": false,
+        "64": false,
+        "256": false
+      },
+      "raster_files": [],
+      "issues": [
+        "NO_ICONS",
+        "missing_color",
+        "missing_black",
+        "missing_white",
+        "below_32px",
+        "below_64px",
+        "below_256px"
+      ],
+      "status": "fail"
+    },
+    {
+      "name": "Quantic Dream",
+      "count": 3,
+      "has_svg": false,
+      "has_color": true,
+      "has_black": true,
+      "has_white": true,
+      "max_raster_px": 2048,
+      "effective_max_px": 2048,
+      "sizes_ok": {
+        "32": true,
+        "64": true,
+        "256": true
+      },
+      "raster_files": [
+        {
+          "variant": "black",
+          "format": "png",
+          "w": 2048,
+          "h": 515
+        },
+        {
+          "variant": "color",
+          "format": "png",
+          "w": 2048,
+          "h": 515
+        },
+        {
+          "variant": "white",
+          "format": "png",
+          "w": 2048,
+          "h": 515
+        }
+      ],
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "name": "Rockstar Games",
+      "count": 3,
+      "has_svg": false,
+      "has_color": true,
+      "has_black": true,
+      "has_white": true,
+      "max_raster_px": 180,
+      "effective_max_px": 180,
+      "sizes_ok": {
+        "32": true,
+        "64": true,
+        "256": false
+      },
+      "raster_files": [
+        {
+          "variant": "black",
+          "format": "png",
+          "w": 180,
+          "h": 180
+        },
+        {
+          "variant": "color",
+          "format": "png",
+          "w": 180,
+          "h": 180
+        },
+        {
+          "variant": "white",
+          "format": "png",
+          "w": 180,
+          "h": 180
+        }
+      ],
+      "issues": [
+        "below_256px"
+      ],
+      "status": "fail"
+    },
+    {
+      "name": "Second Dinner",
+      "count": 3,
+      "has_svg": false,
+      "has_color": true,
+      "has_black": true,
+      "has_white": true,
+      "max_raster_px": 1256,
+      "effective_max_px": 1256,
+      "sizes_ok": {
+        "32": true,
+        "64": true,
+        "256": true
+      },
+      "raster_files": [
+        {
+          "variant": "color",
+          "format": "png",
+          "w": 1256,
+          "h": 741
+        },
+        {
+          "variant": "black",
+          "format": "png",
+          "w": 1256,
+          "h": 741
+        },
+        {
+          "variant": "white",
+          "format": "png",
+          "w": 1256,
+          "h": 741
+        }
+      ],
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "name": "Sega",
+      "count": 3,
+      "has_svg": false,
+      "has_color": true,
+      "has_black": true,
+      "has_white": true,
+      "max_raster_px": 2048,
+      "effective_max_px": 2048,
+      "sizes_ok": {
+        "32": true,
+        "64": true,
+        "256": true
+      },
+      "raster_files": [
+        {
+          "variant": "color",
+          "format": "png",
+          "w": 2048,
+          "h": 683
+        },
+        {
+          "variant": "black",
+          "format": "png",
+          "w": 2048,
+          "h": 683
+        },
+        {
+          "variant": "white",
+          "format": "png",
+          "w": 2048,
+          "h": 683
+        }
+      ],
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "name": "Stardock",
+      "count": 3,
+      "has_svg": false,
+      "has_color": true,
+      "has_black": true,
+      "has_white": true,
+      "max_raster_px": 1280,
+      "effective_max_px": 1280,
+      "sizes_ok": {
+        "32": true,
+        "64": true,
+        "256": true
+      },
+      "raster_files": [
+        {
+          "variant": "black",
+          "format": "png",
+          "w": 1280,
+          "h": 720
+        },
+        {
+          "variant": "color",
+          "format": "jpg",
+          "w": 1280,
+          "h": 720
+        },
+        {
+          "variant": "white",
+          "format": "png",
+          "w": 1280,
+          "h": 720
+        }
+      ],
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "name": "Team17",
+      "count": 3,
+      "has_svg": true,
+      "has_color": true,
+      "has_black": true,
+      "has_white": true,
+      "max_raster_px": 0,
+      "effective_max_px": 4096,
+      "sizes_ok": {
+        "32": true,
+        "64": true,
+        "256": true
+      },
+      "raster_files": [],
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "name": "Tilting Point",
+      "count": 3,
+      "has_svg": false,
+      "has_color": true,
+      "has_black": true,
+      "has_white": true,
+      "max_raster_px": 128,
+      "effective_max_px": 128,
+      "sizes_ok": {
+        "32": true,
+        "64": true,
+        "256": false
+      },
+      "raster_files": [
+        {
+          "variant": "white",
+          "format": "png",
+          "w": 128,
+          "h": 128
+        },
+        {
+          "variant": "color",
+          "format": "png",
+          "w": 128,
+          "h": 128
+        },
+        {
+          "variant": "black",
+          "format": "png",
+          "w": 128,
+          "h": 128
+        }
+      ],
+      "issues": [
+        "below_256px"
+      ],
+      "status": "fail"
+    },
+    {
+      "name": "Tripwire Interactive",
+      "count": 3,
+      "has_svg": false,
+      "has_color": true,
+      "has_black": true,
+      "has_white": true,
+      "max_raster_px": 32,
+      "effective_max_px": 32,
+      "sizes_ok": {
+        "32": true,
+        "64": false,
+        "256": false
+      },
+      "raster_files": [
+        {
+          "variant": "color",
+          "format": "png",
+          "w": 32,
+          "h": 32
+        },
+        {
+          "variant": "white",
+          "format": "png",
+          "w": 32,
+          "h": 32
+        },
+        {
+          "variant": "black",
+          "format": "png",
+          "w": 32,
+          "h": 32
+        }
+      ],
+      "issues": [
+        "below_64px",
+        "below_256px"
+      ],
+      "status": "fail"
+    },
+    {
+      "name": "Ubisoft",
+      "count": 3,
+      "has_svg": false,
+      "has_color": true,
+      "has_black": true,
+      "has_white": true,
+      "max_raster_px": 2048,
+      "effective_max_px": 2048,
+      "sizes_ok": {
+        "32": true,
+        "64": true,
+        "256": true
+      },
+      "raster_files": [
+        {
+          "variant": "color",
+          "format": "png",
+          "w": 2048,
+          "h": 1873
+        },
+        {
+          "variant": "black",
+          "format": "png",
+          "w": 2048,
+          "h": 1873
+        },
+        {
+          "variant": "white",
+          "format": "png",
+          "w": 2048,
+          "h": 1873
+        }
+      ],
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "name": "Warner Bros Games",
+      "count": 3,
+      "has_svg": false,
+      "has_color": true,
+      "has_black": true,
+      "has_white": true,
+      "max_raster_px": 2048,
+      "effective_max_px": 2048,
+      "sizes_ok": {
+        "32": true,
+        "64": true,
+        "256": true
+      },
+      "raster_files": [
+        {
+          "variant": "white",
+          "format": "png",
+          "w": 2048,
+          "h": 1891
+        },
+        {
+          "variant": "black",
+          "format": "png",
+          "w": 2048,
+          "h": 1891
+        },
+        {
+          "variant": "color",
+          "format": "png",
+          "w": 2048,
+          "h": 1891
+        }
+      ],
+      "issues": [],
+      "status": "pass"
+    }
+  ]
+}

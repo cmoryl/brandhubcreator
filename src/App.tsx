@@ -117,6 +117,7 @@ const PublicLogoHubIconAudit = lazyWithRetry(() => import("./pages/PublicLogoHub
 const PublicLogoHubMissingQueue = lazyWithRetry(() => import("./pages/PublicLogoHubMissingQueue"));
 const PublicLogoHubTravelReview = lazyWithRetry(() => import("./pages/PublicLogoHubTravelReview"));
 const PublicLogoHubTravelQA = lazyWithRetry(() => import("./pages/PublicLogoHubTravelQA"));
+const PublicLogoHubGamesIconQA = lazyWithRetry(() => import("./pages/PublicLogoHubGamesIconQA"));
 const GradientStudio = lazyWithRetry(() => import("./pages/GradientStudio"));
 
 const queryClient = new QueryClient({
@@ -630,6 +631,14 @@ const App = () => (
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <PublicLogoHubTravelQA />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="logohub/games-icon-qa"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <PublicLogoHubGamesIconQA />
                         </Suspense>
                       }
                     />
