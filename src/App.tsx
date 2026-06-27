@@ -626,6 +626,14 @@ const App = () => (
                       }
                     />
                     <Route
+                      path="logohub/travel-qa"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <PublicLogoHubTravelQA />
+                        </Suspense>
+                      }
+                    />
+                    <Route
                       path="logohub/audit/:id"
                       element={
                         <Suspense fallback={<PageSkeleton />}>
