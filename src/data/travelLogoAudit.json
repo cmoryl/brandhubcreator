@@ -1,0 +1,579 @@
+{
+  "generated_at": "now",
+  "total": 35,
+  "clean": 22,
+  "errors": 21,
+  "warnings": 19,
+  "items": [
+    {
+      "id": "c6ba4319-cfd9-475a-aa60-13f7e3caa78b",
+      "name": "Avis Budget Group",
+      "issues": [
+        {
+          "severity": "error",
+          "reason": "very_low_res",
+          "w": 32,
+          "h": 32,
+          "bytes": 876,
+          "slot": "icon/color.png",
+          "url": "https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/sign/global-logos/avis-budget-group/icon-color-1782525746176.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81ZmE0NjFlZi1kMGQ5LTRiMjQtOWNlNi0yNTMxODdiYWJjNmQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJnbG9iYWwtbG9nb3MvYXZpcy1idWRnZXQtZ3JvdXAvaWNvbi1jb2xvci0xNzgyNTI1NzQ2MTc2LnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODI1MjU3NDYsImV4cCI6MjA5Nzg4NTc0Nn0.wu2cV7FDyTOPT1XU4NJXCu5LhNr_GmtLLW64Kq-273M"
+        },
+        {
+          "severity": "error",
+          "reason": "very_low_res",
+          "w": 32,
+          "h": 32,
+          "bytes": 927,
+          "slot": "icon/black.png",
+          "url": "https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/sign/global-logos/avis-budget-group/icon-black-1782525746176.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81ZmE0NjFlZi1kMGQ5LTRiMjQtOWNlNi0yNTMxODdiYWJjNmQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJnbG9iYWwtbG9nb3MvYXZpcy1idWRnZXQtZ3JvdXAvaWNvbi1ibGFjay0xNzgyNTI1NzQ2MTc2LnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODI1MjU3NDYsImV4cCI6MjA5Nzg4NTc0Nn0.ip7ajMa-_GuRsq1f3WU_dt1QyN7UsNVDhdho6h9PklA"
+        },
+        {
+          "severity": "error",
+          "reason": "very_low_res",
+          "w": 32,
+          "h": 32,
+          "bytes": 986,
+          "slot": "icon/white.png",
+          "url": "https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/sign/global-logos/avis-budget-group/icon-white-1782525746176.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81ZmE0NjFlZi1kMGQ5LTRiMjQtOWNlNi0yNTMxODdiYWJjNmQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJnbG9iYWwtbG9nb3MvYXZpcy1idWRnZXQtZ3JvdXAvaWNvbi13aGl0ZS0xNzgyNTI1NzQ2MTc2LnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODI1MjU3NDYsImV4cCI6MjA5Nzg4NTc0Nn0.2NreKUznT_btSkjpsQNyDcZnvz3maYXXgrh1ofTp6F4"
+        }
+      ],
+      "error_count": 3,
+      "warn_count": 0
+    },
+    {
+      "id": "564d7b00-22ea-41a8-a784-bf7769146bb6",
+      "name": "Bangkok Airways",
+      "issues": [
+        {
+          "severity": "error",
+          "reason": "missing_variant",
+          "slot": "wordmark/color"
+        },
+        {
+          "severity": "error",
+          "reason": "missing_variant",
+          "slot": "wordmark/black"
+        },
+        {
+          "severity": "error",
+          "reason": "missing_variant",
+          "slot": "wordmark/white"
+        }
+      ],
+      "error_count": 3,
+      "warn_count": 0
+    },
+    {
+      "id": "64e8535e-73e3-4cef-aa6d-18847ed80af6",
+      "name": "Costa Cruises",
+      "issues": [
+        {
+          "severity": "error",
+          "reason": "missing_variant",
+          "slot": "wordmark/color"
+        },
+        {
+          "severity": "error",
+          "reason": "missing_variant",
+          "slot": "wordmark/black"
+        },
+        {
+          "severity": "error",
+          "reason": "missing_variant",
+          "slot": "wordmark/white"
+        }
+      ],
+      "error_count": 3,
+      "warn_count": 0
+    },
+    {
+      "id": "64e25551-1629-4b59-9f2f-9e2e130069e3",
+      "name": "Lastminute.com",
+      "issues": [
+        {
+          "severity": "error",
+          "reason": "missing_variant",
+          "slot": "icon/color"
+        },
+        {
+          "severity": "error",
+          "reason": "missing_variant",
+          "slot": "icon/black"
+        },
+        {
+          "severity": "error",
+          "reason": "missing_variant",
+          "slot": "icon/white"
+        }
+      ],
+      "error_count": 3,
+      "warn_count": 0
+    },
+    {
+      "id": "55a2854b-35f3-4924-89f8-31ea1db0277b",
+      "name": "Pan Pacific Hotels Group",
+      "issues": [
+        {
+          "severity": "error",
+          "reason": "missing_variant",
+          "slot": "icon/color"
+        },
+        {
+          "severity": "error",
+          "reason": "missing_variant",
+          "slot": "icon/black"
+        },
+        {
+          "severity": "error",
+          "reason": "missing_variant",
+          "slot": "icon/white"
+        }
+      ],
+      "error_count": 3,
+      "warn_count": 0
+    },
+    {
+      "id": "7800636d-f799-4602-bb1d-ad18ca50ad66",
+      "name": "Pierre & Vacances",
+      "issues": [
+        {
+          "severity": "error",
+          "reason": "very_low_res",
+          "w": 32,
+          "h": 32,
+          "bytes": 2048,
+          "slot": "icon/color.png",
+          "url": "https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/sign/global-logos/pierre-vacances/icon-color-1782525744870.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81ZmE0NjFlZi1kMGQ5LTRiMjQtOWNlNi0yNTMxODdiYWJjNmQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJnbG9iYWwtbG9nb3MvcGllcnJlLXZhY2FuY2VzL2ljb24tY29sb3ItMTc4MjUyNTc0NDg3MC5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzgyNTI1NzQ1LCJleHAiOjIwOTc4ODU3NDV9.-jTTWdCvSaaZYG4ggu_uJtMIo3cfUOGRvEqsrORcoXk"
+        },
+        {
+          "severity": "error",
+          "reason": "very_low_res",
+          "w": 32,
+          "h": 32,
+          "bytes": 1038,
+          "slot": "icon/black.png",
+          "url": "https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/sign/global-logos/pierre-vacances/icon-black-1782525744870.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81ZmE0NjFlZi1kMGQ5LTRiMjQtOWNlNi0yNTMxODdiYWJjNmQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJnbG9iYWwtbG9nb3MvcGllcnJlLXZhY2FuY2VzL2ljb24tYmxhY2stMTc4MjUyNTc0NDg3MC5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzgyNTI1NzQ1LCJleHAiOjIwOTc4ODU3NDV9.d3DqD_A3PFLCS7LH715z9Kttp517-pY-tyNElIs6oVw"
+        },
+        {
+          "severity": "error",
+          "reason": "very_low_res",
+          "w": 32,
+          "h": 32,
+          "bytes": 1118,
+          "slot": "icon/white.png",
+          "url": "https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/sign/global-logos/pierre-vacances/icon-white-1782525744870.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81ZmE0NjFlZi1kMGQ5LTRiMjQtOWNlNi0yNTMxODdiYWJjNmQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJnbG9iYWwtbG9nb3MvcGllcnJlLXZhY2FuY2VzL2ljb24td2hpdGUtMTc4MjUyNTc0NDg3MC5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzgyNTI1NzQ1LCJleHAiOjIwOTc4ODU3NDV9.RoCML3gqBy8xcBdJTMY-mQO0M6WYnevMBuTJ29qm2Xk"
+        }
+      ],
+      "error_count": 3,
+      "warn_count": 0
+    },
+    {
+      "id": "4271d7fe-aaa8-460d-a649-e1f191bfb1b0",
+      "name": "Royal Caribbean",
+      "issues": [
+        {
+          "severity": "error",
+          "reason": "very_low_res",
+          "w": 32,
+          "h": 32,
+          "bytes": 1648,
+          "slot": "icon/color.png",
+          "url": "https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/sign/global-logos/royal-caribbean/icon-color-1782519703756.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81ZmE0NjFlZi1kMGQ5LTRiMjQtOWNlNi0yNTMxODdiYWJjNmQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJnbG9iYWwtbG9nb3Mvcm95YWwtY2FyaWJiZWFuL2ljb24tY29sb3ItMTc4MjUxOTcwMzc1Ni5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzgyNTE5NzAzLCJleHAiOjIwOTc4Nzk3MDN9.bHVlPCzXyXb6Bij4aIXlRfOZuPmALOledLpgW3_KRDI"
+        },
+        {
+          "severity": "error",
+          "reason": "very_low_res",
+          "w": 32,
+          "h": 32,
+          "bytes": 649,
+          "slot": "icon/black.png",
+          "url": "https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/sign/global-logos/royal-caribbean/icon-black-1782519703756.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81ZmE0NjFlZi1kMGQ5LTRiMjQtOWNlNi0yNTMxODdiYWJjNmQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJnbG9iYWwtbG9nb3Mvcm95YWwtY2FyaWJiZWFuL2ljb24tYmxhY2stMTc4MjUxOTcwMzc1Ni5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzgyNTE5NzA0LCJleHAiOjIwOTc4Nzk3MDR9.q5hCsFQohK0MWg_8KWOa64d0BGGuMq2xgZrSWpvYSi4"
+        },
+        {
+          "severity": "error",
+          "reason": "very_low_res",
+          "w": 32,
+          "h": 32,
+          "bytes": 641,
+          "slot": "icon/white.png",
+          "url": "https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/sign/global-logos/royal-caribbean/icon-white-1782519703756.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81ZmE0NjFlZi1kMGQ5LTRiMjQtOWNlNi0yNTMxODdiYWJjNmQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJnbG9iYWwtbG9nb3Mvcm95YWwtY2FyaWJiZWFuL2ljb24td2hpdGUtMTc4MjUxOTcwMzc1Ni5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzgyNTE5NzA0LCJleHAiOjIwOTc4Nzk3MDR9.qRoQiGL6HwfPQhKdIdpJ9kJSiZZ8s-ckfXr8-6NKcuY"
+        }
+      ],
+      "error_count": 3,
+      "warn_count": 0
+    },
+    {
+      "id": "7a3f4b2a-2468-4f1f-8d19-f8443afda775",
+      "name": "Tourism Corporation Bonaire",
+      "issues": [
+        {
+          "severity": "warn",
+          "reason": "low_res",
+          "w": 400,
+          "h": 110,
+          "bytes": 43575,
+          "slot": "wordmark/color.png",
+          "url": "https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/sign/global-logos/tourism-corporation-bonaire/wordmark-color.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81ZmE0NjFlZi1kMGQ5LTRiMjQtOWNlNi0yNTMxODdiYWJjNmQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJnbG9iYWwtbG9nb3MvdG91cmlzbS1jb3Jwb3JhdGlvbi1ib25haXJlL3dvcmRtYXJrLWNvbG9yLnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODI1MjU0NjksImV4cCI6MjA5Nzg4NTQ2OX0.olFgXKA4AIETfLb0bXik4AdLIOAuEwD9L6ysYrm56nQ"
+        },
+        {
+          "severity": "warn",
+          "reason": "low_res",
+          "w": 192,
+          "h": 192,
+          "bytes": 20177,
+          "slot": "icon/color.png",
+          "url": "https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/sign/global-logos/tourism-corporation-bonaire/icon-color-1782525742670.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81ZmE0NjFlZi1kMGQ5LTRiMjQtOWNlNi0yNTMxODdiYWJjNmQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJnbG9iYWwtbG9nb3MvdG91cmlzbS1jb3Jwb3JhdGlvbi1ib25haXJlL2ljb24tY29sb3ItMTc4MjUyNTc0MjY3MC5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzgyNTI1NzQyLCJleHAiOjIwOTc4ODU3NDJ9.33ygpobCXr-5KpzNyYdXIidpEmXMAqRWvlQRff_jwyI"
+        },
+        {
+          "severity": "warn",
+          "reason": "low_res",
+          "w": 192,
+          "h": 192,
+          "bytes": 12845,
+          "slot": "icon/black.png",
+          "url": "https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/sign/global-logos/tourism-corporation-bonaire/icon-black-1782525742670.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81ZmE0NjFlZi1kMGQ5LTRiMjQtOWNlNi0yNTMxODdiYWJjNmQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJnbG9iYWwtbG9nb3MvdG91cmlzbS1jb3Jwb3JhdGlvbi1ib25haXJlL2ljb24tYmxhY2stMTc4MjUyNTc0MjY3MC5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzgyNTI1NzQyLCJleHAiOjIwOTc4ODU3NDJ9.WFv0PX2JmmSdlEo0SyGkh07CCDRHoGAvCZ-AxS0pVXE"
+        },
+        {
+          "severity": "warn",
+          "reason": "low_res",
+          "w": 192,
+          "h": 192,
+          "bytes": 13873,
+          "slot": "icon/white.png",
+          "url": "https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/sign/global-logos/tourism-corporation-bonaire/icon-white-1782525742670.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81ZmE0NjFlZi1kMGQ5LTRiMjQtOWNlNi0yNTMxODdiYWJjNmQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJnbG9iYWwtbG9nb3MvdG91cmlzbS1jb3Jwb3JhdGlvbi1ib25haXJlL2ljb24td2hpdGUtMTc4MjUyNTc0MjY3MC5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzgyNTI1NzQzLCJleHAiOjIwOTc4ODU3NDN9.ix78y9CpucwfT4YUYmqPT89Mn7p-IGxWnSn_1pCH-0k"
+        }
+      ],
+      "error_count": 0,
+      "warn_count": 4
+    },
+    {
+      "id": "1277b229-1805-48a1-867a-67c80d848384",
+      "name": "Barcel\u00f3 Hotel Group",
+      "issues": [
+        {
+          "severity": "warn",
+          "reason": "low_res",
+          "w": 192,
+          "h": 192,
+          "bytes": 4522,
+          "slot": "icon/color.png",
+          "url": "https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/sign/global-logos/barcel-hotel-group/icon-color-1782525743256.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81ZmE0NjFlZi1kMGQ5LTRiMjQtOWNlNi0yNTMxODdiYWJjNmQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJnbG9iYWwtbG9nb3MvYmFyY2VsLWhvdGVsLWdyb3VwL2ljb24tY29sb3ItMTc4MjUyNTc0MzI1Ni5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzgyNTI1NzQzLCJleHAiOjIwOTc4ODU3NDN9.uuJJP9qiMXXsle_ScmuLWk-Bium-hPhB5oyQfWlolJ8"
+        },
+        {
+          "severity": "warn",
+          "reason": "low_res",
+          "w": 192,
+          "h": 192,
+          "bytes": 14682,
+          "slot": "icon/black.png",
+          "url": "https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/sign/global-logos/barcel-hotel-group/icon-black-1782525743256.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81ZmE0NjFlZi1kMGQ5LTRiMjQtOWNlNi0yNTMxODdiYWJjNmQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJnbG9iYWwtbG9nb3MvYmFyY2VsLWhvdGVsLWdyb3VwL2ljb24tYmxhY2stMTc4MjUyNTc0MzI1Ni5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzgyNTI1NzQzLCJleHAiOjIwOTc4ODU3NDN9.Ckk5obpapaYzN1jcN5yUVSEZzqJfj2NfsQkF_VcG_K4"
+        },
+        {
+          "severity": "warn",
+          "reason": "low_res",
+          "w": 192,
+          "h": 192,
+          "bytes": 14920,
+          "slot": "icon/white.png",
+          "url": "https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/sign/global-logos/barcel-hotel-group/icon-white-1782525743256.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81ZmE0NjFlZi1kMGQ5LTRiMjQtOWNlNi0yNTMxODdiYWJjNmQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJnbG9iYWwtbG9nb3MvYmFyY2VsLWhvdGVsLWdyb3VwL2ljb24td2hpdGUtMTc4MjUyNTc0MzI1Ni5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzgyNTI1NzQzLCJleHAiOjIwOTc4ODU3NDN9.CaH5FY2d513-EHr0cUWkfTDXZg1itrjXlYgve24kgNs"
+        }
+      ],
+      "error_count": 0,
+      "warn_count": 3
+    },
+    {
+      "id": "ec62355e-f1ac-4e9a-8205-5427bbc303cc",
+      "name": "Discover The Palm Beaches",
+      "issues": [
+        {
+          "severity": "warn",
+          "reason": "low_res",
+          "w": 150,
+          "h": 150,
+          "bytes": 2485,
+          "slot": "icon/color.png",
+          "url": "https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/sign/global-logos/discover-the-palm-beaches/icon-color-1782524668399.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81ZmE0NjFlZi1kMGQ5LTRiMjQtOWNlNi0yNTMxODdiYWJjNmQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJnbG9iYWwtbG9nb3MvZGlzY292ZXItdGhlLXBhbG0tYmVhY2hlcy9pY29uLWNvbG9yLTE3ODI1MjQ2NjgzOTkucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4MjUyNDY2OCwiZXhwIjoyMDk3ODg0NjY4fQ.wc3Cq3t3xL5g2-5LAQCTuSVIkBqZwBthKLxkmokK_OQ"
+        },
+        {
+          "severity": "warn",
+          "reason": "low_res",
+          "w": 150,
+          "h": 150,
+          "bytes": 4129,
+          "slot": "icon/black.png",
+          "url": "https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/sign/global-logos/discover-the-palm-beaches/ec62355e-f1ac-4e9a-8205-5427bbc303cc/icon-black-1782524676920.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81ZmE0NjFlZi1kMGQ5LTRiMjQtOWNlNi0yNTMxODdiYWJjNmQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJnbG9iYWwtbG9nb3MvZGlzY292ZXItdGhlLXBhbG0tYmVhY2hlcy9lYzYyMzU1ZS1mMWFjLTRlOWEtODIwNS01NDI3YmJjMzAzY2MvaWNvbi1ibGFjay0xNzgyNTI0Njc2OTIwLnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODI1MjQ2NzcsImV4cCI6MjA5Nzg4NDY3N30._z_9xwUPnRrzqjGF4EIPPQk5qxY4fhSadpwXbmWicck"
+        },
+        {
+          "severity": "warn",
+          "reason": "low_res",
+          "w": 150,
+          "h": 150,
+          "bytes": 4404,
+          "slot": "icon/white.png",
+          "url": "https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/sign/global-logos/discover-the-palm-beaches/ec62355e-f1ac-4e9a-8205-5427bbc303cc/icon-white-1782524676920.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81ZmE0NjFlZi1kMGQ5LTRiMjQtOWNlNi0yNTMxODdiYWJjNmQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJnbG9iYWwtbG9nb3MvZGlzY292ZXItdGhlLXBhbG0tYmVhY2hlcy9lYzYyMzU1ZS1mMWFjLTRlOWEtODIwNS01NDI3YmJjMzAzY2MvaWNvbi13aGl0ZS0xNzgyNTI0Njc2OTIwLnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODI1MjQ2NzcsImV4cCI6MjA5Nzg4NDY3N30.DmCXKw_e-b4IoVdzsFkCb4CXg1UZuunsjyvfZVXQRLM"
+        }
+      ],
+      "error_count": 0,
+      "warn_count": 3
+    },
+    {
+      "id": "888c35a8-b00a-49bd-b215-a7e3f85e811b",
+      "name": "Mandarin Oriental",
+      "issues": [
+        {
+          "severity": "warn",
+          "reason": "low_res",
+          "w": 256,
+          "h": 256,
+          "bytes": 4356,
+          "slot": "icon/color.png",
+          "url": "https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/sign/global-logos/mandarin-oriental/icon-color.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81ZmE0NjFlZi1kMGQ5LTRiMjQtOWNlNi0yNTMxODdiYWJjNmQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJnbG9iYWwtbG9nb3MvbWFuZGFyaW4tb3JpZW50YWwvaWNvbi1jb2xvci5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzgxNzI0OTAxLCJleHAiOjIwOTcwODQ5MDF9.jtZCttbQIrsgJUCs4zBTzQ_0AyUx177RxqfvIjn6-pc"
+        },
+        {
+          "severity": "warn",
+          "reason": "low_res",
+          "w": 256,
+          "h": 256,
+          "bytes": 2497,
+          "slot": "icon/black.png",
+          "url": "https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/sign/global-logos/mandarin-oriental/888c35a8-b00a-49bd-b215-a7e3f85e811b/icon-black-1782524462994.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81ZmE0NjFlZi1kMGQ5LTRiMjQtOWNlNi0yNTMxODdiYWJjNmQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJnbG9iYWwtbG9nb3MvbWFuZGFyaW4tb3JpZW50YWwvODg4YzM1YTgtYjAwYS00OWJkLWIyMTUtYTdlM2Y4NWU4MTFiL2ljb24tYmxhY2stMTc4MjUyNDQ2Mjk5NC5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzgyNTI0NDYzLCJleHAiOjIwOTc4ODQ0NjN9.AHgjUhibCFRDWfXpbjeUq49Y8_22Lh0gPzJuu4Ta6Lk"
+        },
+        {
+          "severity": "warn",
+          "reason": "low_res",
+          "w": 256,
+          "h": 256,
+          "bytes": 2345,
+          "slot": "icon/white.png",
+          "url": "https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/sign/global-logos/mandarin-oriental/888c35a8-b00a-49bd-b215-a7e3f85e811b/icon-white-1782524462994.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81ZmE0NjFlZi1kMGQ5LTRiMjQtOWNlNi0yNTMxODdiYWJjNmQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJnbG9iYWwtbG9nb3MvbWFuZGFyaW4tb3JpZW50YWwvODg4YzM1YTgtYjAwYS00OWJkLWIyMTUtYTdlM2Y4NWU4MTFiL2ljb24td2hpdGUtMTc4MjUyNDQ2Mjk5NC5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzgyNTI0NDYzLCJleHAiOjIwOTc4ODQ0NjN9.J0G3UpG_62b-OuJLwBnqtUIEbx4-IbSD85C_t0viCDA"
+        }
+      ],
+      "error_count": 0,
+      "warn_count": 3
+    },
+    {
+      "id": "6901d398-cf08-4864-ae4c-37990f8a1a15",
+      "name": "Pestana Hotel Group",
+      "issues": [
+        {
+          "severity": "warn",
+          "reason": "low_res",
+          "w": 180,
+          "h": 180,
+          "bytes": 3193,
+          "slot": "icon/color.png",
+          "url": "https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/sign/global-logos/pestana-hotel-group/icon-color-1782524667183.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81ZmE0NjFlZi1kMGQ5LTRiMjQtOWNlNi0yNTMxODdiYWJjNmQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJnbG9iYWwtbG9nb3MvcGVzdGFuYS1ob3RlbC1ncm91cC9pY29uLWNvbG9yLTE3ODI1MjQ2NjcxODMucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4MjUyNDY2NywiZXhwIjoyMDk3ODg0NjY3fQ.VX3rOcfmHrXYoFkSE6auVMgYhzHTYFK8HJEgPbxDF8E"
+        },
+        {
+          "severity": "warn",
+          "reason": "low_res",
+          "w": 180,
+          "h": 180,
+          "bytes": 1383,
+          "slot": "icon/black.png",
+          "url": "https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/sign/global-logos/pestana-hotel-group/6901d398-cf08-4864-ae4c-37990f8a1a15/icon-black-1782524673954.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81ZmE0NjFlZi1kMGQ5LTRiMjQtOWNlNi0yNTMxODdiYWJjNmQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJnbG9iYWwtbG9nb3MvcGVzdGFuYS1ob3RlbC1ncm91cC82OTAxZDM5OC1jZjA4LTQ4NjQtYWU0Yy0zNzk5MGY4YTFhMTUvaWNvbi1ibGFjay0xNzgyNTI0NjczOTU0LnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODI1MjQ2NzQsImV4cCI6MjA5Nzg4NDY3NH0.ENLvH8XbUeZdwC_kHiBPyhibt4Y78PERItyZOHwlwkA"
+        },
+        {
+          "severity": "warn",
+          "reason": "low_res",
+          "w": 180,
+          "h": 180,
+          "bytes": 1396,
+          "slot": "icon/white.png",
+          "url": "https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/sign/global-logos/pestana-hotel-group/6901d398-cf08-4864-ae4c-37990f8a1a15/icon-white-1782524673954.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81ZmE0NjFlZi1kMGQ5LTRiMjQtOWNlNi0yNTMxODdiYWJjNmQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJnbG9iYWwtbG9nb3MvcGVzdGFuYS1ob3RlbC1ncm91cC82OTAxZDM5OC1jZjA4LTQ4NjQtYWU0Yy0zNzk5MGY4YTFhMTUvaWNvbi13aGl0ZS0xNzgyNTI0NjczOTU0LnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODI1MjQ2NzQsImV4cCI6MjA5Nzg4NDY3NH0.awD6aEzCEPUMqehOj7qYA_dvJr2SxbVIno3pfe5k7Sg"
+        }
+      ],
+      "error_count": 0,
+      "warn_count": 3
+    },
+    {
+      "id": "7ab87bb1-f8aa-46b6-90a2-ea1bded90d2b",
+      "name": "SITA",
+      "issues": [
+        {
+          "severity": "warn",
+          "reason": "low_res",
+          "w": 192,
+          "h": 192,
+          "bytes": 9031,
+          "slot": "icon/color.png",
+          "url": "https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/sign/global-logos/sita/icon-color-1782524669574.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81ZmE0NjFlZi1kMGQ5LTRiMjQtOWNlNi0yNTMxODdiYWJjNmQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJnbG9iYWwtbG9nb3Mvc2l0YS9pY29uLWNvbG9yLTE3ODI1MjQ2Njk1NzQucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4MjUyNDY2OSwiZXhwIjoyMDk3ODg0NjY5fQ.iCcJaz1f4PbHzqZvvWmMhowK7NY97hNBC5F4L_sPbls"
+        },
+        {
+          "severity": "warn",
+          "reason": "low_res",
+          "w": 192,
+          "h": 192,
+          "bytes": 5176,
+          "slot": "icon/black.png",
+          "url": "https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/sign/global-logos/sita/7ab87bb1-f8aa-46b6-90a2-ea1bded90d2b/icon-black-1782524680330.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81ZmE0NjFlZi1kMGQ5LTRiMjQtOWNlNi0yNTMxODdiYWJjNmQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJnbG9iYWwtbG9nb3Mvc2l0YS83YWI4N2JiMS1mOGFhLTQ2YjYtOTBhMi1lYTFiZGVkOTBkMmIvaWNvbi1ibGFjay0xNzgyNTI0NjgwMzMwLnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODI1MjQ2ODAsImV4cCI6MjA5Nzg4NDY4MH0.lz2EEdvP7Q-NSED8oQNyGdsp0G2nzQ5g9-1NmYFGhf8"
+        },
+        {
+          "severity": "warn",
+          "reason": "low_res",
+          "w": 192,
+          "h": 192,
+          "bytes": 5257,
+          "slot": "icon/white.png",
+          "url": "https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/sign/global-logos/sita/7ab87bb1-f8aa-46b6-90a2-ea1bded90d2b/icon-white-1782524680330.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81ZmE0NjFlZi1kMGQ5LTRiMjQtOWNlNi0yNTMxODdiYWJjNmQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJnbG9iYWwtbG9nb3Mvc2l0YS83YWI4N2JiMS1mOGFhLTQ2YjYtOTBhMi1lYTFiZGVkOTBkMmIvaWNvbi13aGl0ZS0xNzgyNTI0NjgwMzMwLnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODI1MjQ2ODAsImV4cCI6MjA5Nzg4NDY4MH0.-JqWBDMsfQ9QLCLKM3FCR2mUrsuEzho-5vvuARWDzTI"
+        }
+      ],
+      "error_count": 0,
+      "warn_count": 3
+    },
+    {
+      "id": "f74a54d3-c5da-48e4-97aa-c3c1ec2bb968",
+      "name": "Air Corsica",
+      "issues": [],
+      "error_count": 0,
+      "warn_count": 0
+    },
+    {
+      "id": "9bcc53bc-5b37-43fc-9459-10e186e5d73b",
+      "name": "American Airlines",
+      "issues": [],
+      "error_count": 0,
+      "warn_count": 0
+    },
+    {
+      "id": "4ee2b280-9250-470f-af66-b825fb0e1388",
+      "name": "Belmond",
+      "issues": [],
+      "error_count": 0,
+      "warn_count": 0
+    },
+    {
+      "id": "00f461fb-eb15-4fa5-976e-5c99a9ccc739",
+      "name": "Booking.com",
+      "issues": [],
+      "error_count": 0,
+      "warn_count": 0
+    },
+    {
+      "id": "979272e0-db86-4903-bee2-078401edeb88",
+      "name": "Choice Hotels",
+      "issues": [],
+      "error_count": 0,
+      "warn_count": 0
+    },
+    {
+      "id": "bd668e38-2f43-4319-be98-ba67372ae8a8",
+      "name": "Finnair",
+      "issues": [],
+      "error_count": 0,
+      "warn_count": 0
+    },
+    {
+      "id": "2cab32c1-a8de-4a59-9c27-f08a48204884",
+      "name": "Hawaiian Airlines",
+      "issues": [],
+      "error_count": 0,
+      "warn_count": 0
+    },
+    {
+      "id": "e17805fb-d293-4275-886d-e762966e3545",
+      "name": "Hilton",
+      "issues": [],
+      "error_count": 0,
+      "warn_count": 0
+    },
+    {
+      "id": "1683dd36-fba1-4f08-acde-64a0e5e18ed5",
+      "name": "Holland America Line",
+      "issues": [],
+      "error_count": 0,
+      "warn_count": 0
+    },
+    {
+      "id": "60420fb7-21f0-40de-aef3-f998a4ef0d44",
+      "name": "Hyatt",
+      "issues": [],
+      "error_count": 0,
+      "warn_count": 0
+    },
+    {
+      "id": "742874e9-7747-4d30-818a-ad959271eb79",
+      "name": "Iberostar",
+      "issues": [],
+      "error_count": 0,
+      "warn_count": 0
+    },
+    {
+      "id": "82ed9346-b448-4177-8a59-c1538b7a442e",
+      "name": "Jungfraubahnen",
+      "issues": [],
+      "error_count": 0,
+      "warn_count": 0
+    },
+    {
+      "id": "4b37a1d9-f4c3-4f9d-97cd-c14b5bd9c726",
+      "name": "Korean Air",
+      "issues": [],
+      "error_count": 0,
+      "warn_count": 0
+    },
+    {
+      "id": "9ce6c631-3442-44a9-92be-a5e0b224180b",
+      "name": "Lufthansa",
+      "issues": [],
+      "error_count": 0,
+      "warn_count": 0
+    },
+    {
+      "id": "d9568fb6-d505-4a2c-910b-5a1191dfdddb",
+      "name": "Marriott",
+      "issues": [],
+      "error_count": 0,
+      "warn_count": 0
+    },
+    {
+      "id": "6e0fee98-7960-438e-9ce8-ac4464c3078c",
+      "name": "Philippine Airlines",
+      "issues": [],
+      "error_count": 0,
+      "warn_count": 0
+    },
+    {
+      "id": "9574c182-fcb9-49b7-8d8b-f3d47615d50b",
+      "name": "Radisson Hotel Group",
+      "issues": [],
+      "error_count": 0,
+      "warn_count": 0
+    },
+    {
+      "id": "dd45a2bd-a554-4514-9750-39a371654281",
+      "name": "TAP Air Portugal",
+      "issues": [],
+      "error_count": 0,
+      "warn_count": 0
+    },
+    {
+      "id": "9c7c21e4-4920-4ab4-bca2-76557a6777d0",
+      "name": "TUI",
+      "issues": [],
+      "error_count": 0,
+      "warn_count": 0
+    },
+    {
+      "id": "8edc2658-af06-4333-992f-3fa17aae0f54",
+      "name": "The Leading Hotels of the World",
+      "issues": [],
+      "error_count": 0,
+      "warn_count": 0
+    },
+    {
+      "id": "00bf0b07-dfaf-4256-a9a9-b6633c10f85d",
+      "name": "United Airlines",
+      "issues": [],
+      "error_count": 0,
+      "warn_count": 0
+    },
+    {
+      "id": "73c455ac-57d2-4dfe-b681-987417affa78",
+      "name": "easyJet",
+      "issues": [],
+      "error_count": 0,
+      "warn_count": 0
+    }
+  ]
+}
