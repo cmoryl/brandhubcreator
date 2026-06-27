@@ -116,6 +116,7 @@ const PublicLogoHubRasterReport = lazyWithRetry(() => import("./pages/PublicLogo
 const PublicLogoHubIconAudit = lazyWithRetry(() => import("./pages/PublicLogoHubIconAudit"));
 const PublicLogoHubMissingQueue = lazyWithRetry(() => import("./pages/PublicLogoHubMissingQueue"));
 const PublicLogoHubTravelReview = lazyWithRetry(() => import("./pages/PublicLogoHubTravelReview"));
+const PublicLogoHubTravelQA = lazyWithRetry(() => import("./pages/PublicLogoHubTravelQA"));
 const GradientStudio = lazyWithRetry(() => import("./pages/GradientStudio"));
 
 const queryClient = new QueryClient({
