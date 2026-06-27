@@ -105,7 +105,7 @@ export default function PublicLogoHubTravelReview() {
           id: d.id,
           name: d.name,
           website_url: d.website_url,
-          files: (Array.isArray(d.files) ? d.files : []) as ClientLogoFile[],
+          files: (Array.isArray(d.files) ? d.files : []) as unknown as ClientLogoFile[],
         })),
       );
     }
