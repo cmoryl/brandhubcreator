@@ -1,0 +1,1 @@
+DELETE FROM public.global_client_logos WHERE name='OliveX' AND jsonb_array_length(files)=0;
