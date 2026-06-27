@@ -115,6 +115,7 @@ const PublicLogoHubSvgAudit = lazyWithRetry(() => import("./pages/PublicLogoHubS
 const PublicLogoHubRasterReport = lazyWithRetry(() => import("./pages/PublicLogoHubRasterReport"));
 const PublicLogoHubIconAudit = lazyWithRetry(() => import("./pages/PublicLogoHubIconAudit"));
 const PublicLogoHubMissingQueue = lazyWithRetry(() => import("./pages/PublicLogoHubMissingQueue"));
+const PublicLogoHubTravelReview = lazyWithRetry(() => import("./pages/PublicLogoHubTravelReview"));
 const GradientStudio = lazyWithRetry(() => import("./pages/GradientStudio"));
 
 const queryClient = new QueryClient({
@@ -612,6 +613,14 @@ const App = () => (
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <PublicLogoHubMissingQueue />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="logohub/travel-review"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <PublicLogoHubTravelReview />
                         </Suspense>
                       }
                     />
