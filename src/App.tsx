@@ -653,6 +653,14 @@ const App = () => (
                       }
                     />
                     <Route
+                      path="logohub/deep-icon-audit"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <PublicLogoHubDeepIconAudit />
+                        </Suspense>
+                      }
+                    />
+                    <Route
                       path="logohub/audit/:id"
                       element={
                         <Suspense fallback={<PageSkeleton />}>
