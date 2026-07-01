@@ -115,6 +115,7 @@ const PublicLogoHubSvgAudit = lazyWithRetry(() => import("./pages/PublicLogoHubS
 const PublicLogoHubRasterReport = lazyWithRetry(() => import("./pages/PublicLogoHubRasterReport"));
 const PublicLogoHubIconAudit = lazyWithRetry(() => import("./pages/PublicLogoHubIconAudit"));
 const PublicLogoHubMissingQueue = lazyWithRetry(() => import("./pages/PublicLogoHubMissingQueue"));
+const PublicLogoHubFullAudit = lazyWithRetry(() => import("./pages/PublicLogoHubFullAudit"));
 const PublicLogoHubTravelReview = lazyWithRetry(() => import("./pages/PublicLogoHubTravelReview"));
 const PublicLogoHubTravelQA = lazyWithRetry(() => import("./pages/PublicLogoHubTravelQA"));
 const PublicLogoHubGamesIconQA = lazyWithRetry(() => import("./pages/PublicLogoHubGamesIconQA"));
