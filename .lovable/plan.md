@@ -1,63 +1,40 @@
-# Cohesive Client Logos ↔ Logo Hub
+## Goal
+Expand the Global Logo Hub with additional client logos (with proper black variants) to better populate 5 TransPerfect industry pages.
 
-Make the brand-page "Client Logos" section a first-class view of the Global Logo Hub: same card visuals, same lockup/variant matrix, same validation + upload-version workflow, same download/ZIP behavior, and the same underlying data (`global_client_logos`) as the single source of truth.
+## Industries to cover
+1. **Manufacturing** — `transperfect.com/industries/manufacturing`
+2. **Automotive** — `transperfect.com/industries/automotive`
+3. **Digital Marketing / Advertising** — `transperfect.com/industries/marketing-translation-services`
+4. **Medical Device** — `transperfect.com/industries/medical-device` (goes into existing Life Sciences category)
+5. **Legal** — `transperfect.com/industries/legal` (audit/top-up existing Legal category)
 
-## What changes for the user
+## Approach
 
-- Client Logos cards on a brand page look identical to Logo Hub cards (same preview tiles, variant labels, lockup grouping, badges, and density).
-- "Add logo" pulls from the Global Logo Library by default. New uploads land in the shared library and are linked to the brand, so the next brand sees the same asset.
-- Per-row actions match the Hub: Upload Version (lockup + variant), Re-sync, Validate, Exempt, Open Website, Download file, Download ZIP.
-- Bulk "Download all as ZIP" uses the Hub's slug/lockup/variant naming convention.
-- Validation findings (missing variants/lockups, mono-cutout, contrast) surface inline with the same badges.
+### 1. Discover clients (Firecrawl)
+- Scrape each of the 5 TransPerfect industry pages for client/case-study brand names + logos.
+- Deduplicate against `global_client_logos` to identify only net-new brands per industry.
 
-## Implementation
+### 2. Category setup
+- Create new categories where missing: **Manufacturing**, **Automotive**, **Digital Marketing** (Digital Marketing may fold into existing `Digital` — I'll confirm during discovery, defaulting to a new "Marketing & Advertising" category to keep client-side vs marketing-agency clients separate).
+- Medical Device brands → existing **Life Sciences** category.
+- Legal brands → existing **Legal** category (fill gaps only).
 
-### 1. Shared presentational primitives (new)
-Extract from `GlobalLogoHub.tsx` into reusable, presentation-only components in `src/components/logohub/shared/`:
+### 3. Sourcing pipeline (reuse existing infra)
+For each new brand:
+1. Insert row into `global_client_logos` with `name`, `category`, `website_url`.
+2. Run `hard-search-logos` edge function — Firecrawl scrapes official site branding, uploads color SVG/PNG + derives true monochrome **black** and **white** variants.
+3. Fallback for gaps: Wikimedia/simple-icons via `resource-icons-libs`, then `deep-icon-fetch`, then `derive-mono-icons` to guarantee a black variant exists.
+4. Rasterize any SVG-only wordmarks to 2048px PNG via `rasterize-wordmark-png`.
 
-- `LogoCardShared.tsx` — preview-tile grid (color / white / black, grouped by lockup), variant labels, title block, website link, action slot. Visual parity with Hub.
-- `LogoDownloadMatrix.tsx` — the lockup × variant × format grid, with `FileUploadCell`/download chip styling identical to Hub.
-- `LogoValidationBadges.tsx` — wraps `validateLogoFiles` results into the same badge row used in `GlobalLogoHub`.
-- `downloadLogoZip.ts` — shared util for slug/lockup/variant ZIP packaging (lifted from `PublicLogoHub.downloadFilesAsZip`).
+### 4. Verification
+- Extend the existing Missing Logos queue filter to surface these 5 industries.
+- Run a targeted audit (mirroring `travel_audit`/`games_audit`) that reports per-brand: has `wordmark-black` (SVG or ≥1024px PNG)? Any brand failing = flagged for manual upload.
+- Publish results to a lightweight `/logohub/industry-fill-qa` page grouped by industry, with the same repair actions (Upload / Deep-fetch / Derive B/W) already used on the Travel Review page.
 
-Refactor `GlobalLogoHub.tsx` and `PublicLogoHub.tsx` to consume these so all three surfaces stay visually in lockstep going forward.
+## Deliverables
+- New/updated categories and brand rows populated with color + **black** wordmark variants (white variants also derived for free by the pipeline).
+- QA page at `/logohub/industry-fill-qa` showing coverage per industry with one-click repair.
+- Any brand the pipeline can't auto-resolve is queued in `/logohub/missing` for manual SVG upload.
 
-### 2. Shared data source
-Treat `global_client_logos` as the source of truth. The brand's `clientLogos` field becomes a thin selection list:
-
-```ts
-type ClientLogoRef = { id: string; globalLogoId: string; name: string };
-```
-
-Migration path (no DB schema change required):
-- On read, hydrate each `clientLogos[i]` by joining to `global_client_logos` by id/name.
-- On write, only persist the ref. Files always come from the library.
-- Legacy per-brand `files[]` continues to render if no library match is found (back-compat), with a one-click "Promote to Library" action.
-
-### 3. Functional parity in `ClientLogosSection.tsx`
-Rewrite the section to:
-- Render `LogoCardShared` per selected logo.
-- Use the existing `UploadLogoVersion` dialog (already lockup+variant aware) for adding versions — writes to `global_client_logos` then refreshes.
-- Reuse `GlobalLogoPickerDialog` as the only "Add" entry point (already exists, already wired to the library). Remove the inline "new logo" dialog and per-cell base64 upload path.
-- Add the Hub's per-row toolbar: Validate, Exempt, Re-sync (calls `seed-partnerlink-logos`), Open Website, Download ZIP, Remove from brand.
-- Surface `LogoValidationBadges` next to each card title.
-
-### 4. Download/export parity
-- Per-file download uses Hub naming: `{slug}-{lockup}-{variant}.{format}`.
-- Per-card ZIP uses `downloadLogoZip(name, files)`.
-- Section ZIP iterates selected logos, one folder per logo, using the same util.
-
-### 5. Permissions
-- `canEdit` still gates editing; non-admins see read-only cards with download chips only (Hub already follows this pattern).
-
-## Files touched
-
-- New: `src/components/logohub/shared/LogoCardShared.tsx`, `LogoDownloadMatrix.tsx`, `LogoValidationBadges.tsx`, `src/lib/downloadLogoZip.ts`
-- Rewrite: `src/components/brand/ClientLogosSection.tsx` (≈700 → ≈300 lines, delegates to shared primitives)
-- Refactor (consume shared primitives, no behavior change): `src/components/admin/GlobalLogoHub.tsx`, `src/pages/PublicLogoHub.tsx`
-- Touch: `src/lib/guideNormalization.ts` to hydrate `clientLogos` refs against `global_client_logos` on load
-
-## Out of scope
-
-- DB schema changes (everything fits in existing `clientLogos` JSONB + `global_client_logos` table).
-- Sponsor/Event logos (`SponsorLogosSection`, `EventSponsorsSection`) — same primitives could be applied later, but not in this pass unless you want it included.
+## Question before I start
+Roughly how many logos per industry do you want (e.g. top 10–15 each, or every logo shown on the page)? Default: I'll ingest every distinct brand featured on each of the 5 pages.
