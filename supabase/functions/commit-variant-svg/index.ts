@@ -58,10 +58,11 @@ Deno.serve(async (req) => {
         const svgText = sanitizeSvg(new TextDecoder().decode(Uint8Array.from(atob(item.svgBase64), c => c.charCodeAt(0))));
         const slug = slugify(item.name);
 
-        const { data: row, error: rErr } = await supabase
-          .from("global_client_logos").select("id, files").eq("name", item.name).maybeSingle();
+        const { data: rows, error: rErr } = await supabase
+          .from("global_client_logos").select("id, files").eq("name", item.name);
         if (rErr) throw rErr;
-        if (!row) throw new Error(`brand not found: ${item.name}`);
+        if (!rows || rows.length === 0) throw new Error(`brand not found: ${item.name}`);
+        for (const row of rows) {
         const files: any[] = Array.isArray(row.files) ? [...row.files] : [];
 
         const png = await rasterize(svgText);
