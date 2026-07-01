@@ -84,8 +84,8 @@ Deno.serve(async (req) => {
         const { error: uErr } = await supabase.from("global_client_logos")
           .update({ files: merged, updated_at: new Date().toISOString() }).eq("id", row.id);
         if (uErr) throw uErr;
-
-        results.push({ name: item.name, lockup: item.lockup, variant: item.variant, ok: true });
+        }
+        results.push({ name: item.name, lockup: item.lockup, variant: item.variant, ok: true, rows: rows.length });
       } catch (e) {
         results.push({ name: item.name, lockup: item.lockup, variant: item.variant, ok: false, error: (e as Error).message });
       }
