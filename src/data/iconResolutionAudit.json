@@ -1,0 +1,2011 @@
+[
+  [
+    "Automotive",
+    "Audi",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Automotive",
+    "BMW",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Automotive",
+    "Chrysler",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Automotive",
+    "Fiat",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Automotive",
+    "Ford",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Automotive",
+    "General Motors",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Automotive",
+    "Honda",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Automotive",
+    "Hyundai",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Automotive",
+    "Kia",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Automotive",
+    "Mercedes-Benz",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Automotive",
+    "Nissan",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Automotive",
+    "Porsche",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Automotive",
+    "Toyota",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Automotive",
+    "Volkswagen",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Automotive",
+    "Volvo",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Digital",
+    "Alpine",
+    "PASS",
+    512,
+    "png/color"
+  ],
+  [
+    "Digital",
+    "Altium",
+    "LOW",
+    180,
+    "png/color"
+  ],
+  [
+    "Digital",
+    "Bose",
+    "PASS",
+    512,
+    "png/color"
+  ],
+  [
+    "Digital",
+    "Bounteous",
+    "PASS",
+    2400,
+    "png/color"
+  ],
+  [
+    "Digital",
+    "Bulgari",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Digital",
+    "Caterpillar",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Digital",
+    "Citrix",
+    "PASS",
+    512,
+    "png/color"
+  ],
+  [
+    "Digital",
+    "Colgate-Palmolive",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Digital",
+    "Dormy Golf",
+    "WARN",
+    256,
+    "png/color"
+  ],
+  [
+    "Digital",
+    "Fellowes",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Digital",
+    "Foot Locker",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Digital",
+    "Goldman Sachs",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Digital",
+    "Graco",
+    "LOW",
+    196,
+    "png/color"
+  ],
+  [
+    "Digital",
+    "Guaranteed Rate",
+    "PASS",
+    2400,
+    "png/black"
+  ],
+  [
+    "Digital",
+    "Gusto",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Digital",
+    "Hamamatsu Photonics",
+    "PASS",
+    1200,
+    "png/color"
+  ],
+  [
+    "Digital",
+    "Hugo Boss",
+    "PASS",
+    960,
+    "png/black"
+  ],
+  [
+    "Digital",
+    "Invesco",
+    "WARN",
+    260,
+    "png/black"
+  ],
+  [
+    "Digital",
+    "Jamf",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Digital",
+    "MicroStrategy",
+    "PASS",
+    1024,
+    "png/black"
+  ],
+  [
+    "Digital",
+    "Mountain Warehouse",
+    "PASS",
+    1200,
+    "png/color"
+  ],
+  [
+    "Digital",
+    "National Instruments",
+    "PASS",
+    512,
+    "png/color"
+  ],
+  [
+    "Digital",
+    "NIAM Sports",
+    "LOW",
+    32,
+    "png/color"
+  ],
+  [
+    "Digital",
+    "Okta",
+    "LOW",
+    152,
+    "png/color"
+  ],
+  [
+    "Digital",
+    "OliveX",
+    "WARN",
+    256,
+    "png/color"
+  ],
+  [
+    "Digital",
+    "Publicis Groupe",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Digital",
+    "Rapha",
+    "PASS",
+    1200,
+    "png/black"
+  ],
+  [
+    "Digital",
+    "Roger Dubuis",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Digital",
+    "Rogers Corporation",
+    "MISSING",
+    0,
+    "no icon"
+  ],
+  [
+    "Digital",
+    "SC Johnson",
+    "LOW",
+    240,
+    "png/color"
+  ],
+  [
+    "Digital",
+    "Schneider Electric",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Digital",
+    "World First",
+    "LOW",
+    130,
+    "png/color"
+  ],
+  [
+    "Games",
+    "2K",
+    "PASS",
+    1920,
+    "png/black"
+  ],
+  [
+    "Games",
+    "BioWare",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Games",
+    "Blizzard",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Games",
+    "Candivore",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Games",
+    "Capcom",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Games",
+    "EA Sports",
+    "PASS",
+    1120,
+    "png/color"
+  ],
+  [
+    "Games",
+    "Electronic Arts",
+    "PASS",
+    1120,
+    "png/color"
+  ],
+  [
+    "Games",
+    "Fatshark",
+    "WARN",
+    376,
+    "png/color"
+  ],
+  [
+    "Games",
+    "Gameloft",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Games",
+    "inXile Entertainment",
+    "PASS",
+    1122,
+    "png/color"
+  ],
+  [
+    "Games",
+    "Nanobit",
+    "PASS",
+    1901,
+    "png/color"
+  ],
+  [
+    "Games",
+    "Netmarble",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Games",
+    "Nimble Giant Entertainment",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Games",
+    "Outright Games",
+    "PASS",
+    595,
+    "png/color"
+  ],
+  [
+    "Games",
+    "Paradox Interactive",
+    "PASS",
+    512,
+    "png/color"
+  ],
+  [
+    "Games",
+    "Playwith",
+    "MISSING",
+    0,
+    "no icon"
+  ],
+  [
+    "Games",
+    "Quantic Dream",
+    "PASS",
+    2048,
+    "png/color"
+  ],
+  [
+    "Games",
+    "Rockstar Games",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Games",
+    "Second Dinner",
+    "PASS",
+    1256,
+    "png/color"
+  ],
+  [
+    "Games",
+    "Sega",
+    "PASS",
+    2048,
+    "png/color"
+  ],
+  [
+    "Games",
+    "Stardock",
+    "PASS",
+    1280,
+    "png/black"
+  ],
+  [
+    "Games",
+    "Team17",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Games",
+    "Tilting Point",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Games",
+    "Tripwire Interactive",
+    "PASS",
+    599,
+    "png/color"
+  ],
+  [
+    "Games",
+    "Ubisoft",
+    "PASS",
+    2048,
+    "png/color"
+  ],
+  [
+    "Games",
+    "Warner Bros Games",
+    "PASS",
+    2048,
+    "png/color"
+  ],
+  [
+    "Legal",
+    "A&O Shearman",
+    "LOW",
+    180,
+    "png/color"
+  ],
+  [
+    "Legal",
+    "Alston & Bird",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Legal",
+    "Ashurst",
+    "UNREADABLE",
+    0,
+    "None/None"
+  ],
+  [
+    "Legal",
+    "Axinn Veltrop & Harkrider",
+    "LOW",
+    180,
+    "png/color"
+  ],
+  [
+    "Legal",
+    "Axinn, Veltrop & Harkrider",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Legal",
+    "Baker McKenzie",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Legal",
+    "BakerHostetler",
+    "LOW",
+    180,
+    "png/color"
+  ],
+  [
+    "Legal",
+    "Bingham McCutchen",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Legal",
+    "Blackstone",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Legal",
+    "Blackstone Group",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Legal",
+    "Blank Rome",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Legal",
+    "Cleary Gottlieb",
+    "LOW",
+    180,
+    "png/color"
+  ],
+  [
+    "Legal",
+    "Clyde & Co",
+    "PASS",
+    796,
+    "png/color"
+  ],
+  [
+    "Legal",
+    "Cooley",
+    "LOW",
+    180,
+    "png/color"
+  ],
+  [
+    "Legal",
+    "Crowell & Moring",
+    "LOW",
+    180,
+    "png/color"
+  ],
+  [
+    "Legal",
+    "Debevoise & Plimpton",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Legal",
+    "Debevoise & Plimpton LLP",
+    "LOW",
+    32,
+    "png/color"
+  ],
+  [
+    "Legal",
+    "Dechert",
+    "LOW",
+    180,
+    "png/color"
+  ],
+  [
+    "Legal",
+    "Dechert LLP",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Legal",
+    "DLA Piper",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Legal",
+    "Eversheds",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Legal",
+    "Eversheds Sutherland",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Legal",
+    "Foley & Lardner",
+    "PASS",
+    1430,
+    "png/color"
+  ],
+  [
+    "Legal",
+    "Foley & Lardner",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Legal",
+    "Freshfields",
+    "PASS-SVG",
+    9999,
+    "svg/color"
+  ],
+  [
+    "Legal",
+    "Freshfields Bruckhaus Deringer",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Legal",
+    "Geradin Partners",
+    "LOW",
+    192,
+    "png/color"
+  ],
+  [
+    "Legal",
+    "Gibson Dunn",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Legal",
+    "Greenberg Traurig",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Legal",
+    "Hausfeld",
+    "LOW",
+    192,
+    "png/color"
+  ],
+  [
+    "Legal",
+    "Hogan Lovells",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Legal",
+    "Holwell Shuster & Goldberg",
+    "PASS",
+    1200,
+    "png/color"
+  ],
+  [
+    "Legal",
+    "K&L Gates",
+    "PASS",
+    639,
+    "png/color"
+  ],
+  [
+    "Legal",
+    "K&L Gates",
+    "PASS",
+    550,
+    "png/color"
+  ],
+  [
+    "Legal",
+    "Kilpatrick Townsend & Stockton",
+    "LOW",
+    32,
+    "png/color"
+  ],
+  [
+    "Legal",
+    "King & Spalding",
+    "LOW",
+    180,
+    "png/color"
+  ],
+  [
+    "Legal",
+    "Kirkland & Ellis",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Legal",
+    "KKR",
+    "LOW",
+    180,
+    "png/color"
+  ],
+  [
+    "Legal",
+    "Latham & Watkins",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Legal",
+    "Linklaters",
+    "LOW",
+    180,
+    "png/color"
+  ],
+  [
+    "Legal",
+    "Lowenstein Sandler",
+    "LOW",
+    152,
+    "png/color"
+  ],
+  [
+    "Legal",
+    "Mayer Brown",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Legal",
+    "Morrison & Foerster",
+    "LOW",
+    180,
+    "png/color"
+  ],
+  [
+    "Legal",
+    "O'Melveny & Myers",
+    "PASS",
+    1200,
+    "png/black"
+  ],
+  [
+    "Legal",
+    "Orrick",
+    "UNREADABLE",
+    0,
+    "None/None"
+  ],
+  [
+    "Legal",
+    "Paul Hastings",
+    "PASS",
+    512,
+    "png/color"
+  ],
+  [
+    "Legal",
+    "Paul Weiss",
+    "UNREADABLE",
+    0,
+    "None/None"
+  ],
+  [
+    "Legal",
+    "Quinn Emanuel Urquhart & Sullivan",
+    "LOW",
+    180,
+    "png/color"
+  ],
+  [
+    "Legal",
+    "Reed Smith",
+    "LOW",
+    180,
+    "png/color"
+  ],
+  [
+    "Legal",
+    "Saul Ewing",
+    "LOW",
+    180,
+    "png/color"
+  ],
+  [
+    "Legal",
+    "Simmons & Simmons",
+    "LOW",
+    96,
+    "png/color"
+  ],
+  [
+    "Legal",
+    "Simpson Thacher & Bartlett",
+    "LOW",
+    144,
+    "png/color"
+  ],
+  [
+    "Legal",
+    "Stephenson Harwood",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Legal",
+    "Webber Wentzel",
+    "UNREADABLE",
+    0,
+    "None/None"
+  ],
+  [
+    "Legal",
+    "Weil Gotshal & Manges",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Legal",
+    "Weil, Gotshal & Manges",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Legal",
+    "White & Case",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Legal",
+    "Wilmer Hale",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Legal",
+    "WilmerHale",
+    "PASS",
+    960,
+    "png/black"
+  ],
+  [
+    "Legal",
+    "Wilson Sonsini",
+    "UNREADABLE",
+    0,
+    "None/None"
+  ],
+  [
+    "Legal",
+    "Wilson Sonsini Goodrich & Rosati",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Legal",
+    "Yulchon",
+    "LOW",
+    180,
+    "png/color"
+  ],
+  [
+    "Life Sciences",
+    "Advarra",
+    "LOW",
+    150,
+    "png/color"
+  ],
+  [
+    "Life Sciences",
+    "Agility Clinical",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Life Sciences",
+    "Allergan",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Life Sciences",
+    "AO Foundation",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Life Sciences",
+    "ARCA Biopharma",
+    "LOW",
+    32,
+    "png/color"
+  ],
+  [
+    "Life Sciences",
+    "AstraZeneca",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Life Sciences",
+    "Baxter",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Life Sciences",
+    "Baxter International",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Life Sciences",
+    "Bayer",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Life Sciences",
+    "Biocom",
+    "PASS",
+    1700,
+    "png/color"
+  ],
+  [
+    "Life Sciences",
+    "Biogen",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Life Sciences",
+    "Biogen Idec",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Life Sciences",
+    "Boehringer Ingelheim",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Life Sciences",
+    "Bristol-Myers Squibb",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Life Sciences",
+    "Caidya",
+    "PASS",
+    512,
+    "png/color"
+  ],
+  [
+    "Life Sciences",
+    "Chiesi Farmaceutici",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Life Sciences",
+    "Chiltern",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Life Sciences",
+    "Clario",
+    "LOW",
+    192,
+    "png/color"
+  ],
+  [
+    "Life Sciences",
+    "CRF Health",
+    "LOW",
+    200,
+    "png/color"
+  ],
+  [
+    "Life Sciences",
+    "CTI Clinical Trial and Consulting",
+    "LOW",
+    48,
+    "png/color"
+  ],
+  [
+    "Life Sciences",
+    "CVS Health",
+    "PASS",
+    1600,
+    "png/color"
+  ],
+  [
+    "Life Sciences",
+    "Daiichi Sankyo",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Life Sciences",
+    "DaVita Clinical Research",
+    "LOW",
+    152,
+    "png/color"
+  ],
+  [
+    "Life Sciences",
+    "Department of Health and Human Services",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Life Sciences",
+    "Duke Clinical Research Institute",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Life Sciences",
+    "ERT",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Life Sciences",
+    "Evidera",
+    "LOW",
+    192,
+    "png/color"
+  ],
+  [
+    "Life Sciences",
+    "Fulgent Genetics",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Life Sciences",
+    "Gedeon Richter",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Life Sciences",
+    "GEICAM",
+    "LOW",
+    120,
+    "png/color"
+  ],
+  [
+    "Life Sciences",
+    "Gilead",
+    "LOW",
+    180,
+    "png/color"
+  ],
+  [
+    "Life Sciences",
+    "Gilead Sciences",
+    "LOW",
+    180,
+    "png/color"
+  ],
+  [
+    "Life Sciences",
+    "ICON plc",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Life Sciences",
+    "Innovaderm Research",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Life Sciences",
+    "IQVIA",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Life Sciences",
+    "Johnson & Johnson",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Life Sciences",
+    "Karyopharm Therapeutics",
+    "PASS",
+    1920,
+    "png/color"
+  ],
+  [
+    "Life Sciences",
+    "Labcorp",
+    "WARN",
+    307,
+    "png/color"
+  ],
+  [
+    "Life Sciences",
+    "Merck",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Life Sciences",
+    "Moderna",
+    "PASS-SVG",
+    9999,
+    "svg/black"
+  ],
+  [
+    "Life Sciences",
+    "Nabriva Therapeutics",
+    "MISSING",
+    0,
+    "no icon"
+  ],
+  [
+    "Life Sciences",
+    "Norgine",
+    "LOW",
+    125,
+    "png/color"
+  ],
+  [
+    "Life Sciences",
+    "Novartis",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Life Sciences",
+    "Novo Nordisk",
+    "PASS",
+    1072,
+    "png/black"
+  ],
+  [
+    "Life Sciences",
+    "Orphan Reach",
+    "MISSING",
+    0,
+    "no icon"
+  ],
+  [
+    "Life Sciences",
+    "PAREXEL",
+    "LOW",
+    195,
+    "png/color"
+  ],
+  [
+    "Life Sciences",
+    "Pfizer",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Life Sciences",
+    "ResMed",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Life Sciences",
+    "Roche",
+    "PASS",
+    512,
+    "png/color"
+  ],
+  [
+    "Life Sciences",
+    "Sanofi",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Life Sciences",
+    "SCOPE International",
+    "PASS",
+    2329,
+    "png/color"
+  ],
+  [
+    "Life Sciences",
+    "Signant Health",
+    "LOW",
+    200,
+    "png/color"
+  ],
+  [
+    "Life Sciences",
+    "Smith & Nephew",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Life Sciences",
+    "Surrozen",
+    "PASS",
+    1200,
+    "png/color"
+  ],
+  [
+    "Life Sciences",
+    "Symphogen",
+    "LOW",
+    192,
+    "png/color"
+  ],
+  [
+    "Life Sciences",
+    "Takeda",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Life Sciences",
+    "US Department of Health",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Life Sciences",
+    "Veeva",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Manufacturing",
+    "3M",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Manufacturing",
+    "ABB",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Manufacturing",
+    "Alcoa",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Manufacturing",
+    "Boeing",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Manufacturing",
+    "Bosch",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Manufacturing",
+    "Caterpillar",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Manufacturing",
+    "Cessna",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Manufacturing",
+    "Coca Cola",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Manufacturing",
+    "Colgate Palmolive",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Manufacturing",
+    "Dole",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Manufacturing",
+    "Dow",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Manufacturing",
+    "General Electric",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Manufacturing",
+    "Heineken",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Manufacturing",
+    "Honeywell",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Manufacturing",
+    "Kodak",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Manufacturing",
+    "Siemens",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Marketing & Advertising",
+    "BBDO",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Marketing & Advertising",
+    "DDB",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Marketing & Advertising",
+    "Dentsu",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Marketing & Advertising",
+    "Droga5",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Marketing & Advertising",
+    "Edelman",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Marketing & Advertising",
+    "FCB",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Marketing & Advertising",
+    "Fleishman-Hillard",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Marketing & Advertising",
+    "Grey",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Marketing & Advertising",
+    "Havas",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Marketing & Advertising",
+    "Havas Worldwide",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Marketing & Advertising",
+    "Interpublic Group",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Marketing & Advertising",
+    "IPG",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Marketing & Advertising",
+    "JWT",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Marketing & Advertising",
+    "Kantar",
+    "PASS",
+    1500,
+    "png/color"
+  ],
+  [
+    "Marketing & Advertising",
+    "Ketchum",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Marketing & Advertising",
+    "Nielsen",
+    "PASS",
+    512,
+    "png/color"
+  ],
+  [
+    "Retail",
+    "Absolut",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Retail",
+    "Adidas",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Retail",
+    "American Eagle",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Retail",
+    "Ashford",
+    "PASS",
+    1200,
+    "png/color"
+  ],
+  [
+    "Retail",
+    "BALR.",
+    "WARN",
+    500,
+    "png/color"
+  ],
+  [
+    "Retail",
+    "Barry's",
+    "PASS",
+    512,
+    "png/color"
+  ],
+  [
+    "Retail",
+    "Becca Cosmetics",
+    "LOW",
+    48,
+    "png/color"
+  ],
+  [
+    "Retail",
+    "Blue Nile",
+    "PASS",
+    1200,
+    "png/color"
+  ],
+  [
+    "Retail",
+    "Burton",
+    "LOW",
+    192,
+    "png/color"
+  ],
+  [
+    "Retail",
+    "Coach",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Retail",
+    "Coca-Cola",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Retail",
+    "Debenhams",
+    "PASS",
+    1024,
+    "png/color"
+  ],
+  [
+    "Retail",
+    "Decathlon",
+    "LOW",
+    32,
+    "png/color"
+  ],
+  [
+    "Retail",
+    "Desigual",
+    "LOW",
+    196,
+    "png/color"
+  ],
+  [
+    "Retail",
+    "Est\u00e9e Lauder",
+    "MISSING",
+    0,
+    "no icon"
+  ],
+  [
+    "Retail",
+    "Eton Shirts",
+    "PASS",
+    2880,
+    "png/black"
+  ],
+  [
+    "Retail",
+    "Filippa K",
+    "MISSING",
+    0,
+    "no icon"
+  ],
+  [
+    "Retail",
+    "IKEA",
+    "LOW",
+    180,
+    "png/black"
+  ],
+  [
+    "Retail",
+    "Kellogg's",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Retail",
+    "Lavazza",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Retail",
+    "Louis Vuitton",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Retail",
+    "Marks & Spencer",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Retail",
+    "Nickis.com",
+    "PASS",
+    1024,
+    "png/color"
+  ],
+  [
+    "Retail",
+    "Orangetheory Fitness",
+    "WARN",
+    256,
+    "png/color"
+  ],
+  [
+    "Retail",
+    "Subway",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Retail",
+    "The Body Shop",
+    "LOW",
+    32,
+    "png/color"
+  ],
+  [
+    "Retail",
+    "Trek Bikes",
+    "WARN",
+    400,
+    "png/color"
+  ],
+  [
+    "Travel",
+    "Air Corsica",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Travel",
+    "American Airlines",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Travel",
+    "Avis Budget Group",
+    "LOW",
+    32,
+    "png/color"
+  ],
+  [
+    "Travel",
+    "Bangkok Airways",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Travel",
+    "Barcel\u00f3 Hotel Group",
+    "LOW",
+    192,
+    "png/color"
+  ],
+  [
+    "Travel",
+    "Belmond",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Travel",
+    "Booking.com",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Travel",
+    "Choice Hotels",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Travel",
+    "Costa Cruises",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Travel",
+    "Discover The Palm Beaches",
+    "LOW",
+    150,
+    "png/color"
+  ],
+  [
+    "Travel",
+    "easyJet",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Travel",
+    "Finnair",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Travel",
+    "Hawaiian Airlines",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Travel",
+    "Hilton",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Travel",
+    "Holland America Line",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Travel",
+    "Hyatt",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Travel",
+    "Iberostar",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Travel",
+    "Jungfraubahnen",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Travel",
+    "Korean Air",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Travel",
+    "Lastminute.com",
+    "MISSING",
+    0,
+    "no icon"
+  ],
+  [
+    "Travel",
+    "Lufthansa",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Travel",
+    "Mandarin Oriental",
+    "WARN",
+    256,
+    "png/color"
+  ],
+  [
+    "Travel",
+    "Marriott",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Travel",
+    "Pan Pacific Hotels Group",
+    "MISSING",
+    0,
+    "no icon"
+  ],
+  [
+    "Travel",
+    "Pestana Hotel Group",
+    "LOW",
+    180,
+    "png/color"
+  ],
+  [
+    "Travel",
+    "Philippine Airlines",
+    "PASS",
+    512,
+    "png/color"
+  ],
+  [
+    "Travel",
+    "Pierre & Vacances",
+    "LOW",
+    32,
+    "png/color"
+  ],
+  [
+    "Travel",
+    "Radisson Hotel Group",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Travel",
+    "Royal Caribbean",
+    "LOW",
+    32,
+    "png/color"
+  ],
+  [
+    "Travel",
+    "SITA",
+    "LOW",
+    192,
+    "png/color"
+  ],
+  [
+    "Travel",
+    "TAP Air Portugal",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Travel",
+    "The Leading Hotels of the World",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Travel",
+    "Tourism Corporation Bonaire",
+    "LOW",
+    192,
+    "png/color"
+  ],
+  [
+    "Travel",
+    "TUI",
+    "PASS-SVG",
+    9999,
+    "svg/white"
+  ],
+  [
+    "Travel",
+    "United Airlines",
+    "PASS-SVG",
+    9999,
+    "svg/black"
+  ]
+]
