@@ -119,6 +119,7 @@ const PublicLogoHubFullAudit = lazyWithRetry(() => import("./pages/PublicLogoHub
 const PublicLogoHubTravelReview = lazyWithRetry(() => import("./pages/PublicLogoHubTravelReview"));
 const PublicLogoHubTravelQA = lazyWithRetry(() => import("./pages/PublicLogoHubTravelQA"));
 const PublicLogoHubGamesIconQA = lazyWithRetry(() => import("./pages/PublicLogoHubGamesIconQA"));
+const PublicLogoHubDeepIconAudit = lazyWithRetry(() => import("./pages/PublicLogoHubDeepIconAudit"));
 const GradientStudio = lazyWithRetry(() => import("./pages/GradientStudio"));
 
 const queryClient = new QueryClient({
