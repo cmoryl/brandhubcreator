@@ -626,6 +626,7 @@ export function NextTemplatesSection({
   const [cta, setCta] = useState('Request an Invite');
   const [date, setDate] = useState(defaultDate || '24 & 25 SEPTEMBER, 2026');
   const [venue, setVenue] = useState(defaultVenue || 'QEII CENTRE WESTMINSTER · LONDON');
+  const [overlayImageUrl, setOverlayImageUrl] = useState<string>('');
 
   const content = useMemo(() => ({ title, body, cta, date, venue }), [title, body, cta, date, venue]);
 
