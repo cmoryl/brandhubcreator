@@ -265,12 +265,18 @@ function SubHeading({ children }: { children: React.ReactNode }) {
 function SwatchCard({
   name,
   hex,
+  rgb,
+  cmyk,
+  hsv,
   role,
   pantone,
   large,
 }: {
   name: string;
   hex: string;
+  rgb?: string;
+  cmyk?: string;
+  hsv?: string;
   role?: string;
   pantone?: string;
   large?: boolean;
@@ -301,13 +307,17 @@ function SwatchCard({
       </div>
       <div className="p-2 space-y-0.5">
         <p className="text-xs font-semibold text-foreground">{name}</p>
-        <p className="text-[10px] font-mono uppercase text-muted-foreground">{hex}</p>
-        {pantone && <p className="text-[10px] text-muted-foreground">{pantone}</p>}
+        <p className="text-[10px] font-mono uppercase text-muted-foreground">HEX {hex}</p>
+        {rgb && <p className="text-[10px] font-mono text-muted-foreground">RGB {rgb}</p>}
+        {cmyk && <p className="text-[10px] font-mono text-muted-foreground">CMYK {cmyk}</p>}
+        {hsv && <p className="text-[10px] font-mono text-muted-foreground">HSV {hsv}</p>}
+        {pantone && <p className="text-[10px] font-semibold text-primary">{pantone}</p>}
         {role && <p className="text-[10px] text-foreground/70 leading-snug pt-0.5">{role}</p>}
       </div>
     </button>
   );
 }
+
 
 function RuleList({
   tone,
