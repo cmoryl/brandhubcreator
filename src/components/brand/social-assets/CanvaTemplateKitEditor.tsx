@@ -123,22 +123,59 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
     }
   };
 
-  const openPicker = async () => {
-    setPickerOpen(true);
-    if (pickerTemplates.length) return;
+  const loadPickerTemplates = async () => {
     setPickerLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('canva-list');
       if (error) throw error;
       if (!data?.ok) throw new Error(data?.error || 'Failed');
-      if (!data.connected) {
-        toast.error('Canva not connected', { description: 'Connect Canva in Admin → Integrations.' });
-      }
+      setPickerConnected(!!data.connected);
       setPickerTemplates(data.templates || []);
     } catch (e: any) {
       toast.error('Could not load Canva templates', { description: e?.message?.slice(0, 200) });
+      setPickerConnected(false);
     } finally {
       setPickerLoading(false);
+    }
+  };
+
+  const openPicker = async () => {
+    setPickerOpen(true);
+    if (pickerTemplates.length || pickerConnected !== null) return;
+    await loadPickerTemplates();
+  };
+
+  const startCanvaConnect = () => {
+    if (!connectClientId.trim() || !connectClientSecret.trim()) {
+      toast.error('Enter both Client ID and Client Secret');
+      return;
+    }
+    const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL as string | undefined;
+    if (!supabaseUrl) {
+      toast.error('Backend URL not configured');
+      return;
+    }
+    const returnTo = window.location.pathname + window.location.search;
+    const url = `${supabaseUrl}/functions/v1/canva-oauth-start?return_to=${encodeURIComponent(
+      returnTo,
+    )}&client_id=${encodeURIComponent(connectClientId.trim())}&client_secret=${encodeURIComponent(
+      connectClientSecret.trim(),
+    )}`;
+    window.location.href = url;
+  };
+
+  const runCanvaSync = async () => {
+    setSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('canva-sync');
+      if (error) throw error;
+      if (!data?.ok) throw new Error(data?.error || 'Sync failed');
+      toast.success(`Synced ${data.synced} templates from Canva`);
+      await loadPickerTemplates();
+    } catch (e: any) {
+      toast.error('Sync failed', { description: e?.message?.slice(0, 200) });
+    } finally {
+      setSyncing(false);
     }
   };
 
