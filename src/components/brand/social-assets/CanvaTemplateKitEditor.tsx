@@ -484,9 +484,11 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
                     Sync
                   </Button>
                 )}
-                <Button variant="outline" size="sm" onClick={startCanvaConnect} disabled={connectingCanva} className="h-8 text-xs">
-                  {connectingCanva ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Plug className="h-3.5 w-3.5 mr-1.5" />}
-                  {connectingCanva ? 'Opening…' : pickerConnected ? 'Reconnect' : 'Connect Canva'}
+                <Button asChild variant="outline" size="sm" className="h-8 text-xs">
+                  <a href={canvaConnectHref} target="_blank" rel="noopener noreferrer" onClick={handleCanvaConnectClick}>
+                    {connectingCanva ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Plug className="h-3.5 w-3.5 mr-1.5" />}
+                    {connectingCanva ? 'Opening…' : pickerConnected ? 'Reconnect' : 'Connect Canva'}
+                  </a>
                 </Button>
                 <Button variant="ghost" size="icon" onClick={() => setPickerOpen(false)} className="h-8 w-8">
                   <X className="h-4 w-4" />
@@ -513,9 +515,11 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
               ) : pickerConnected === false ? (
                 <div className="text-center py-10 text-sm text-muted-foreground border border-dashed border-border rounded-lg space-y-3">
                   <div>Canva isn't connected yet.</div>
-                  <Button size="sm" onClick={startCanvaConnect} disabled={connectingCanva} className="h-8 text-xs">
-                    {connectingCanva ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Plug className="h-3.5 w-3.5 mr-1.5" />}
-                    {connectingCanva ? 'Opening Canva…' : 'Connect Canva'}
+                  <Button asChild size="sm" className="h-8 text-xs">
+                    <a href={canvaConnectHref} target="_blank" rel="noopener noreferrer" onClick={handleCanvaConnectClick}>
+                      {connectingCanva ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Plug className="h-3.5 w-3.5 mr-1.5" />}
+                      {connectingCanva ? 'Opening Canva…' : 'Connect Canva'}
+                    </a>
                   </Button>
                   {connectingCanva && (
                     <div className="text-xs text-muted-foreground" role="status" aria-live="polite">
