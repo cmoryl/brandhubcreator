@@ -154,8 +154,9 @@ const FORMATS: Format[] = [
   { id: 'tile',    label: 'Portal Tile',  width: 800,  height: 1000, aspect: 'aspect-[4/5]' },
 ];
 
-/** Diagonal chevron pattern rendered as SVG for crisp export at any scale. */
-function ChevronBackdrop({ accent }: { accent: string }) {
+/** Diagonal chevron pattern rendered as SVG for crisp export at any scale.
+ *  `hideRays` removes the left-side chevron rays for the centered hero layout. */
+function ChevronBackdrop({ accent, hideRays = false }: { accent: string; hideRays?: boolean }) {
   return (
     <svg
       className="absolute inset-0 h-full w-full"
@@ -175,20 +176,20 @@ function ChevronBackdrop({ accent }: { accent: string }) {
         </linearGradient>
       </defs>
       <rect width="1200" height="800" fill="url(#np-bg)" />
-      {/* Left-side chevron rays */}
-      <g opacity="0.85" stroke="url(#np-chev)" strokeWidth="2" fill="none">
-        {Array.from({ length: 18 }).map((_, i) => {
-          const x = -200 + i * 40;
-          return <path key={i} d={`M${x} 800 L${x + 400} 0`} />;
-        })}
-      </g>
+      {!hideRays && (
+        <g opacity="0.85" stroke="url(#np-chev)" strokeWidth="2" fill="none">
+          {Array.from({ length: 18 }).map((_, i) => {
+            const x = -200 + i * 40;
+            return <path key={i} d={`M${x} 800 L${x + 400} 0`} />;
+          })}
+        </g>
+      )}
       {/* Right-side orbit rings */}
       <g opacity="0.35" stroke={accent} strokeWidth="1.2" fill="none">
         <circle cx="1000" cy="400" r="260" />
         <circle cx="1000" cy="400" r="340" />
         <circle cx="1000" cy="400" r="420" />
       </g>
-      {/* Orbit dots */}
       <g fill="#fff">
         <circle cx="740" cy="400" r="4" />
         <circle cx="1000" cy="60" r="3" />
