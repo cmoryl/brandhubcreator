@@ -105,6 +105,10 @@ interface NextTemplatesSectionProps {
   defaultTagline?: string;
   defaultDate?: string;
   defaultVenue?: string;
+  /** Per-variant Canva template URLs, keyed by NEXT vertical slug. */
+  nextVariationCanvaLinks?: Record<string, string>;
+  onNextVariationCanvaLinksChange?: (next: Record<string, string>) => void;
+  isAdmin?: boolean;
 }
 
 type Format = {
