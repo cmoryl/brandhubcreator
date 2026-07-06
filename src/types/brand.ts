@@ -1174,6 +1174,8 @@ export interface BaseGuide {
   socialAssets?: BrandSocialAssetSpec[];
   // Canva Template Kit — per-platform Canva template links (auto-branded per event)
   canvaTemplateKit?: CanvaTemplateKit;
+  // NEXT sub-brand variation Canva template links — keyed by NEXT vertical slug (e.g. 'globallink-next')
+  nextVariationCanvaLinks?: Record<string, string>;
   // Display Banners (Industry Standard Specs)
   displayBanners?: BrandDisplayBannerSpec[];
   // Linked Guides (for Product Guides section - links to other brand/product guides)
