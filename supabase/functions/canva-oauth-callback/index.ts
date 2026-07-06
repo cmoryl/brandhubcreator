@@ -10,20 +10,13 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '
 
 const PUBLIC_APP_ORIGIN = Deno.env.get('PUBLIC_APP_ORIGIN') ?? 'https://brandhubcreator.lovable.app';
 
-function htmlResponse(title: string, body: string, returnTo?: string) {
-  const dest = returnTo ? `${PUBLIC_APP_ORIGIN}${returnTo}` : PUBLIC_APP_ORIGIN;
-  const accent = title.includes('✓') ? '#00c853' : '#f85149';
-  return new Response(
-    `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${title}</title>
-<style>body{font-family:-apple-system,sans-serif;background:#0d1117;color:#e6edf3;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;}
-.card{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:32px 40px;max-width:520px;text-align:center;}
-h1{color:${accent};margin:0 0 12px;font-size:20px;}p{color:#8b949e;margin:0 0 18px;line-height:1.5;word-break:break-word;}
-a{display:inline-block;background:${accent};color:#001a0a;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:700;}</style></head>
-<body><div class="card"><h1>${title}</h1>${body}<a href="${dest}">Return to audit page</a></div>
-<script>setTimeout(()=>{location.href=${JSON.stringify(dest)};},2800);</script></body></html>`,
-    { headers: { 'Content-Type': 'text/html; charset=utf-8' } },
-  );
+function redirectResponse(returnTo: string, params: Record<string, string>) {
+  const base = returnTo.startsWith('http') ? returnTo : `${PUBLIC_APP_ORIGIN}${returnTo}`;
+  const dest = new URL(base);
+  for (const [k, v] of Object.entries(params)) dest.searchParams.set(k, v);
+  return Response.redirect(dest.toString(), 302);
 }
+
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
@@ -48,10 +41,10 @@ Deno.serve(async (req) => {
       }
     } catch {/* ignore bad state */}
 
-    if (error) return htmlResponse('Canva connection cancelled', `<p>${error}</p>`, returnTo);
-    if (!code) return htmlResponse('Missing authorization code', '<p>Canva did not return a code.</p>', returnTo);
+    if (error) return redirectResponse(returnTo, { canva: 'error', reason: error });
+    if (!code) return redirectResponse(returnTo, { canva: 'error', reason: 'missing_code' });
     if (!clientId || !clientSecret) {
-      return htmlResponse('Missing credentials', '<p>State did not carry your Canva client_id / client_secret. Open the panel and try again.</p>', returnTo);
+      return redirectResponse(returnTo, { canva: 'error', reason: 'missing_credentials' });
     }
 
     const redirectUri = `${SUPABASE_URL}/functions/v1/canva-oauth-callback`;
@@ -76,7 +69,11 @@ Deno.serve(async (req) => {
     const tokenText = await tokenRes.text();
     if (!tokenRes.ok) {
       console.error('Canva token exchange failed', tokenRes.status, tokenText);
-      return htmlResponse('Canva token exchange failed', `<p>${tokenRes.status}: ${tokenText.slice(0, 400)}</p>`, returnTo);
+      return redirectResponse(returnTo, {
+        canva: 'error',
+        reason: 'token_exchange_failed',
+        detail: `${tokenRes.status}: ${tokenText.slice(0, 200)}`,
+      });
     }
     const token = JSON.parse(tokenText);
 
@@ -99,12 +96,13 @@ Deno.serve(async (req) => {
 
     if (upsertErr) {
       console.error('Token upsert failed', upsertErr);
-      return htmlResponse('Failed to save token', `<p>${upsertErr.message}</p>`, returnTo);
+      return redirectResponse(returnTo, { canva: 'error', reason: 'save_failed', detail: upsertErr.message });
     }
 
-    return htmlResponse('Canva connected ✓', '<p>You can now click <strong>Refresh Canva</strong> on the audit page to pull the latest templates.</p>', returnTo);
+    return redirectResponse(returnTo, { canva: 'connected' });
   } catch (e) {
     console.error('canva-oauth-callback error', e);
-    return htmlResponse('Unexpected error', `<p>${(e as Error).message}</p>`);
+    return redirectResponse('/', { canva: 'error', reason: 'unexpected', detail: (e as Error).message });
   }
 });
+
