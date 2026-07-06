@@ -256,6 +256,8 @@ export const SocialAssetsRefreshed = ({
                   item={item}
                   platform={platform}
                   brandLogo={brandLogo}
+                  isAdmin={isAdmin && !!onCanvaTemplateKitChange}
+                  onEdit={onCanvaTemplateKitChange ? () => openEditorFor(platform, item.id) : undefined}
                 />
               ))}
             </div>
@@ -267,7 +269,9 @@ export const SocialAssetsRefreshed = ({
         <CanvaTemplateKitEditor
           value={canvaTemplateKit}
           onChange={onCanvaTemplateKitChange}
-          onClose={() => setEditorOpen(false)}
+          onClose={() => { setEditorOpen(false); setEditorFocus(null); }}
+          initialPlatform={editorFocus?.platform}
+          focusItemId={editorFocus?.itemId}
         />
       )}
     </section>
