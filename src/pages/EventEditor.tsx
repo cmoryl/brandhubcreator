@@ -649,7 +649,22 @@ const EventEditor = () => {
         return <ImagerySection imagery={event.imagery} onImageryChange={editHandler((imagery) => updateEvent({ imagery }))} entityId={event.id} entityType="event" isAdmin={isGuideAdmin} brandSlug={(event as any).brandSlug || (event as any).parentBrandSlug} />;
       case 'social': 
         return <SocialSection social={event.social} onSocialChange={editHandler((social) => updateEvent({ social }))} entityId={event.id} entityType="event" organizationId={event.organizationId} entityName={event.hero?.name} />;
-      case 'socialassets': 
+      case 'socialassets': {
+        const slug = (event as any).slug || '';
+        const isNextPilot = slug === 'transperfect-next' || slug.endsWith('-next');
+        if (isNextPilot) {
+          return (
+            <SocialAssetsRefreshed
+              socialAssets={event.socialAssets || []}
+              brandLogos={event.logos}
+              brandSlug={slug}
+              entityName={event.hero?.name}
+              canvaTemplateKit={(event as any).canvaTemplateKit}
+              onCanvaTemplateKitChange={canEdit ? (canvaTemplateKit) => updateEvent({ canvaTemplateKit } as any) : undefined}
+              isAdmin={isGuideAdmin || canEdit}
+            />
+          );
+        }
         return (
           <SocialAssetsSection
             socialAssets={event.socialAssets || []}
@@ -659,6 +674,7 @@ const EventEditor = () => {
             brandLogos={event.logos}
           />
         );
+      }
       case 'nexttemplates':
         return (
           <NextTemplatesSection
