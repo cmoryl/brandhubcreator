@@ -338,7 +338,6 @@ export const FullBrandPage = ({
         if (isNextPilot) {
           return <SocialAssetsRefreshed socialAssets={brand.socialAssets || []} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandLogos={brand.logos} brandSlug={brand.slug} entityName={brand.hero?.name} />;
         }
-        }
         return <SocialAssetsSection socialAssets={brand.socialAssets || []} onSocialAssetsChange={editHandler((socialAssets) => onBrandUpdate({ socialAssets }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} entityId={brandId} entityType={entityType as 'brand' | 'product' | 'event' || 'brand'} brandLogos={brand.logos} brandSlug={brand.slug} />;
       }
       case 'website': return <WebsiteSection websites={brand.websites} onWebsitesChange={editHandler((websites) => onBrandUpdate({ websites }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} entityType={entityType || 'brand'} entityId={brandId} brandSlug={brand.slug} />;
