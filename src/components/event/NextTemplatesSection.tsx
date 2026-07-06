@@ -17,6 +17,9 @@ import { Card } from '@/components/ui/card';
 import { Download, Sparkles, LayoutGrid } from 'lucide-react';
 import { toast } from 'sonner';
 import type { BrandLogo } from '@/types/brand';
+import nextHeroBgAsset from '@/assets/next-hero-bg.png.asset.json';
+
+const NEXT_HERO_BG_URL = nextHeroBgAsset.url;
 
 /** Pick the best logo for a dark navy backdrop — prefer reversed/white/mono, then anything.
  *  When `preferStacked` is true, boosts stacked/vertical lockups and de-prioritizes horizontal. */
