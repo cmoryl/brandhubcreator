@@ -91,10 +91,21 @@ export const SubEventsSection = ({
   customSubtitle,
   onSubtitleChange,
 }: SubEventsSectionProps) => {
+  const { getEventBySlug } = useEvents();
   const eventGuides = useMemo(
     () => linkedGuides.filter((g) => g.type === 'event'),
     [linkedGuides]
   );
+
+  // Look up stacked color logo per sub-event by slug
+  const stackedLogos = useMemo(() => {
+    const map: Record<string, string | null> = {};
+    for (const g of eventGuides) {
+      const ev: any = g.slug ? getEventBySlug(g.slug) : undefined;
+      map[g.id] = getStackedColorLogo(ev?.eventLogos || ev?.guide_data?.eventLogos);
+    }
+    return map;
+  }, [eventGuides, getEventBySlug]);
 
   // Transform linked guides to map locations
   const mapLocations = useMemo(() => {
