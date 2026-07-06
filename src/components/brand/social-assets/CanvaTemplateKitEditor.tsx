@@ -13,6 +13,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Plus, Trash2, ExternalLink, X, Save, Wand2, LayoutGrid, Loader2, Search, Plug, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -269,8 +270,8 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
     onClose();
   };
 
-  return (
-    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+  const editorContent = (
+    <div className="fixed inset-0 z-[1000] bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="w-full max-w-3xl max-h-[85vh] bg-card border border-border rounded-xl shadow-2xl flex flex-col">
         <div className="flex items-center justify-between p-5 border-b border-border">
           <div>
@@ -432,7 +433,7 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
       </div>
 
       {pickerOpen && (
-        <div className="fixed inset-0 z-[60] bg-background/85 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[1010] bg-background/85 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="w-full max-w-4xl max-h-[85vh] bg-card border border-border rounded-xl shadow-2xl flex flex-col">
             <div className="flex items-center justify-between p-4 border-b border-border">
               <div>
@@ -525,4 +526,6 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
       )}
     </div>
   );
+
+  return createPortal(editorContent, document.body);
 };
