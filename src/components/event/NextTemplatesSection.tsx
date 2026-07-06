@@ -479,6 +479,7 @@ export function NextTemplatesSection({
                   content={content}
                   accent={accent}
                   verticalLabel={verticalLabel}
+                  logoUrl={logoUrl}
                 />
               </div>
             </div>
