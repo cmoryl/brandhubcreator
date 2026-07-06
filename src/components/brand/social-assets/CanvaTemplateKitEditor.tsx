@@ -394,12 +394,81 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
                 <h4 className="text-base font-semibold text-foreground">Your Canva Brand Templates</h4>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   Adds to <span className="font-medium text-foreground">{activePlatform}</span> · {filteredPickerTemplates.length} shown
+                  {pickerConnected === false && (
+                    <span className="ml-2 inline-block text-[10px] px-1.5 py-0.5 rounded bg-destructive/15 text-destructive">Not connected</span>
+                  )}
+                  {pickerConnected === true && (
+                    <span className="ml-2 inline-block text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">Connected</span>
+                  )}
                 </p>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setPickerOpen(false)} className="h-8 w-8">
-                <X className="h-4 w-4" />
-              </Button>
+              <div className="flex items-center gap-1">
+                {pickerConnected === true && (
+                  <Button variant="outline" size="sm" onClick={runCanvaSync} disabled={syncing} className="h-8 text-xs">
+                    {syncing ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5 mr-1.5" />}
+                    Sync
+                  </Button>
+                )}
+                <Button variant="outline" size="sm" onClick={() => setConnectOpen((v) => !v)} className="h-8 text-xs">
+                  <Plug className="h-3.5 w-3.5 mr-1.5" />
+                  {pickerConnected ? 'Reconnect' : 'Connect Canva'}
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => setPickerOpen(false)} className="h-8 w-8">
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
+
+            {connectOpen && (
+              <div className="px-4 py-3 border-b border-border bg-muted/30 space-y-2">
+                <div className="text-xs text-muted-foreground">
+                  Create an Integration at{' '}
+                  <a
+                    href="https://www.canva.com/developers/integrations"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary underline"
+                  >
+                    canva.com/developers/integrations
+                  </a>
+                  , set redirect URL to{' '}
+                  <code className="text-[10px] bg-background px-1 py-0.5 rounded">
+                    {(import.meta as any).env?.VITE_SUPABASE_URL}/functions/v1/canva-oauth-callback
+                  </code>
+                  , enable scopes <code className="text-[10px]">brandtemplate:meta:read</code>,{' '}
+                  <code className="text-[10px]">brandtemplate:content:read</code>,{' '}
+                  <code className="text-[10px]">design:meta:read</code>, then paste ID + Secret below.
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Client ID</Label>
+                    <Input
+                      value={connectClientId}
+                      onChange={(e) => setConnectClientId(e.target.value)}
+                      placeholder="OA..."
+                      className="h-8 text-sm font-mono"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Client Secret</Label>
+                    <Input
+                      type="password"
+                      value={connectClientSecret}
+                      onChange={(e) => setConnectClientSecret(e.target.value)}
+                      placeholder="••••••••••••"
+                      className="h-8 text-sm font-mono"
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <Button size="sm" onClick={startCanvaConnect} className="h-8 text-xs">
+                    <Plug className="h-3.5 w-3.5 mr-1.5" />
+                    Authorize with Canva
+                  </Button>
+                </div>
+              </div>
+            )}
+
             <div className="px-4 py-3 border-b border-border">
               <div className="relative">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
@@ -416,9 +485,13 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
                 <div className="flex items-center justify-center h-40 text-sm text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin mr-2" /> Loading templates…
                 </div>
+              ) : pickerConnected === false ? (
+                <div className="text-center py-10 text-sm text-muted-foreground border border-dashed border-border rounded-lg">
+                  Canva isn't connected yet. Click <span className="font-medium text-foreground">Connect Canva</span> above to link your account.
+                </div>
               ) : filteredPickerTemplates.length === 0 ? (
                 <div className="text-center py-10 text-sm text-muted-foreground border border-dashed border-border rounded-lg">
-                  No synced Canva templates. Run a Canva sync in Admin first.
+                  No templates found. Click <span className="font-medium text-foreground">Sync</span> to pull the latest from Canva.
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
