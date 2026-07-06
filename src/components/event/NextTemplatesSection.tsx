@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
-import { Download, Sparkles } from 'lucide-react';
+import { Download, Sparkles, LayoutGrid } from 'lucide-react';
 import { toast } from 'sonner';
 
 // ------- Vertical accent map (matches restructured NEXT event colors) -------
