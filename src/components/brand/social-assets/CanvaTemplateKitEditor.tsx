@@ -85,6 +85,80 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
     setKit(next);
   };
 
+  const hydrateItemFromCanva = async (idx: number) => {
+    const item = (kit[activePlatform] || [])[idx];
+    if (!item?.url) {
+      toast.error('Paste a Canva URL first');
+      return;
+    }
+    if (!isCanvaUrl(item.url)) {
+      toast.error('Not a Canva URL');
+      return;
+    }
+    setHydratingIdx(idx);
+    try {
+      const { data, error } = await supabase.functions.invoke('canva-resolve-design', {
+        body: { url: item.url.trim() },
+      });
+      if (error) throw error;
+      if (!data?.ok) throw new Error(data?.error || 'Failed');
+      updateItem(idx, {
+        name: item.name?.trim() || data.title || item.name,
+        thumbnailUrl: data.thumbnailUrl || item.thumbnailUrl,
+        format: item.format?.trim() || data.format || item.format,
+        url: data.viewUrl || item.url,
+      });
+      toast.success('Pulled from Canva', { description: data.title || data.id });
+    } catch (e: any) {
+      toast.error('Could not fetch from Canva', {
+        description: e?.message?.slice(0, 200) || 'Check that Canva is connected in Admin.',
+      });
+    } finally {
+      setHydratingIdx(null);
+    }
+  };
+
+  const openPicker = async () => {
+    setPickerOpen(true);
+    if (pickerTemplates.length) return;
+    setPickerLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('canva-list');
+      if (error) throw error;
+      if (!data?.ok) throw new Error(data?.error || 'Failed');
+      if (!data.connected) {
+        toast.error('Canva not connected', { description: 'Connect Canva in Admin → Integrations.' });
+      }
+      setPickerTemplates(data.templates || []);
+    } catch (e: any) {
+      toast.error('Could not load Canva templates', { description: e?.message?.slice(0, 200) });
+    } finally {
+      setPickerLoading(false);
+    }
+  };
+
+  const addFromCanva = (tpl: CanvaSyncedTemplate) => {
+    const next = { ...kit };
+    next[activePlatform] = [
+      ...(next[activePlatform] || []),
+      {
+        id: genId(),
+        name: tpl.title || 'Untitled template',
+        url: tpl.view_url || tpl.edit_url || '',
+        format: tpl.design_type || (tpl.width && tpl.height ? `${tpl.width}×${tpl.height}` : ''),
+        thumbnailUrl: tpl.thumbnail_url || undefined,
+      },
+    ];
+    setKit(next);
+    toast.success(`Added "${tpl.title || 'template'}" to ${activePlatform}`);
+  };
+
+  const filteredPickerTemplates = pickerQuery.trim()
+    ? pickerTemplates.filter((t) =>
+        (t.title || '').toLowerCase().includes(pickerQuery.trim().toLowerCase()),
+      )
+    : pickerTemplates;
+
   const handleSave = () => {
     // Basic validation
     for (const p of PLATFORM_ORDER) {
