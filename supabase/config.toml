@@ -252,3 +252,21 @@ verify_jwt = false
 
 [functions.gradient-ai-designer]
 verify_jwt = false
+
+[functions.canva-oauth-start]
+verify_jwt = false
+
+[functions.canva-oauth-callback]
+verify_jwt = false
+
+[functions.canva-resolve-design]
+verify_jwt = false
+
+[functions.canva-sync]
+verify_jwt = false
+
+[functions.canva-list]
+verify_jwt = false
+
+[functions.analyze-canva-audit]
+verify_jwt = false
