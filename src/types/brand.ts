@@ -1157,6 +1157,8 @@ export interface BaseGuide {
   services: BrandService[];
   // Social Assets (Platform Specifications)
   socialAssets?: BrandSocialAssetSpec[];
+  // Canva Template Kit — per-platform Canva template links (auto-branded per event)
+  canvaTemplateKit?: CanvaTemplateKit;
   // Display Banners (Industry Standard Specs)
   displayBanners?: BrandDisplayBannerSpec[];
   // Linked Guides (for Product Guides section - links to other brand/product guides)
