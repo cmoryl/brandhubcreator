@@ -523,12 +523,12 @@ export const SocialAssetsRefreshed = ({
 
   return (
     <section className="space-y-6">
-      <SectionHeader
-        title="Social Assets & Guidelines"
-        subtitle={customSubtitle}
-        onSubtitleChange={onSubtitleChange}
-        defaultSubtitle="Playbook, live Canva templates, and every published creation — in one calmer place."
-      />
+      <div className="space-y-1">
+        <h2 className="text-2xl font-bold tracking-tight text-foreground">Social Assets & Guidelines</h2>
+        <p className="text-sm text-muted-foreground">
+          {customSubtitle || 'Playbook, live Canva templates, and every published creation — in one calmer place.'}
+        </p>
+      </div>
 
       {/* Zone 1 — Playbook */}
       <PlaybookZone />
