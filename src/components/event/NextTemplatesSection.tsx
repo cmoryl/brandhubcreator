@@ -281,11 +281,8 @@ function TemplateSurface({
   const isTile = format.id === 'tile';
   const isBanner = format.id === 'banner' || format.id === 'hero';
 
-  // Every non-default layout uses an accent-only CTA (per sub-brand accent theming).
-  const ctaBackground =
-    layout === 'default'
-      ? PINK_CTA
-      : `linear-gradient(135deg, ${accent} 0%, ${accent}CC 100%)`;
+  // All layouts now use an accent-tinted CTA (per sub-brand accent theming).
+  const ctaBackground = `linear-gradient(135deg, ${accent} 0%, ${accent}CC 100%)`;
 
   const CTA = () =>
     content.cta ? (
@@ -310,18 +307,26 @@ function TemplateSurface({
 
   return (
     <div className="relative h-full w-full overflow-hidden" style={{ backgroundColor: NAVY }}>
-      {layout === 'hero-showcase' ? (
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `url(${NEXT_HERO_BG_URL})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-        />
-      ) : (
-        <ChevronBackdrop accent={accent} hideRays={layout !== 'default'} />
-      )}
+      {/* Every surface now sits on the uploaded orb/chevron background so each
+          sub-brand gets a consistent premium hero backdrop; the accent color
+          is layered on top through logo, headline, and CTA. */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: `url(${NEXT_HERO_BG_URL})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      />
+      {/* Accent wash to tint the shared bg with the sub-brand accent color. */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `radial-gradient(circle at 85% 70%, ${accent}33 0%, transparent 55%)`,
+          mixBlendMode: 'screen',
+        }}
+      />
+
 
       {/* -------------------- CENTERED HERO -------------------- */}
       {layout === 'centered-hero' && (
