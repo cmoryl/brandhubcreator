@@ -197,7 +197,7 @@ export const SocialAssetsRefreshed = ({
             variant="outline"
             size="sm"
             className="h-9 text-xs shrink-0"
-            onClick={() => setEditorOpen(true)}
+            onClick={openEditor}
           >
             <Settings2 className="h-3.5 w-3.5 mr-1.5" />
             {hasAny ? 'Manage templates' : 'Add Canva templates'}
