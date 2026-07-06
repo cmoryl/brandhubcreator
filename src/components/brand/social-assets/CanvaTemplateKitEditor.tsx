@@ -27,6 +27,8 @@ interface Props {
   value: CanvaTemplateKit | undefined;
   onChange: (next: CanvaTemplateKit) => void;
   onClose: () => void;
+  initialPlatform?: Platform;
+  focusItemId?: string;
 }
 
 const isCanvaUrl = (u: string) =>
@@ -36,9 +38,9 @@ const genId = () =>
   (globalThis.crypto as any)?.randomUUID?.() ??
   `kit_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
-export const CanvaTemplateKitEditor = ({ value, onChange, onClose }: Props) => {
+export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatform, focusItemId }: Props) => {
   const [kit, setKit] = useState<CanvaTemplateKit>(() => ({ ...(value || {}) }));
-  const [activePlatform, setActivePlatform] = useState<Platform>('LinkedIn');
+  const [activePlatform, setActivePlatform] = useState<Platform>(initialPlatform || 'LinkedIn');
 
   const items = kit[activePlatform] || [];
 
