@@ -316,14 +316,24 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
             </div>
           ))}
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={addItem}
-            className="w-full h-9 border-dashed"
-          >
-            <Plus className="h-3.5 w-3.5 mr-1.5" /> Add {activePlatform} template
-          </Button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={addItem}
+              className="h-9 border-dashed"
+            >
+              <Plus className="h-3.5 w-3.5 mr-1.5" /> Add {activePlatform} template
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={openPicker}
+              className="h-9 border-dashed"
+            >
+              <LayoutGrid className="h-3.5 w-3.5 mr-1.5" /> Pick from Canva Templates
+            </Button>
+          </div>
         </div>
 
         <div className="flex items-center justify-end gap-2 p-4 border-t border-border">
@@ -333,6 +343,72 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
           </Button>
         </div>
       </div>
+
+      {pickerOpen && (
+        <div className="fixed inset-0 z-[60] bg-background/85 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-4xl max-h-[85vh] bg-card border border-border rounded-xl shadow-2xl flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <div>
+                <h4 className="text-base font-semibold text-foreground">Your Canva Brand Templates</h4>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Adds to <span className="font-medium text-foreground">{activePlatform}</span> · {filteredPickerTemplates.length} shown
+                </p>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setPickerOpen(false)} className="h-8 w-8">
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="px-4 py-3 border-b border-border">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <Input
+                  value={pickerQuery}
+                  onChange={(e) => setPickerQuery(e.target.value)}
+                  placeholder="Search templates by title..."
+                  className="h-8 pl-8 text-sm"
+                />
+              </div>
+            </div>
+            <div className="flex-1 overflow-auto p-4">
+              {pickerLoading ? (
+                <div className="flex items-center justify-center h-40 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" /> Loading templates…
+                </div>
+              ) : filteredPickerTemplates.length === 0 ? (
+                <div className="text-center py-10 text-sm text-muted-foreground border border-dashed border-border rounded-lg">
+                  No synced Canva templates. Run a Canva sync in Admin first.
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {filteredPickerTemplates.map((t) => (
+                    <button
+                      key={t.canva_id}
+                      onClick={() => addFromCanva(t)}
+                      className="group text-left rounded-lg border border-border bg-background/40 overflow-hidden hover:border-primary hover:shadow-md transition-all"
+                    >
+                      <div className="aspect-[4/3] bg-muted overflow-hidden">
+                        {t.thumbnail_url ? (
+                          <img src={t.thumbnail_url} alt={t.title || ''} className="w-full h-full object-cover" loading="lazy" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">
+                            No preview
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-2">
+                        <div className="text-xs font-medium text-foreground truncate">{t.title || 'Untitled'}</div>
+                        <div className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                          {t.design_type || (t.width && t.height ? `${t.width}×${t.height}` : '—')}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
