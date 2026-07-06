@@ -167,6 +167,19 @@ const SortableEventCard = ({ event, onUnlink, onEdit }: SortableEventCardProps) 
             <Calendar className="h-8 w-8 text-muted-foreground/50" />
           </div>
         )}
+
+        {/* Stacked color logo overlay */}
+        {stackedLogo && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none p-2">
+            <div className="bg-white/85 backdrop-blur-sm rounded-md px-3 py-2 shadow-sm">
+              <img
+                src={stackedLogo}
+                alt={`${event.name} logo`}
+                className="max-h-16 max-w-[160px] object-contain"
+              />
+            </div>
+          </div>
+        )}
         
         {/* Region badge */}
         {event.region && (
