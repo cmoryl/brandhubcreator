@@ -189,8 +189,39 @@ function ChevronBackdrop({ accent }: { accent: string }) {
   );
 }
 
-/** Vertical NEXT lockup (matches the Canva reference lockup style). */
-function NextLockup({ label, accent }: { label: string; accent: string }) {
+/** Vertical NEXT lockup — renders the approved logo image when provided,
+ *  otherwise falls back to the typographic lockup. */
+function NextLockup({
+  label,
+  accent,
+  logoUrl,
+}: {
+  label: string;
+  accent: string;
+  logoUrl?: string;
+}) {
+  if (logoUrl) {
+    return (
+      <div className="leading-none">
+        <img
+          src={logoUrl}
+          alt={label}
+          crossOrigin="anonymous"
+          style={{
+            height: '3.2em',
+            width: 'auto',
+            maxWidth: '100%',
+            objectFit: 'contain',
+            filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.35))',
+          }}
+        />
+        <div className="text-white/70 text-[0.5em] tracking-[0.35em] mt-2">
+          BY TRANSPERFECT
+        </div>
+      </div>
+    );
+  }
+
   const [prefix, ...rest] = label.replace(/\s*NEXT\s*/i, '|NEXT').split('|');
   const suffix = rest.join('') || 'NEXT';
   return (
@@ -223,11 +254,13 @@ function TemplateSurface({
   content,
   accent,
   verticalLabel,
+  logoUrl,
 }: {
   format: Format;
   content: { title: string; body: string; cta: string; date: string; venue: string };
   accent: string;
   verticalLabel: string;
+  logoUrl?: string;
 }) {
   const isStory = format.id === 'story';
   const isTile = format.id === 'tile';
