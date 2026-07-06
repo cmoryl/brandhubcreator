@@ -699,6 +699,18 @@ export function NextTemplatesSection({
           <Label>Venue</Label>
           <Input value={venue} onChange={(e) => setVenue(e.target.value)} />
         </div>
+        <div className="md:col-span-2">
+          <Label>Transparent Overlay Image URL (optional — right-third, rule of thirds)</Label>
+          <Input
+            value={overlayImageUrl}
+            onChange={(e) => setOverlayImageUrl(e.target.value)}
+            placeholder="Paste transparent PNG URL (character, product, venue cutout)…"
+          />
+          <p className="text-[11px] text-muted-foreground mt-1">
+            Applies to all four main previews below. Each sub-brand variation can also
+            set its own overlay in the grid further down.
+          </p>
+        </div>
       </Card>
 
       {/* Template previews */}
