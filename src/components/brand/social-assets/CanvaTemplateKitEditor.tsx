@@ -13,12 +13,25 @@
  */
 
 import { useState } from 'react';
-import { Plus, Trash2, ExternalLink, X, Save } from 'lucide-react';
+import { Plus, Trash2, ExternalLink, X, Save, Wand2, LayoutGrid, Loader2, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import type { CanvaTemplateKit, CanvaTemplateKitItem } from '@/types/brand';
+
+interface CanvaSyncedTemplate {
+  canva_id: string;
+  title: string | null;
+  design_type: string | null;
+  thumbnail_url: string | null;
+  view_url: string | null;
+  edit_url: string | null;
+  width: number | null;
+  height: number | null;
+  tags: string[] | null;
+}
 
 const PLATFORM_ORDER = ['LinkedIn', 'Instagram', 'X', 'YouTube', 'Facebook', 'TikTok'] as const;
 type Platform = typeof PLATFORM_ORDER[number];
@@ -41,6 +54,11 @@ const genId = () =>
 export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatform, focusItemId }: Props) => {
   const [kit, setKit] = useState<CanvaTemplateKit>(() => ({ ...(value || {}) }));
   const [activePlatform, setActivePlatform] = useState<Platform>(initialPlatform || 'LinkedIn');
+  const [hydratingIdx, setHydratingIdx] = useState<number | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerLoading, setPickerLoading] = useState(false);
+  const [pickerTemplates, setPickerTemplates] = useState<CanvaSyncedTemplate[]>([]);
+  const [pickerQuery, setPickerQuery] = useState('');
 
   const items = kit[activePlatform] || [];
 
@@ -66,6 +84,80 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
     next[activePlatform] = (next[activePlatform] || []).filter((_, i) => i !== idx);
     setKit(next);
   };
+
+  const hydrateItemFromCanva = async (idx: number) => {
+    const item = (kit[activePlatform] || [])[idx];
+    if (!item?.url) {
+      toast.error('Paste a Canva URL first');
+      return;
+    }
+    if (!isCanvaUrl(item.url)) {
+      toast.error('Not a Canva URL');
+      return;
+    }
+    setHydratingIdx(idx);
+    try {
+      const { data, error } = await supabase.functions.invoke('canva-resolve-design', {
+        body: { url: item.url.trim() },
+      });
+      if (error) throw error;
+      if (!data?.ok) throw new Error(data?.error || 'Failed');
+      updateItem(idx, {
+        name: item.name?.trim() || data.title || item.name,
+        thumbnailUrl: data.thumbnailUrl || item.thumbnailUrl,
+        format: item.format?.trim() || data.format || item.format,
+        url: data.viewUrl || item.url,
+      });
+      toast.success('Pulled from Canva', { description: data.title || data.id });
+    } catch (e: any) {
+      toast.error('Could not fetch from Canva', {
+        description: e?.message?.slice(0, 200) || 'Check that Canva is connected in Admin.',
+      });
+    } finally {
+      setHydratingIdx(null);
+    }
+  };
+
+  const openPicker = async () => {
+    setPickerOpen(true);
+    if (pickerTemplates.length) return;
+    setPickerLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('canva-list');
+      if (error) throw error;
+      if (!data?.ok) throw new Error(data?.error || 'Failed');
+      if (!data.connected) {
+        toast.error('Canva not connected', { description: 'Connect Canva in Admin → Integrations.' });
+      }
+      setPickerTemplates(data.templates || []);
+    } catch (e: any) {
+      toast.error('Could not load Canva templates', { description: e?.message?.slice(0, 200) });
+    } finally {
+      setPickerLoading(false);
+    }
+  };
+
+  const addFromCanva = (tpl: CanvaSyncedTemplate) => {
+    const next = { ...kit };
+    next[activePlatform] = [
+      ...(next[activePlatform] || []),
+      {
+        id: genId(),
+        name: tpl.title || 'Untitled template',
+        url: tpl.view_url || tpl.edit_url || '',
+        format: tpl.design_type || (tpl.width && tpl.height ? `${tpl.width}×${tpl.height}` : ''),
+        thumbnailUrl: tpl.thumbnail_url || undefined,
+      },
+    ];
+    setKit(next);
+    toast.success(`Added "${tpl.title || 'template'}" to ${activePlatform}`);
+  };
+
+  const filteredPickerTemplates = pickerQuery.trim()
+    ? pickerTemplates.filter((t) =>
+        (t.title || '').toLowerCase().includes(pickerQuery.trim().toLowerCase()),
+      )
+    : pickerTemplates;
 
   const handleSave = () => {
     // Basic validation
@@ -185,14 +277,30 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
                     className="h-8 text-sm font-mono"
                   />
                   {item.url && (
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => window.open(item.url, '_blank', 'noopener,noreferrer')}
-                      className="h-8 w-8 shrink-0"
-                    >
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </Button>
+                    <>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => hydrateItemFromCanva(idx)}
+                        disabled={hydratingIdx === idx}
+                        title="Auto-fill name + thumbnail from Canva"
+                        className="h-8 w-8 shrink-0"
+                      >
+                        {hydratingIdx === idx ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Wand2 className="h-3.5 w-3.5" />
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => window.open(item.url, '_blank', 'noopener,noreferrer')}
+                        className="h-8 w-8 shrink-0"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </Button>
+                    </>
                   )}
                 </div>
               </div>
@@ -208,14 +316,24 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
             </div>
           ))}
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={addItem}
-            className="w-full h-9 border-dashed"
-          >
-            <Plus className="h-3.5 w-3.5 mr-1.5" /> Add {activePlatform} template
-          </Button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={addItem}
+              className="h-9 border-dashed"
+            >
+              <Plus className="h-3.5 w-3.5 mr-1.5" /> Add {activePlatform} template
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={openPicker}
+              className="h-9 border-dashed"
+            >
+              <LayoutGrid className="h-3.5 w-3.5 mr-1.5" /> Pick from Canva Templates
+            </Button>
+          </div>
         </div>
 
         <div className="flex items-center justify-end gap-2 p-4 border-t border-border">
@@ -225,6 +343,72 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
           </Button>
         </div>
       </div>
+
+      {pickerOpen && (
+        <div className="fixed inset-0 z-[60] bg-background/85 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-4xl max-h-[85vh] bg-card border border-border rounded-xl shadow-2xl flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <div>
+                <h4 className="text-base font-semibold text-foreground">Your Canva Brand Templates</h4>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Adds to <span className="font-medium text-foreground">{activePlatform}</span> · {filteredPickerTemplates.length} shown
+                </p>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setPickerOpen(false)} className="h-8 w-8">
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="px-4 py-3 border-b border-border">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <Input
+                  value={pickerQuery}
+                  onChange={(e) => setPickerQuery(e.target.value)}
+                  placeholder="Search templates by title..."
+                  className="h-8 pl-8 text-sm"
+                />
+              </div>
+            </div>
+            <div className="flex-1 overflow-auto p-4">
+              {pickerLoading ? (
+                <div className="flex items-center justify-center h-40 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" /> Loading templates…
+                </div>
+              ) : filteredPickerTemplates.length === 0 ? (
+                <div className="text-center py-10 text-sm text-muted-foreground border border-dashed border-border rounded-lg">
+                  No synced Canva templates. Run a Canva sync in Admin first.
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {filteredPickerTemplates.map((t) => (
+                    <button
+                      key={t.canva_id}
+                      onClick={() => addFromCanva(t)}
+                      className="group text-left rounded-lg border border-border bg-background/40 overflow-hidden hover:border-primary hover:shadow-md transition-all"
+                    >
+                      <div className="aspect-[4/3] bg-muted overflow-hidden">
+                        {t.thumbnail_url ? (
+                          <img src={t.thumbnail_url} alt={t.title || ''} className="w-full h-full object-cover" loading="lazy" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">
+                            No preview
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-2">
+                        <div className="text-xs font-medium text-foreground truncate">{t.title || 'Untitled'}</div>
+                        <div className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                          {t.design_type || (t.width && t.height ? `${t.width}×${t.height}` : '—')}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
