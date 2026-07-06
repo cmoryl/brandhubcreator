@@ -894,6 +894,7 @@ export function NextTemplatesSection({
                             placeholder="Paste transparent overlay PNG URL…"
                             className="h-7 text-[11px]"
                           />
+                        )}
                       </>
                     );
                   })()}
