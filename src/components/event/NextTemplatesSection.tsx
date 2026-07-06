@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
-import { Download, Sparkles } from 'lucide-react';
+import { Download, Sparkles, LayoutGrid } from 'lucide-react';
 import { toast } from 'sonner';
 
 // ------- Vertical accent map (matches restructured NEXT event colors) -------
@@ -30,6 +30,68 @@ const NEXT_ACCENTS: Record<string, { accent: string; label: string }> = {
   'learn-next':        { accent: '#FFEB66', label: 'Learn NEXT' },
   'media-next':        { accent: '#EC388A', label: 'Media NEXT' },
   'dataforce-next':    { accent: '#5CE1E6', label: 'DataForce NEXT' },
+};
+
+// ------- Per-variant default copy + optional character cutout URL -------
+const NEXT_VARIATION_DEFAULTS: Record<
+  string,
+  { title: string; body: string; cta: string; cutout?: string }
+> = {
+  'transperfect-next': {
+    title: 'Global Content, Localized Everywhere.',
+    body: 'The flagship TransPerfect NEXT conference — every language, every market, one platform.',
+    cta: 'Reserve Your Seat',
+  },
+  'globallink-next': {
+    title: 'The Future of Translation Management.',
+    body: 'GlobalLink NEXT unites AI, workflow, and human expertise in one connected suite.',
+    cta: 'See the Platform',
+  },
+  'digital-next': {
+    title: 'Digital Experiences, Reimagined.',
+    body: 'Personalized, multilingual, and always-on customer journeys at global scale.',
+    cta: 'Explore Digital NEXT',
+  },
+  'finance-next': {
+    title: 'Precision Language for Finance.',
+    body: 'Regulated, compliant, audit-ready translation for every financial disclosure.',
+    cta: 'Talk to Finance',
+  },
+  'games-next': {
+    title: 'Level Up Your Global Launch.',
+    body: 'End-to-end games localization, QA, and audio in every voice your players speak.',
+    cta: 'Ship in Every Language',
+  },
+  'legal-next': {
+    title: 'Legal-Grade Translation, at Speed.',
+    body: 'eDiscovery, litigation support, and certified translations trusted by AmLaw 100 firms.',
+    cta: 'Request a Demo',
+  },
+  'lifesci-next': {
+    title: 'Life Sciences Localization, Validated.',
+    body: 'Regulatory, clinical, and commercial content — approved processes for global submission.',
+    cta: 'See LifeSci Solutions',
+  },
+  'experience-next': {
+    title: 'Every Customer, Every Language, Every Channel.',
+    body: 'Real-time multilingual CX powered by AI and human quality.',
+    cta: 'Elevate Experience',
+  },
+  'learn-next': {
+    title: 'Global Learning that Actually Lands.',
+    body: 'eLearning localization, voiceover, and LMS integrations for the connected workforce.',
+    cta: 'Start Learning Global',
+  },
+  'media-next': {
+    title: 'Stories that Travel.',
+    body: 'Dubbing, subtitling, and media localization at broadcast quality — everywhere.',
+    cta: 'See the Reel',
+  },
+  'dataforce-next': {
+    title: 'Training Data. On-Brand. At Scale.',
+    body: 'AI-ready datasets, human annotation, and cultural QA from the DataForce network.',
+    cta: 'Power Your AI',
+  },
 };
 
 const NAVY = '#0A1638';
@@ -362,6 +424,110 @@ export function NextTemplatesSection({
             </div>
           </div>
         ))}
+      </div>
+
+      {/* ---------------- Sub-Brand Variations Grid ---------------- */}
+      {/* Same Social-Templates card language, re-skinned per NEXT vertical:
+          logo lockup, headline copy, character/orb graphic, accent colour,
+          and CTA button gradient all swap based on the vertical. */}
+      <div className="pt-4 border-t border-border space-y-4">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div className="space-y-1">
+            <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
+              <LayoutGrid className="h-5 w-5 text-primary" />
+              Sub-Brand Variations
+            </h3>
+            <p className="text-sm text-muted-foreground max-w-2xl">
+              The same social template applied across every NEXT vertical — each
+              card auto-swaps the logo lockup, accent colour, character graphic,
+              and CTA gradient to match that sub-brand.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {Object.entries(NEXT_ACCENTS).map(([vSlug, vPreset]) => {
+            const defaults = NEXT_VARIATION_DEFAULTS[vSlug] || {
+              title: content.title,
+              body: content.body,
+              cta: content.cta,
+            };
+            const variantContent = {
+              title: defaults.title,
+              body: defaults.body,
+              cta: defaults.cta,
+              date: content.date,
+              venue: content.venue,
+            };
+            const isActive = vSlug === slugKey;
+            return (
+              <div
+                key={vSlug}
+                className="group rounded-xl border border-border bg-card overflow-hidden hover:border-primary/50 hover:shadow-lg transition-all"
+              >
+                {/* Preview surface — matches Social Templates 4/3 card frame */}
+                <div className="aspect-[4/3] relative overflow-hidden">
+                  <div className="absolute inset-0" style={{ fontSize: 10 }}>
+                    <TemplateSurface
+                      format={FORMATS[0]}
+                      content={variantContent}
+                      accent={vPreset.accent}
+                      verticalLabel={vPreset.label}
+                    />
+                  </div>
+                  {/* Character / orb graphic — accent-tinted, subtle */}
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute -right-6 -bottom-6 h-28 w-28 rounded-full opacity-70 blur-md"
+                    style={{
+                      background: `radial-gradient(circle at 30% 30%, ${vPreset.accent}, ${PINK_CTA} 70%, transparent 80%)`,
+                    }}
+                  />
+                  {isActive && (
+                    <div className="absolute top-2 left-2 rounded-md px-1.5 py-0.5 text-[9px] font-semibold text-white bg-primary shadow">
+                      Current
+                    </div>
+                  )}
+                </div>
+
+                {/* Card body */}
+                <div className="p-3 space-y-2">
+                  <div className="flex items-start justify-between gap-2 min-w-0">
+                    <div className="min-w-0 flex-1">
+                      <h4 className="text-sm font-semibold text-foreground truncate">
+                        {vPreset.label}
+                      </h4>
+                      <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">
+                        {defaults.title}
+                      </p>
+                    </div>
+                    <span
+                      className="mt-0.5 h-4 w-4 shrink-0 rounded-full ring-2 ring-background shadow"
+                      style={{ background: vPreset.accent }}
+                      aria-hidden
+                    />
+                  </div>
+
+                  <Button
+                    size="sm"
+                    className="w-full h-8 text-xs font-semibold text-white border-0 hover:opacity-90"
+                    style={{
+                      background: `linear-gradient(135deg, ${vPreset.accent} 0%, ${PINK_CTA} 100%)`,
+                    }}
+                    onClick={() => {
+                      setTitle(defaults.title);
+                      setBody(defaults.body);
+                      setCta(defaults.cta);
+                      toast.success(`Loaded ${vPreset.label} variation`);
+                    }}
+                  >
+                    Use {vPreset.label.replace(/\s*NEXT/i, '').trim() || 'Variation'} styling
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </section>
   );
