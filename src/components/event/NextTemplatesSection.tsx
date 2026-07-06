@@ -105,6 +105,10 @@ interface NextTemplatesSectionProps {
   defaultTagline?: string;
   defaultDate?: string;
   defaultVenue?: string;
+  /** Per-variant Canva template URLs, keyed by NEXT vertical slug. */
+  nextVariationCanvaLinks?: Record<string, string>;
+  onNextVariationCanvaLinksChange?: (next: Record<string, string>) => void;
+  isAdmin?: boolean;
 }
 
 type Format = {
@@ -304,6 +308,9 @@ export function NextTemplatesSection({
   defaultTagline,
   defaultDate,
   defaultVenue,
+  nextVariationCanvaLinks,
+  onNextVariationCanvaLinksChange,
+  isAdmin = false,
 }: NextTemplatesSectionProps) {
   const slugKey = (eventSlug || '').toLowerCase();
   const preset = NEXT_ACCENTS[slugKey];
@@ -508,21 +515,43 @@ export function NextTemplatesSection({
                     />
                   </div>
 
-                  <Button
-                    size="sm"
-                    className="w-full h-8 text-xs font-semibold text-white border-0 hover:opacity-90"
-                    style={{
-                      background: `linear-gradient(135deg, ${vPreset.accent} 0%, ${PINK_CTA} 100%)`,
-                    }}
-                    onClick={() => {
-                      setTitle(defaults.title);
-                      setBody(defaults.body);
-                      setCta(defaults.cta);
-                      toast.success(`Loaded ${vPreset.label} variation`);
-                    }}
-                  >
-                    Use {vPreset.label.replace(/\s*NEXT/i, '').trim() || 'Variation'} styling
-                  </Button>
+                  {(() => {
+                    const canvaUrl = nextVariationCanvaLinks?.[vSlug] || '';
+                    const hasUrl = !!canvaUrl.trim();
+                    return (
+                      <>
+                        <Button
+                          size="sm"
+                          disabled={!hasUrl}
+                          className="w-full h-8 text-xs font-semibold text-white border-0 hover:opacity-90 disabled:opacity-50"
+                          style={{
+                            background: hasUrl
+                              ? `linear-gradient(135deg, ${vPreset.accent} 0%, ${PINK_CTA} 100%)`
+                              : undefined,
+                          }}
+                          onClick={() => {
+                            if (!hasUrl) return;
+                            window.open(canvaUrl, '_blank', 'noopener,noreferrer');
+                          }}
+                        >
+                          {hasUrl ? `Open ${vPreset.label} in Canva` : 'No Canva template yet'}
+                        </Button>
+                        {isAdmin && onNextVariationCanvaLinksChange && (
+                          <Input
+                            value={canvaUrl}
+                            onChange={(e) =>
+                              onNextVariationCanvaLinksChange({
+                                ...(nextVariationCanvaLinks || {}),
+                                [vSlug]: e.target.value,
+                              })
+                            }
+                            placeholder="Paste Canva template URL…"
+                            className="h-7 text-[11px]"
+                          />
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
             );
