@@ -798,6 +798,7 @@ export function NextTemplatesSection({
                       accent={vPreset.accent}
                       verticalLabel={vPreset.label}
                       logoUrl={nextVariationLogos?.[vSlug] || stackedLogoUrl || logoUrl}
+                      overlayImageUrl={nextVariationOverlays?.[vSlug] || overlayImageUrl || undefined}
                       layout={variantLayout}
                     />
                   </div>
