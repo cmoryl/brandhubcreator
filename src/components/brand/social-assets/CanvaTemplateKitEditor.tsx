@@ -88,6 +88,39 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
   const [syncing, setSyncing] = useState(false);
   const [connectingCanva, setConnectingCanva] = useState(false);
   const [canvaLaunchUrl, setCanvaLaunchUrl] = useState<string | null>(null);
+  const [uploadingIdx, setUploadingIdx] = useState<number | null>(null);
+  const fileInputRefs = useRef<Record<number, HTMLInputElement | null>>({});
+
+  const handleThumbnailUpload = async (idx: number, file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Image must be under 10MB');
+      return;
+    }
+    setUploadingIdx(idx);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { toast.error('You must be signed in'); return; }
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const path = `${user.id}/canva-kit/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage
+        .from('organization-assets')
+        .upload(path, file, { cacheControl: '3600', upsert: false, contentType: file.type });
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from('organization-assets').getPublicUrl(path);
+      updateItem(idx, { thumbnailUrl: `${urlData.publicUrl}?t=${Date.now()}` });
+      toast.success('Thumbnail uploaded');
+    } catch (err) {
+      console.error('[CanvaTemplateKitEditor] thumbnail upload failed:', err);
+      toast.error(err instanceof Error ? err.message : 'Upload failed');
+    } finally {
+      setUploadingIdx(null);
+    }
+  };
+
 
   const items = kit[activePlatform] || [];
 
