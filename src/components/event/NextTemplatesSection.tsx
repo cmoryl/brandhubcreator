@@ -264,6 +264,33 @@ function NextLockup({
 
 type SurfaceLayout = 'default' | 'centered-hero' | 'left-stack' | 'bottom-band' | 'bold-frame' | 'hero-showcase';
 
+/** Orbit rings + accent dots — sits above the bg image so every surface has
+ *  the signature NEXT dot/circle motif regardless of the underlying layout. */
+function OrbitDots({ accent }: { accent: string }) {
+  return (
+    <svg
+      className="absolute inset-0 h-full w-full pointer-events-none"
+      viewBox="0 0 1200 800"
+      preserveAspectRatio="xMidYMid slice"
+      aria-hidden
+    >
+      <g opacity="0.55" stroke={accent} strokeWidth="1.2" fill="none">
+        <circle cx="1000" cy="400" r="260" />
+        <circle cx="1000" cy="400" r="340" />
+        <circle cx="1000" cy="400" r="420" />
+      </g>
+      <g opacity="0.9">
+        <circle cx="740" cy="400" r="4" fill="#fff" />
+        <circle cx="1000" cy="60"  r="3" fill={accent} />
+        <circle cx="1000" cy="740" r="3" fill={accent} />
+        <circle cx="1180" cy="220" r="3" fill="#fff" />
+        <circle cx="820"  cy="120" r="2.5" fill={accent} />
+        <circle cx="880"  cy="680" r="2.5" fill="#fff" />
+      </g>
+    </svg>
+  );
+}
+
 /** One rendered template surface. All layouts share this shell. */
 function TemplateSurface({
   format,
@@ -271,6 +298,7 @@ function TemplateSurface({
   accent,
   verticalLabel,
   logoUrl,
+  overlayImageUrl,
   layout = 'default',
 }: {
   format: Format;
@@ -278,6 +306,7 @@ function TemplateSurface({
   accent: string;
   verticalLabel: string;
   logoUrl?: string;
+  overlayImageUrl?: string;
   layout?: SurfaceLayout;
 }) {
   const isStory = format.id === 'story';
