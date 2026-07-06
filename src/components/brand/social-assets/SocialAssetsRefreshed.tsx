@@ -250,9 +250,9 @@ const TemplateCard = ({
             No preview
           </div>
         )}
-        {logo?.imageUrl && (
+        {logo?.url && (
           <div className="absolute top-2 left-2 h-6 w-6 rounded bg-background/80 backdrop-blur-sm p-1 border border-border/60">
-            <img src={logo.imageUrl} alt="" className="w-full h-full object-contain" />
+            <img src={logo.url} alt="" className="w-full h-full object-contain" />
           </div>
         )}
         {isLive && (
