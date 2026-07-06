@@ -16,6 +16,22 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Download, Sparkles, LayoutGrid } from 'lucide-react';
 import { toast } from 'sonner';
+import type { BrandLogo } from '@/types/brand';
+
+/** Pick the best logo for a dark navy backdrop — prefer reversed/white/mono, then anything. */
+function pickLogoForDark(logos?: BrandLogo[]): BrandLogo | undefined {
+  if (!logos?.length) return undefined;
+  const score = (l: BrandLogo) => {
+    const v = (l.variant || '').toLowerCase();
+    const n = (l.name || '').toLowerCase();
+    const t = `${v} ${n}`;
+    if (t.includes('reversed') || t.includes('white') || t.includes('on-dark') || t.includes('on dark')) return 3;
+    if (t.includes('monochrome') || t.includes('mono')) return 2;
+    if (t.includes('primary') || t.includes('main') || t.includes('color')) return 1;
+    return 0;
+  };
+  return [...logos].sort((a, b) => score(b) - score(a))[0];
+}
 
 // ------- Vertical accent map (matches restructured NEXT event colors) -------
 const NEXT_ACCENTS: Record<string, { accent: string; label: string }> = {
@@ -109,6 +125,8 @@ interface NextTemplatesSectionProps {
   nextVariationCanvaLinks?: Record<string, string>;
   onNextVariationCanvaLinksChange?: (next: Record<string, string>) => void;
   isAdmin?: boolean;
+  /** Approved brand/event logos — the section prefers a reversed/white variant for the dark backdrop. */
+  logos?: BrandLogo[];
 }
 
 type Format = {
@@ -171,8 +189,39 @@ function ChevronBackdrop({ accent }: { accent: string }) {
   );
 }
 
-/** Vertical NEXT lockup (matches the Canva reference lockup style). */
-function NextLockup({ label, accent }: { label: string; accent: string }) {
+/** Vertical NEXT lockup — renders the approved logo image when provided,
+ *  otherwise falls back to the typographic lockup. */
+function NextLockup({
+  label,
+  accent,
+  logoUrl,
+}: {
+  label: string;
+  accent: string;
+  logoUrl?: string;
+}) {
+  if (logoUrl) {
+    return (
+      <div className="leading-none">
+        <img
+          src={logoUrl}
+          alt={label}
+          crossOrigin="anonymous"
+          style={{
+            height: '3.2em',
+            width: 'auto',
+            maxWidth: '100%',
+            objectFit: 'contain',
+            filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.35))',
+          }}
+        />
+        <div className="text-white/70 text-[0.5em] tracking-[0.35em] mt-2">
+          BY TRANSPERFECT
+        </div>
+      </div>
+    );
+  }
+
   const [prefix, ...rest] = label.replace(/\s*NEXT\s*/i, '|NEXT').split('|');
   const suffix = rest.join('') || 'NEXT';
   return (
@@ -205,11 +254,13 @@ function TemplateSurface({
   content,
   accent,
   verticalLabel,
+  logoUrl,
 }: {
   format: Format;
   content: { title: string; body: string; cta: string; date: string; venue: string };
   accent: string;
   verticalLabel: string;
+  logoUrl?: string;
 }) {
   const isStory = format.id === 'story';
   const isTile = format.id === 'tile';
@@ -231,7 +282,7 @@ function TemplateSurface({
       >
         {/* Lockup */}
         <div className={isBanner ? 'flex-shrink-0' : ''} style={{ maxWidth: isBanner ? '38%' : '100%' }}>
-          <NextLockup label={verticalLabel} accent={accent} />
+          <NextLockup label={verticalLabel} accent={accent} logoUrl={logoUrl} />
           {(isStory || isTile) && (
             <div className="mt-3 text-white/60 text-[0.55em] tracking-[0.3em]">
               {content.date}
@@ -311,7 +362,9 @@ export function NextTemplatesSection({
   nextVariationCanvaLinks,
   onNextVariationCanvaLinksChange,
   isAdmin = false,
+  logos,
 }: NextTemplatesSectionProps) {
+  const logoUrl = useMemo(() => pickLogoForDark(logos)?.url, [logos]);
   const slugKey = (eventSlug || '').toLowerCase();
   const preset = NEXT_ACCENTS[slugKey];
   const accent = preset?.accent || defaultAccent || '#13B1F3';
@@ -426,6 +479,7 @@ export function NextTemplatesSection({
                   content={content}
                   accent={accent}
                   verticalLabel={verticalLabel}
+                  logoUrl={logoUrl}
                 />
               </div>
             </div>
@@ -480,6 +534,7 @@ export function NextTemplatesSection({
                       content={variantContent}
                       accent={vPreset.accent}
                       verticalLabel={vPreset.label}
+                      logoUrl={logoUrl}
                     />
                   </div>
                   {/* Character / orb graphic — accent-tinted, subtle */}
