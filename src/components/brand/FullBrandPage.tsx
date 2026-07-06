@@ -336,8 +336,9 @@ export const FullBrandPage = ({
       case 'socialassets': {
         const isNextPilot = brand.slug === 'transperfect-next' || (brand.slug || '').endsWith('-next');
         if (isNextPilot) {
-          const { SocialAssetsRefreshed } = require('./social-assets/SocialAssetsRefreshed');
+        if (isNextPilot) {
           return <SocialAssetsRefreshed socialAssets={brand.socialAssets || []} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandLogos={brand.logos} brandSlug={brand.slug} entityName={brand.hero?.name} />;
+        }
         }
         return <SocialAssetsSection socialAssets={brand.socialAssets || []} onSocialAssetsChange={editHandler((socialAssets) => onBrandUpdate({ socialAssets }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} entityId={brandId} entityType={entityType as 'brand' | 'product' | 'event' || 'brand'} brandLogos={brand.logos} brandSlug={brand.slug} />;
       }
