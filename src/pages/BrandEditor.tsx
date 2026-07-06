@@ -44,6 +44,7 @@ import { TextStylesSection } from '@/components/brand/TextStylesSection';
 import { IconographySection } from '@/components/brand/IconographySection';
 import { SocialIconsSection } from '@/components/brand/SocialIconsSection';
 import { ImagerySection } from '@/components/brand/ImagerySection';
+import { MasterImagerySection } from '@/components/brand/MasterImagerySection';
 import { LayoutTemplatesSection } from '@/components/brand/LayoutTemplatesSection';
 import { resolveBrandVisuals } from '@/lib/deriveBrandVisuals';
 import { SocialSection } from '@/components/brand/SocialSection';
