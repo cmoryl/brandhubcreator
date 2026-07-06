@@ -252,9 +252,6 @@ function NextLockup({
       >
         {suffix.replace(/next/i, 'NE» T').replace('» T', '»T')}
       </div>
-      <div className="text-white/70 text-[0.5em] tracking-[0.35em] mt-1">
-        BY TRANSPERFECT
-      </div>
     </div>
   );
 }
