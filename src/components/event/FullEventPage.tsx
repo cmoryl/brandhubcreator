@@ -9,6 +9,7 @@ import { TypographySection } from '@/components/brand/TypographySection';
 import { ImagerySection } from '@/components/brand/ImagerySection';
 import { SocialSection } from '@/components/brand/SocialSection';
 import { SocialAssetsSection } from '@/components/brand/SocialAssetsSection';
+import { SocialAssetsRefreshed } from '@/components/brand/social-assets/SocialAssetsRefreshed';
 import { AssetsSection } from '@/components/brand/AssetsSection';
 import { ImageAssetsSection } from '@/components/brand/ImageAssetsSection';
 import { MisuseSection } from '@/components/brand/MisuseSection';
@@ -318,7 +319,18 @@ export const FullEventPage = ({
             entityName={event.hero?.name}
           />
         );
-      case 'socialassets':
+      case 'socialassets': {
+        const isNextPilot = event.slug === 'transperfect-next' || (event.slug || '').endsWith('-next');
+        if (isNextPilot) {
+          return (
+            <SocialAssetsRefreshed
+              socialAssets={event.socialAssets || []}
+              brandLogos={event.logos}
+              brandSlug={event.slug}
+              entityName={event.hero?.name}
+            />
+          );
+        }
         return (
           <SocialAssetsSection
             socialAssets={event.socialAssets || []}
@@ -328,6 +340,7 @@ export const FullEventPage = ({
             brandLogos={event.logos}
           />
         );
+      }
       case 'assets':
         return (
           <AssetsSection
