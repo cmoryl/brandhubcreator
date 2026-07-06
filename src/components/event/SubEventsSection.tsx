@@ -4,6 +4,27 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, MapPin, Users, ExternalLink, Globe, Building2 } from 'lucide-react';
 import { WorldMapVisualization } from './WorldMapVisualization';
+import { useEvents } from '@/contexts/EventContext';
+
+/** Pick the stacked, full-color logo variant for a sub-event card. */
+const getStackedColorLogo = (eventLogos: any[] | undefined): string | null => {
+  if (!Array.isArray(eventLogos) || eventLogos.length === 0) return null;
+  const isStackedName = (n?: string) => !!n && /stacked/i.test(n);
+  const isColorish = (v?: string) => v === 'color' || v === 'stacked';
+  // Prefer explicit stacked + color combos
+  const preferred = eventLogos.find(
+    (l) => isStackedName(l?.name) && isColorish(l?.variant) && !/white/i.test(l?.name || '')
+  );
+  if (preferred?.url) return preferred.url;
+  // GlobalLink-style: variant === 'stacked', prefer Dblue over Lblue, avoid White
+  const stackedVariant = eventLogos.find(
+    (l) => l?.variant === 'stacked' && /dblue/i.test(l?.name || '')
+  ) || eventLogos.find((l) => l?.variant === 'stacked' && !/white/i.test(l?.name || ''));
+  if (stackedVariant?.url) return stackedVariant.url;
+  // Fallback: any stacked-named entry
+  const anyStacked = eventLogos.find((l) => isStackedName(l?.name) && !/white/i.test(l?.name || ''));
+  return anyStacked?.url || null;
+};
 
 export interface LinkedEventGuide {
   id: string;
