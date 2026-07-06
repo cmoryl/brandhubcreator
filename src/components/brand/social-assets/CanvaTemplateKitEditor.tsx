@@ -57,8 +57,13 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
   const [hydratingIdx, setHydratingIdx] = useState<number | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerLoading, setPickerLoading] = useState(false);
+  const [pickerConnected, setPickerConnected] = useState<boolean | null>(null);
   const [pickerTemplates, setPickerTemplates] = useState<CanvaSyncedTemplate[]>([]);
   const [pickerQuery, setPickerQuery] = useState('');
+  const [connectOpen, setConnectOpen] = useState(false);
+  const [connectClientId, setConnectClientId] = useState('');
+  const [connectClientSecret, setConnectClientSecret] = useState('');
+  const [syncing, setSyncing] = useState(false);
 
   const items = kit[activePlatform] || [];
 
