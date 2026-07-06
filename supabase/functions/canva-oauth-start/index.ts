@@ -1,4 +1,4 @@
-// Canva Connect OAuth — initiate authorization (with PKCE, required by Canva)
+// Canva Connect OAuth — initiate authorization (PKCE + stored credentials)
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 
 const SCOPES = [
@@ -23,19 +23,20 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   const url = new URL(req.url);
-  const clientId = url.searchParams.get('client_id') ?? '';
-  const clientSecret = url.searchParams.get('client_secret') ?? '';
+  // Prefer server-side stored credentials; fall back to query params for legacy panel flow.
+  const clientId = Deno.env.get('CANVA_CLIENT_ID') || url.searchParams.get('client_id') || '';
+  const clientSecret = Deno.env.get('CANVA_CLIENT_SECRET') || url.searchParams.get('client_secret') || '';
 
   if (!clientId || !clientSecret) {
     return new Response(
-      'Missing client_id or client_secret in query string. Open the Canva Connect panel and enter both, then click Connect.',
+      'Canva credentials not configured. Ask an admin to set CANVA_CLIENT_ID and CANVA_CLIENT_SECRET.',
       { status: 400, headers: { 'Content-Type': 'text/plain' } },
     );
   }
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
   const redirectUri = `${supabaseUrl}/functions/v1/canva-oauth-callback`;
-  const returnTo = url.searchParams.get('return_to') ?? '/transperfect/lifesci-canva-audit.html';
+  const returnTo = url.searchParams.get('return_to') ?? '/';
 
   // PKCE — Canva Connect requires code_challenge (S256)
   const verifierBytes = new Uint8Array(48);
@@ -43,10 +44,9 @@ Deno.serve(async (req) => {
   const codeVerifier = base64url(verifierBytes);
   const codeChallenge = base64url(await sha256(codeVerifier));
 
+  // Only carry non-secret info in state.
   const state = btoa(JSON.stringify({
     returnTo,
-    cid: clientId,
-    csec: clientSecret,
     cv: codeVerifier,
     nonce: crypto.randomUUID(),
   }));
