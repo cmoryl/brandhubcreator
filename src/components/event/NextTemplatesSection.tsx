@@ -136,6 +136,9 @@ interface NextTemplatesSectionProps {
   /** Per-variant reversed/white logo image URLs, keyed by NEXT vertical slug. */
   nextVariationLogos?: Record<string, string>;
   onNextVariationLogosChange?: (next: Record<string, string>) => void;
+  /** Per-variant transparent-PNG overlay image URLs (character/product cutout), keyed by NEXT vertical slug. */
+  nextVariationOverlays?: Record<string, string>;
+  onNextVariationOverlaysChange?: (next: Record<string, string>) => void;
   isAdmin?: boolean;
   /** Approved brand/event logos — the section prefers a reversed/white variant for the dark backdrop. */
   logos?: BrandLogo[];
