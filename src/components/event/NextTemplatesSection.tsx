@@ -229,9 +229,6 @@ function NextLockup({
             filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.35))',
           }}
         />
-        <div className="text-white/70 text-[0.5em] tracking-[0.35em] mt-2">
-          BY TRANSPERFECT
-        </div>
       </div>
     );
   }
