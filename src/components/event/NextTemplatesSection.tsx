@@ -17,6 +17,9 @@ import { Card } from '@/components/ui/card';
 import { Download, Sparkles, LayoutGrid } from 'lucide-react';
 import { toast } from 'sonner';
 import type { BrandLogo } from '@/types/brand';
+import nextHeroBgAsset from '@/assets/next-hero-bg.png.asset.json';
+
+const NEXT_HERO_BG_URL = nextHeroBgAsset.url;
 
 /** Pick the best logo for a dark navy backdrop — prefer reversed/white/mono, then anything.
  *  When `preferStacked` is true, boosts stacked/vertical lockups and de-prioritizes horizontal. */
@@ -256,7 +259,7 @@ function NextLockup({
   );
 }
 
-type SurfaceLayout = 'default' | 'centered-hero' | 'left-stack' | 'bottom-band' | 'bold-frame';
+type SurfaceLayout = 'default' | 'centered-hero' | 'left-stack' | 'bottom-band' | 'bold-frame' | 'hero-showcase';
 
 /** One rendered template surface. All layouts share this shell. */
 function TemplateSurface({
@@ -307,7 +310,18 @@ function TemplateSurface({
 
   return (
     <div className="relative h-full w-full overflow-hidden" style={{ backgroundColor: NAVY }}>
-      <ChevronBackdrop accent={accent} hideRays={layout !== 'default'} />
+      {layout === 'hero-showcase' ? (
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `url(${NEXT_HERO_BG_URL})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        />
+      ) : (
+        <ChevronBackdrop accent={accent} hideRays={layout !== 'default'} />
+      )}
 
       {/* -------------------- CENTERED HERO -------------------- */}
       {layout === 'centered-hero' && (
@@ -418,6 +432,50 @@ function TemplateSurface({
           </p>
           <div className="mt-3">
             <CTA />
+          </div>
+        </div>
+      )}
+
+      {/* -------------------- HERO SHOWCASE (uses uploaded orb/chevron bg) -------------------- */}
+      {layout === 'hero-showcase' && (
+        <div className="relative z-10 h-full w-full flex flex-col" style={{ padding: '1.8em' }}>
+          <div className="flex-1 flex flex-col justify-center" style={{ maxWidth: '75%' }}>
+            <h2
+              className="font-bold text-white"
+              style={{
+                fontSize: '1.75em',
+                lineHeight: 1.08,
+                letterSpacing: '-0.02em',
+              }}
+            >
+              {content.title}
+            </h2>
+            {(content.date || content.venue) && (
+              <div className="mt-4">
+                {content.date && (
+                  <div
+                    className="font-bold"
+                    style={{ color: accent, fontSize: '0.75em', letterSpacing: '0.18em' }}
+                  >
+                    {content.date.toUpperCase()}
+                  </div>
+                )}
+                {content.venue && (
+                  <div
+                    className="text-white/90 font-semibold mt-1"
+                    style={{ fontSize: '0.65em', letterSpacing: '0.14em' }}
+                  >
+                    {content.venue.toUpperCase()}
+                  </div>
+                )}
+              </div>
+            )}
+            <div className="mt-4">
+              <CTA />
+            </div>
+          </div>
+          <div className="absolute" style={{ right: '1.4em', bottom: '1.4em', maxWidth: '48%' }}>
+            <NextLockup label={verticalLabel} accent={accent} logoUrl={logoUrl} sizeEm={11} />
           </div>
         </div>
       )}
@@ -631,7 +689,7 @@ export function NextTemplatesSection({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {Object.entries(NEXT_ACCENTS).map(([vSlug, vPreset], idx) => {
-            const variantLayouts: SurfaceLayout[] = ['centered-hero', 'left-stack', 'bottom-band', 'bold-frame'];
+            const variantLayouts: SurfaceLayout[] = ['hero-showcase', 'centered-hero', 'left-stack', 'bottom-band', 'bold-frame'];
             const variantLayout = variantLayouts[idx % variantLayouts.length];
             const defaults = NEXT_VARIATION_DEFAULTS[vSlug] || {
               title: content.title,
