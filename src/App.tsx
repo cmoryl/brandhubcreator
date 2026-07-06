@@ -67,6 +67,7 @@ const BrandEditor = lazyWithRetry(() => import("./pages/BrandEditor"));
 const ProductEditor = lazyWithRetry(() => import("./pages/ProductEditor"));
 const OrganizationPortal = lazyWithRetry(() => import("./pages/OrganizationPortal"));
 const AuthPage = lazyWithRetry(() => import("./pages/AuthPage"));
+const OAuthConsent = lazyWithRetry(() => import("./pages/OAuthConsent"));
 const PendingApprovalPage = lazyWithRetry(() => import("./pages/PendingApprovalPage"));
 const KnowledgeBase = lazyWithRetry(() => import("./pages/KnowledgeBase"));
 const GettingStarted = lazyWithRetry(() => import("./pages/GettingStarted"));
