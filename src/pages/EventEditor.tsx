@@ -688,6 +688,7 @@ const EventEditor = () => {
             nextVariationCanvaLinks={(event as any).nextVariationCanvaLinks}
             onNextVariationCanvaLinksChange={canEdit ? (nextVariationCanvaLinks) => updateEvent({ nextVariationCanvaLinks } as any) : undefined}
             isAdmin={canEdit || false}
+            logos={event.logos}
           />
         );
       case 'eventspeakers':
