@@ -12,7 +12,7 @@
  * so it round-trips through existing update handlers.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Plus, Trash2, ExternalLink, X, Save, Wand2, LayoutGrid, Loader2, Search, Plug, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -86,6 +86,8 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
   const [pickerTemplates, setPickerTemplates] = useState<CanvaSyncedTemplate[]>([]);
   const [pickerQuery, setPickerQuery] = useState('');
   const [syncing, setSyncing] = useState(false);
+  const [connectingCanva, setConnectingCanva] = useState(false);
+  const [canvaLaunchUrl, setCanvaLaunchUrl] = useState<string | null>(null);
 
   const items = kit[activePlatform] || [];
 
@@ -213,16 +215,43 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const startCanvaConnect = () => {
+  const buildCanvaConnectUrl = () => {
     const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL as string | undefined;
     if (!supabaseUrl) {
-      toast.error('Backend URL not configured');
-      return;
+      return null;
     }
     const url = new URL(`${supabaseUrl}/functions/v1/canva-oauth-start`);
     url.searchParams.set('return_to', buildReturnPath());
     url.searchParams.set('app_origin', window.location.origin);
-    window.location.href = url.toString();
+    return url.toString();
+  };
+
+  const handleCanvaConnectClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    const href = buildCanvaConnectUrl();
+    if (!href) {
+      event.preventDefault();
+      toast.error('Backend URL not configured');
+      return;
+    }
+    if (connectingCanva) {
+      event.preventDefault();
+      return;
+    }
+    setConnectingCanva(true);
+    setCanvaLaunchUrl(href);
+
+    try {
+      window.sessionStorage.setItem('canvaConnectReturnPath', buildReturnPath());
+    } catch {
+      // Session storage can be unavailable in embedded previews; OAuth still works without it.
+    }
+
+    toast.loading('Opening Canva…', {
+      id: 'canva-connect-opening',
+      description: 'Approve access in the Canva tab, then you’ll return here automatically.',
+    });
+
+    window.setTimeout(() => setConnectingCanva(false), 2500);
   };
 
   const addFromCanva = (tpl: CanvaSyncedTemplate) => {
@@ -246,6 +275,8 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
         (t.title || '').toLowerCase().includes(pickerQuery.trim().toLowerCase()),
       )
     : pickerTemplates;
+
+  const canvaConnectHref = buildCanvaConnectUrl() || '#';
 
   const handleSave = () => {
     // Basic validation
@@ -455,9 +486,11 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
                     Sync
                   </Button>
                 )}
-                <Button variant="outline" size="sm" onClick={startCanvaConnect} className="h-8 text-xs">
-                  <Plug className="h-3.5 w-3.5 mr-1.5" />
-                  {pickerConnected ? 'Reconnect' : 'Connect Canva'}
+                <Button asChild variant="outline" size="sm" className="h-8 text-xs">
+                  <a href={canvaConnectHref} target="_blank" rel="noopener noreferrer" onClick={handleCanvaConnectClick}>
+                    {connectingCanva ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Plug className="h-3.5 w-3.5 mr-1.5" />}
+                    {connectingCanva ? 'Opening…' : pickerConnected ? 'Reconnect' : 'Connect Canva'}
+                  </a>
                 </Button>
                 <Button variant="ghost" size="icon" onClick={() => setPickerOpen(false)} className="h-8 w-8">
                   <X className="h-4 w-4" />
@@ -484,10 +517,27 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
               ) : pickerConnected === false ? (
                 <div className="text-center py-10 text-sm text-muted-foreground border border-dashed border-border rounded-lg space-y-3">
                   <div>Canva isn't connected yet.</div>
-                  <Button size="sm" onClick={startCanvaConnect} className="h-8 text-xs">
-                    <Plug className="h-3.5 w-3.5 mr-1.5" />
-                    Connect Canva
+                  <Button asChild size="sm" className="h-8 text-xs">
+                    <a href={canvaConnectHref} target="_blank" rel="noopener noreferrer" onClick={handleCanvaConnectClick}>
+                      {connectingCanva ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Plug className="h-3.5 w-3.5 mr-1.5" />}
+                      {connectingCanva ? 'Opening Canva…' : 'Connect Canva'}
+                    </a>
                   </Button>
+                  {connectingCanva && (
+                    <div className="text-xs text-muted-foreground" role="status" aria-live="polite">
+                      If Canva does not open, allow pop-ups for this preview and click again.
+                    </div>
+                  )}
+                  {canvaLaunchUrl && (
+                    <a
+                      href={canvaLaunchUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex text-xs font-medium text-primary hover:underline"
+                    >
+                      Open Canva connection manually
+                    </a>
+                  )}
                 </div>
               ) : filteredPickerTemplates.length === 0 ? (
                 <div className="text-center py-10 text-sm text-muted-foreground border border-dashed border-border rounded-lg">
