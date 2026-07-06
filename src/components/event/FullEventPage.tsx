@@ -551,7 +551,7 @@ export const FullEventPage = ({
               className={cn(
                 'scroll-mt-24',
                 isHidden && isAdmin && 'opacity-50 relative',
-                !isHeroSection && 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'
+                !isHeroSection && 'max-w-[1800px] mx-auto px-6 sm:px-10 lg:px-16 xl:px-20'
               )}
             >
               {isHidden && isAdmin && (
@@ -561,7 +561,7 @@ export const FullEventPage = ({
               )}
               {content}
             </div>
-            {!isLast && <Separator className="my-8 sm:my-12 max-w-7xl mx-auto" />}
+            {!isLast && <Separator className="my-12 sm:my-16 max-w-[1800px] mx-auto" />}
           </div>
         );
       })}
