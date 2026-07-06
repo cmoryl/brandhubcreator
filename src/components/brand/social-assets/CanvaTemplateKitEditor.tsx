@@ -87,6 +87,7 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
   const [pickerQuery, setPickerQuery] = useState('');
   const [syncing, setSyncing] = useState(false);
   const [connectingCanva, setConnectingCanva] = useState(false);
+  const [canvaLaunchUrl, setCanvaLaunchUrl] = useState<string | null>(null);
 
   const items = kit[activePlatform] || [];
 
@@ -237,6 +238,7 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
       return;
     }
     setConnectingCanva(true);
+    setCanvaLaunchUrl(href);
 
     try {
       window.sessionStorage.setItem('canvaConnectReturnPath', buildReturnPath());
@@ -525,6 +527,16 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
                     <div className="text-xs text-muted-foreground" role="status" aria-live="polite">
                       If Canva does not open, allow pop-ups for this preview and click again.
                     </div>
+                  )}
+                  {canvaLaunchUrl && (
+                    <a
+                      href={canvaLaunchUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex text-xs font-medium text-primary hover:underline"
+                    >
+                      Open Canva connection manually
+                    </a>
                   )}
                 </div>
               ) : filteredPickerTemplates.length === 0 ? (
