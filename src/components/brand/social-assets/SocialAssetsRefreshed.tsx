@@ -36,13 +36,15 @@ import {
   ImageIcon,
   Shield,
 } from 'lucide-react';
-import { BrandSocialAssetSpec, SocialAssetTemplate, BrandLogo } from '@/types/brand';
+import { BrandSocialAssetSpec, SocialAssetTemplate, BrandLogo, CanvaTemplateKit, CanvaTemplateKitItem } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LazyImage } from '@/components/ui/lazy-image';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { CanvaTemplateKitEditor } from './CanvaTemplateKitEditor';
+import { Settings2 } from 'lucide-react';
 
 interface Props {
   socialAssets: BrandSocialAssetSpec[];
@@ -51,6 +53,9 @@ interface Props {
   brandLogos?: BrandLogo[];
   brandSlug?: string;
   entityName?: string;
+  canvaTemplateKit?: CanvaTemplateKit;
+  onCanvaTemplateKitChange?: (next: CanvaTemplateKit) => void;
+  isAdmin?: boolean;
 }
 
 const PLATFORM_ORDER = ['LinkedIn', 'Instagram', 'X', 'YouTube', 'Facebook', 'TikTok'] as const;
