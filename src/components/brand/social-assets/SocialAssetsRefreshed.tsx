@@ -11,7 +11,7 @@
  * templates and where to open them.
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Linkedin, Instagram, Facebook, Twitter, Youtube, Monitor, ExternalLink, Settings2, Sparkles, LayoutGrid, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -157,6 +157,7 @@ export const SocialAssetsRefreshed = ({
 }: Props) => {
   const [editorOpen, setEditorOpen] = useState(false);
   const [editorFocus, setEditorFocus] = useState<{ platform: Platform; itemId: string } | null>(null);
+  const [autoOpenCanvaPicker, setAutoOpenCanvaPicker] = useState(false);
   const brandLogo = brandLogos?.[0];
 
   const openEditorFor = (platform: Platform, itemId: string) => {
@@ -180,6 +181,18 @@ export const SocialAssetsRefreshed = ({
   );
 
   const hasAny = totalTemplates > 0;
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const canvaStatus = params.get('canva');
+    const shouldOpenCanvaKit = params.get('canvaKit') === '1' || !!canvaStatus;
+
+    if (!shouldOpenCanvaKit) return;
+
+    setEditorFocus(null);
+    setAutoOpenCanvaPicker(true);
+    setEditorOpen(true);
+  }, []);
 
   return (
     <section className="space-y-6">
@@ -269,9 +282,10 @@ export const SocialAssetsRefreshed = ({
         <CanvaTemplateKitEditor
           value={canvaTemplateKit}
           onChange={onCanvaTemplateKitChange}
-          onClose={() => { setEditorOpen(false); setEditorFocus(null); }}
+          onClose={() => { setEditorOpen(false); setEditorFocus(null); setAutoOpenCanvaPicker(false); }}
           initialPlatform={editorFocus?.platform}
           focusItemId={editorFocus?.itemId}
+          autoOpenPicker={autoOpenCanvaPicker}
         />
       )}
     </section>

@@ -10,9 +10,29 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '
 
 const PUBLIC_APP_ORIGIN = Deno.env.get('PUBLIC_APP_ORIGIN') ?? 'https://brandhubcreator.lovable.app';
 
-function redirectResponse(returnTo: string, params: Record<string, string>) {
-  const base = returnTo.startsWith('http') ? returnTo : `${PUBLIC_APP_ORIGIN}${returnTo}`;
-  const dest = new URL(base);
+function normalizeOrigin(value: string | null | undefined): string {
+  if (!value) return PUBLIC_APP_ORIGIN;
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? parsed.origin : PUBLIC_APP_ORIGIN;
+  } catch {
+    return PUBLIC_APP_ORIGIN;
+  }
+}
+
+function normalizeReturnPath(returnTo: string): string {
+  if (!returnTo) return '/';
+  if (returnTo.startsWith('/')) return returnTo;
+  try {
+    const parsed = new URL(returnTo);
+    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+  } catch {
+    return '/';
+  }
+}
+
+function redirectResponse(returnTo: string, params: Record<string, string>, appOrigin?: string) {
+  const dest = new URL(normalizeReturnPath(returnTo), normalizeOrigin(appOrigin));
   for (const [k, v] of Object.entries(params)) dest.searchParams.set(k, v);
   return Response.redirect(dest.toString(), 302);
 }
@@ -28,6 +48,7 @@ Deno.serve(async (req) => {
     const error = url.searchParams.get('error');
 
     let returnTo = '/';
+    let appOrigin = PUBLIC_APP_ORIGIN;
     let codeVerifier = '';
     // Legacy panel flow may still pass creds in state; prefer stored env vars.
     let clientId = Deno.env.get('CANVA_CLIENT_ID') || '';
@@ -36,16 +57,17 @@ Deno.serve(async (req) => {
       if (state) {
         const decoded = JSON.parse(atob(state));
         if (decoded?.returnTo) returnTo = String(decoded.returnTo);
+        if (decoded?.appOrigin) appOrigin = normalizeOrigin(String(decoded.appOrigin));
         if (!clientId && decoded?.cid) clientId = String(decoded.cid);
         if (!clientSecret && decoded?.csec) clientSecret = String(decoded.csec);
         if (decoded?.cv) codeVerifier = String(decoded.cv);
       }
     } catch {/* ignore bad state */}
 
-    if (error) return redirectResponse(returnTo, { canva: 'error', reason: error });
-    if (!code) return redirectResponse(returnTo, { canva: 'error', reason: 'missing_code' });
+    if (error) return redirectResponse(returnTo, { canva: 'error', reason: error }, appOrigin);
+    if (!code) return redirectResponse(returnTo, { canva: 'error', reason: 'missing_code' }, appOrigin);
     if (!clientId || !clientSecret) {
-      return redirectResponse(returnTo, { canva: 'error', reason: 'missing_credentials' });
+      return redirectResponse(returnTo, { canva: 'error', reason: 'missing_credentials' }, appOrigin);
     }
 
 
@@ -75,7 +97,7 @@ Deno.serve(async (req) => {
         canva: 'error',
         reason: 'token_exchange_failed',
         detail: `${tokenRes.status}: ${tokenText.slice(0, 200)}`,
-      });
+      }, appOrigin);
     }
     const token = JSON.parse(tokenText);
 
@@ -98,10 +120,10 @@ Deno.serve(async (req) => {
 
     if (upsertErr) {
       console.error('Token upsert failed', upsertErr);
-      return redirectResponse(returnTo, { canva: 'error', reason: 'save_failed', detail: upsertErr.message });
+      return redirectResponse(returnTo, { canva: 'error', reason: 'save_failed', detail: upsertErr.message }, appOrigin);
     }
 
-    return redirectResponse(returnTo, { canva: 'connected' });
+    return redirectResponse(returnTo, { canva: 'connected' }, appOrigin);
   } catch (e) {
     console.error('canva-oauth-callback error', e);
     return redirectResponse('/', { canva: 'error', reason: 'unexpected', detail: (e as Error).message });
