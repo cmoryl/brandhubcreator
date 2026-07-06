@@ -298,15 +298,6 @@ export const ImageAssetsSection = ({
         </div>
       )}
 
-      {/* Notice about migrated/removed assets */}
-      {removedCount > 0 && canEdit && (
-        <div className="flex items-center gap-3 p-3 rounded-lg border border-destructive/30 bg-destructive/5 text-sm">
-          <Upload className="h-4 w-4 text-destructive shrink-0" />
-          <p className="text-muted-foreground">
-            <span className="font-medium text-foreground">{removedCount} image{removedCount !== 1 ? 's' : ''}</span> migrated out of database storage — re-upload via the button above to restore.
-          </p>
-        </div>
-      )}
 
       {validAssets.length > 0 ? (
         <div className={gridClass}>
