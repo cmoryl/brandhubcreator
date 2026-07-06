@@ -4,6 +4,27 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, MapPin, Users, ExternalLink, Globe, Building2 } from 'lucide-react';
 import { WorldMapVisualization } from './WorldMapVisualization';
+import { useEvents } from '@/contexts/EventContext';
+
+/** Pick the stacked, full-color logo variant for a sub-event card. */
+const getStackedColorLogo = (eventLogos: any[] | undefined): string | null => {
+  if (!Array.isArray(eventLogos) || eventLogos.length === 0) return null;
+  const isStackedName = (n?: string) => !!n && /stacked/i.test(n);
+  const isColorish = (v?: string) => v === 'color' || v === 'stacked';
+  // Prefer explicit stacked + color combos
+  const preferred = eventLogos.find(
+    (l) => isStackedName(l?.name) && isColorish(l?.variant) && !/white/i.test(l?.name || '')
+  );
+  if (preferred?.url) return preferred.url;
+  // GlobalLink-style: variant === 'stacked', prefer Dblue over Lblue, avoid White
+  const stackedVariant = eventLogos.find(
+    (l) => l?.variant === 'stacked' && /dblue/i.test(l?.name || '')
+  ) || eventLogos.find((l) => l?.variant === 'stacked' && !/white/i.test(l?.name || ''));
+  if (stackedVariant?.url) return stackedVariant.url;
+  // Fallback: any stacked-named entry
+  const anyStacked = eventLogos.find((l) => isStackedName(l?.name) && !/white/i.test(l?.name || ''));
+  return anyStacked?.url || null;
+};
 
 export interface LinkedEventGuide {
   id: string;
@@ -70,10 +91,21 @@ export const SubEventsSection = ({
   customSubtitle,
   onSubtitleChange,
 }: SubEventsSectionProps) => {
+  const { getEventBySlug } = useEvents();
   const eventGuides = useMemo(
     () => linkedGuides.filter((g) => g.type === 'event'),
     [linkedGuides]
   );
+
+  // Look up stacked color logo per sub-event by slug
+  const stackedLogos = useMemo(() => {
+    const map: Record<string, string | null> = {};
+    for (const g of eventGuides) {
+      const ev: any = g.slug ? getEventBySlug(g.slug) : undefined;
+      map[g.id] = getStackedColorLogo(ev?.eventLogos || ev?.guide_data?.eventLogos);
+    }
+    return map;
+  }, [eventGuides, getEventBySlug]);
 
   // Transform linked guides to map locations
   const mapLocations = useMemo(() => {
@@ -164,7 +196,20 @@ export const SubEventsSection = ({
                     {getRegionIcon(event.region)}
                   </div>
                 )}
-                
+
+                {/* Stacked color logo overlay */}
+                {stackedLogos[event.id] && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="bg-white/85 backdrop-blur-sm rounded-lg px-4 py-3 shadow-md">
+                      <img
+                        src={stackedLogos[event.id]!}
+                        alt={`${event.name} logo`}
+                        className="max-h-20 max-w-[70%] mx-auto object-contain"
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {/* Region badge - prominent positioning */}
                 {event.region && (
                   <Badge
