@@ -156,7 +156,17 @@ export const SocialAssetsRefreshed = ({
   isAdmin = false,
 }: Props) => {
   const [editorOpen, setEditorOpen] = useState(false);
+  const [editorFocus, setEditorFocus] = useState<{ platform: Platform; itemId: string } | null>(null);
   const brandLogo = brandLogos?.[0];
+
+  const openEditorFor = (platform: Platform, itemId: string) => {
+    setEditorFocus({ platform, itemId });
+    setEditorOpen(true);
+  };
+  const openEditor = () => {
+    setEditorFocus(null);
+    setEditorOpen(true);
+  };
 
   // Only show platforms that actually have templates (or all if admin editing)
   const populatedPlatforms = useMemo(
