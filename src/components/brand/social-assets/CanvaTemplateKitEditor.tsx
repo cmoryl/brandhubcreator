@@ -221,7 +221,7 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
     const url = new URL(`${supabaseUrl}/functions/v1/canva-oauth-start`);
     url.searchParams.set('return_to', buildReturnPath());
     url.searchParams.set('app_origin', window.location.origin);
-    window.location.href = url;
+    window.location.href = url.toString();
   };
 
   const addFromCanva = (tpl: CanvaSyncedTemplate) => {

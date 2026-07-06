@@ -7,6 +7,18 @@ const SCOPES = [
   'design:meta:read',
 ].join(' ');
 
+const PUBLIC_APP_ORIGIN = Deno.env.get('PUBLIC_APP_ORIGIN') ?? 'https://brandhubcreator.lovable.app';
+
+function normalizeOrigin(value: string | null): string {
+  if (!value) return PUBLIC_APP_ORIGIN;
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? parsed.origin : PUBLIC_APP_ORIGIN;
+  } catch {
+    return PUBLIC_APP_ORIGIN;
+  }
+}
+
 function base64url(bytes: Uint8Array): string {
   let str = '';
   for (const b of bytes) str += String.fromCharCode(b);
@@ -29,14 +41,15 @@ Deno.serve(async (req) => {
 
   if (!clientId || !clientSecret) {
     return new Response(
-      'Canva credentials not configured. Ask an admin to set CANVA_CLIENT_ID and CANVA_CLIENT_SECRET.',
-      { status: 400, headers: { 'Content-Type': 'text/plain' } },
+      JSON.stringify({ error: 'Canva credentials not configured. Ask an admin to set CANVA_CLIENT_ID and CANVA_CLIENT_SECRET.' }),
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
   }
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
   const redirectUri = `${supabaseUrl}/functions/v1/canva-oauth-callback`;
   const returnTo = url.searchParams.get('return_to') ?? '/';
+  const appOrigin = normalizeOrigin(url.searchParams.get('app_origin'));
 
   // PKCE — Canva Connect requires code_challenge (S256)
   const verifierBytes = new Uint8Array(48);
@@ -47,6 +60,7 @@ Deno.serve(async (req) => {
   // Only carry non-secret info in state.
   const state = btoa(JSON.stringify({
     returnTo,
+    appOrigin,
     cv: codeVerifier,
     nonce: crypto.randomUUID(),
   }));
