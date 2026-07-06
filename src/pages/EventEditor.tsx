@@ -685,6 +685,9 @@ const EventEditor = () => {
             defaultTagline={event.tagline?.primary || event.hero?.tagline}
             defaultDate={event.eventDetails?.eventDates}
             defaultVenue={event.eventDetails?.location}
+            nextVariationCanvaLinks={(event as any).nextVariationCanvaLinks}
+            onNextVariationCanvaLinksChange={canEdit ? (nextVariationCanvaLinks) => updateEvent({ nextVariationCanvaLinks } as any) : undefined}
+            isAdmin={canEdit || false}
           />
         );
       case 'eventspeakers':
