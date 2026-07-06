@@ -436,6 +436,50 @@ function TemplateSurface({
         </div>
       )}
 
+      {/* -------------------- HERO SHOWCASE (uses uploaded orb/chevron bg) -------------------- */}
+      {layout === 'hero-showcase' && (
+        <div className="relative z-10 h-full w-full flex flex-col" style={{ padding: '1.8em' }}>
+          <div className="flex-1 flex flex-col justify-center" style={{ maxWidth: '75%' }}>
+            <h2
+              className="font-bold text-white"
+              style={{
+                fontSize: '1.75em',
+                lineHeight: 1.08,
+                letterSpacing: '-0.02em',
+              }}
+            >
+              {content.title}
+            </h2>
+            {(content.date || content.venue) && (
+              <div className="mt-4">
+                {content.date && (
+                  <div
+                    className="font-bold"
+                    style={{ color: accent, fontSize: '0.75em', letterSpacing: '0.18em' }}
+                  >
+                    {content.date.toUpperCase()}
+                  </div>
+                )}
+                {content.venue && (
+                  <div
+                    className="text-white/90 font-semibold mt-1"
+                    style={{ fontSize: '0.65em', letterSpacing: '0.14em' }}
+                  >
+                    {content.venue.toUpperCase()}
+                  </div>
+                )}
+              </div>
+            )}
+            <div className="mt-4">
+              <CTA />
+            </div>
+          </div>
+          <div className="absolute" style={{ right: '1.4em', bottom: '1.4em', maxWidth: '48%' }}>
+            <NextLockup label={verticalLabel} accent={accent} logoUrl={logoUrl} sizeEm={11} />
+          </div>
+        </div>
+      )}
+
       {/* -------------------- DEFAULT (used by main format previews) -------------------- */}
       {layout === 'default' && (
         <div
