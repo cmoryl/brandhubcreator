@@ -68,6 +68,7 @@ const ProductEditor = lazyWithRetry(() => import("./pages/ProductEditor"));
 const OrganizationPortal = lazyWithRetry(() => import("./pages/OrganizationPortal"));
 const AuthPage = lazyWithRetry(() => import("./pages/AuthPage"));
 const OAuthConsent = lazyWithRetry(() => import("./pages/OAuthConsent"));
+const ConnectPage = lazyWithRetry(() => import("./pages/ConnectPage"));
 const PendingApprovalPage = lazyWithRetry(() => import("./pages/PendingApprovalPage"));
 const KnowledgeBase = lazyWithRetry(() => import("./pages/KnowledgeBase"));
 const GettingStarted = lazyWithRetry(() => import("./pages/GettingStarted"));
@@ -202,6 +203,14 @@ const App = () => (
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <OAuthConsent />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="connect"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <ConnectPage />
                         </Suspense>
                       }
                     />
