@@ -55,6 +55,7 @@ import { TypographySection } from '@/components/brand/TypographySection';
 import { ImagerySection } from '@/components/brand/ImagerySection';
 import { SocialSection } from '@/components/brand/SocialSection';
 import { SocialAssetsSection } from '@/components/brand/SocialAssetsSection';
+import { NextTemplatesSection } from '@/components/event/NextTemplatesSection';
 import { AssetsSection } from '@/components/brand/AssetsSection';
 import { MisuseSection } from '@/components/brand/MisuseSection';
 import { DigitalCollateralSection } from '@/components/brand/DigitalCollateralSection';
