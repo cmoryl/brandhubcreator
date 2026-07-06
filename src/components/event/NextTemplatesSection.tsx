@@ -18,17 +18,23 @@ import { Download, Sparkles, LayoutGrid } from 'lucide-react';
 import { toast } from 'sonner';
 import type { BrandLogo } from '@/types/brand';
 
-/** Pick the best logo for a dark navy backdrop — prefer reversed/white/mono, then anything. */
-function pickLogoForDark(logos?: BrandLogo[]): BrandLogo | undefined {
+/** Pick the best logo for a dark navy backdrop — prefer reversed/white/mono, then anything.
+ *  When `preferStacked` is true, boosts stacked/vertical lockups and de-prioritizes horizontal. */
+function pickLogoForDark(logos?: BrandLogo[], preferStacked = false): BrandLogo | undefined {
   if (!logos?.length) return undefined;
   const score = (l: BrandLogo) => {
     const v = (l.variant || '').toLowerCase();
     const n = (l.name || '').toLowerCase();
     const t = `${v} ${n}`;
-    if (t.includes('reversed') || t.includes('white') || t.includes('on-dark') || t.includes('on dark')) return 3;
-    if (t.includes('monochrome') || t.includes('mono')) return 2;
-    if (t.includes('primary') || t.includes('main') || t.includes('color')) return 1;
-    return 0;
+    let s = 0;
+    if (t.includes('reversed') || t.includes('white') || t.includes('on-dark') || t.includes('on dark')) s += 3;
+    else if (t.includes('monochrome') || t.includes('mono')) s += 2;
+    else if (t.includes('primary') || t.includes('main') || t.includes('color')) s += 1;
+    if (preferStacked) {
+      if (t.includes('stacked') || t.includes('vertical')) s += 5;
+      if (t.includes('horizontal') || t.includes('inline') || t.includes('wordmark')) s -= 2;
+    }
+    return s;
   };
   return [...logos].sort((a, b) => score(b) - score(a))[0];
 }
@@ -365,6 +371,7 @@ export function NextTemplatesSection({
   logos,
 }: NextTemplatesSectionProps) {
   const logoUrl = useMemo(() => pickLogoForDark(logos)?.url, [logos]);
+  const stackedLogoUrl = useMemo(() => pickLogoForDark(logos, true)?.url, [logos]);
   const slugKey = (eventSlug || '').toLowerCase();
   const preset = NEXT_ACCENTS[slugKey];
   const accent = preset?.accent || defaultAccent || '#13B1F3';
@@ -534,7 +541,7 @@ export function NextTemplatesSection({
                       content={variantContent}
                       accent={vPreset.accent}
                       verticalLabel={vPreset.label}
-                      logoUrl={logoUrl}
+                      logoUrl={stackedLogoUrl || logoUrl}
                     />
                   </div>
                   {/* Character / orb graphic — accent-tinted, subtle */}
