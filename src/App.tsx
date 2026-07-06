@@ -198,6 +198,14 @@ const App = () => (
                       }
                     />
                     <Route
+                      path=".lovable/oauth/consent"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <OAuthConsent />
+                        </Suspense>
+                      }
+                    />
+                    <Route
                       path="pending-approval"
                       element={
                         <Suspense fallback={<PageSkeleton />}>
