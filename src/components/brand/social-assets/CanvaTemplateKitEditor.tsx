@@ -13,12 +13,25 @@
  */
 
 import { useState } from 'react';
-import { Plus, Trash2, ExternalLink, X, Save } from 'lucide-react';
+import { Plus, Trash2, ExternalLink, X, Save, Wand2, LayoutGrid, Loader2, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import type { CanvaTemplateKit, CanvaTemplateKitItem } from '@/types/brand';
+
+interface CanvaSyncedTemplate {
+  canva_id: string;
+  title: string | null;
+  design_type: string | null;
+  thumbnail_url: string | null;
+  view_url: string | null;
+  edit_url: string | null;
+  width: number | null;
+  height: number | null;
+  tags: string[] | null;
+}
 
 const PLATFORM_ORDER = ['LinkedIn', 'Instagram', 'X', 'YouTube', 'Facebook', 'TikTok'] as const;
 type Platform = typeof PLATFORM_ORDER[number];
