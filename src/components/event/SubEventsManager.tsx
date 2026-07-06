@@ -106,7 +106,23 @@ interface SortableEventCardProps {
   onEdit: () => void;
 }
 
+const getStackedColorLogo = (eventLogos: any[] | undefined): string | null => {
+  if (!Array.isArray(eventLogos) || eventLogos.length === 0) return null;
+  const isStackedName = (n?: string) => !!n && /stacked/i.test(n);
+  const preferred = eventLogos.find(
+    (l) => isStackedName(l?.name) && (l?.variant === 'color' || l?.variant === 'stacked') && !/white/i.test(l?.name || '')
+  );
+  if (preferred?.url) return preferred.url;
+  const stackedVariant =
+    eventLogos.find((l) => l?.variant === 'stacked' && /dblue/i.test(l?.name || '')) ||
+    eventLogos.find((l) => l?.variant === 'stacked' && !/white/i.test(l?.name || ''));
+  if (stackedVariant?.url) return stackedVariant.url;
+  const anyStacked = eventLogos.find((l) => isStackedName(l?.name) && !/white/i.test(l?.name || ''));
+  return anyStacked?.url || null;
+};
+
 const SortableEventCard = ({ event, onUnlink, onEdit }: SortableEventCardProps) => {
+  const { getEventBySlug } = useEvents();
   const {
     attributes,
     listeners,
@@ -123,6 +139,8 @@ const SortableEventCard = ({ event, onUnlink, onEdit }: SortableEventCardProps) 
   };
 
   const regionPreset = REGION_PRESETS.find(r => r.id === event.region?.toUpperCase());
+  const linkedEv: any = event.slug ? getEventBySlug(event.slug) : undefined;
+  const stackedLogo = getStackedColorLogo(linkedEv?.eventLogos || linkedEv?.guide_data?.eventLogos);
 
   return (
     <Card
@@ -147,6 +165,19 @@ const SortableEventCard = ({ event, onUnlink, onEdit }: SortableEventCardProps) 
             style={{ backgroundColor: `${event.accentColor || 'hsl(var(--primary))'}20` }}
           >
             <Calendar className="h-8 w-8 text-muted-foreground/50" />
+          </div>
+        )}
+
+        {/* Stacked color logo overlay */}
+        {stackedLogo && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none p-2">
+            <div className="bg-white/85 backdrop-blur-sm rounded-md px-3 py-2 shadow-sm">
+              <img
+                src={stackedLogo}
+                alt={`${event.name} logo`}
+                className="max-h-16 max-w-[160px] object-contain"
+              />
+            </div>
           </div>
         )}
         
