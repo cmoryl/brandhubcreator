@@ -49,6 +49,7 @@ import { LayoutTemplatesSection } from '@/components/brand/LayoutTemplatesSectio
 import { resolveBrandVisuals } from '@/lib/deriveBrandVisuals';
 import { SocialSection } from '@/components/brand/SocialSection';
 import { SocialAssetsSection } from '@/components/brand/SocialAssetsSection';
+import { SocialAssetsRefreshed } from '@/components/brand/social-assets/SocialAssetsRefreshed';
 import { WebsiteSection } from '@/components/brand/WebsiteSection';
 import { SignaturesSection } from '@/components/brand/SignaturesSection';
 import { QRSection } from '@/components/brand/QRSection';
@@ -786,16 +787,32 @@ const BrandEditor = () => {
         />
       );
       case 'social': return <SocialSection social={brand.social} onSocialChange={editHandler((social) => updateBrand({ social }))} entityId={brand.id} entityType="brand" organizationId={brand.organizationId} entityName={brand.hero?.name} />;
-      case 'socialassets': return (
-        <SocialAssetsSection
-          socialAssets={brand.socialAssets || []}
-          onSocialAssetsChange={editHandler((socialAssets) => updateBrand({ socialAssets }))}
-          entityId={brand.id}
-          entityType="brand"
-          brandLogos={brand.logos}
-          brandSlug={brand.slug}
-        />
-      );
+      case 'socialassets': {
+        const isNextPilot = brand.slug === 'transperfect-next' || (brand.slug || '').endsWith('-next');
+        if (isNextPilot) {
+          return (
+            <SocialAssetsRefreshed
+              socialAssets={brand.socialAssets || []}
+              brandLogos={brand.logos}
+              brandSlug={brand.slug}
+              entityName={brand.hero?.name}
+              canvaTemplateKit={(brand as any).canvaTemplateKit}
+              onCanvaTemplateKitChange={canEdit ? (canvaTemplateKit) => updateBrand({ canvaTemplateKit } as any) : undefined}
+              isAdmin={isGuideAdmin || canEdit}
+            />
+          );
+        }
+        return (
+          <SocialAssetsSection
+            socialAssets={brand.socialAssets || []}
+            onSocialAssetsChange={editHandler((socialAssets) => updateBrand({ socialAssets }))}
+            entityId={brand.id}
+            entityType="brand"
+            brandLogos={brand.logos}
+            brandSlug={brand.slug}
+          />
+        );
+      }
       case 'website': return <WebsiteSection websites={brand.websites} onWebsitesChange={editHandler((websites) => updateBrand({ websites }))} entityType="brand" entityId={brand.id} brandSlug={brand.slug} />;
       case 'signatures': return <SignaturesSection signatures={brand.signatures} onSignaturesChange={editHandler((signatures) => updateBrand({ signatures }))} emailBanners={brand.emailBanners || []} onEmailBannersChange={editHandler((emailBanners) => updateBrand({ emailBanners }))} brandSlug={brand.slug} />;
       case 'qr': return <QRSection qr={brand.qr} onQRChange={editHandler((qr) => updateBrand({ qr }))} entityType="brand" entityId={brand.id} logos={brand.logos} brandSlug={brand.slug} />;
