@@ -258,83 +258,75 @@ function NextLockup({
   );
 }
 
-/** One rendered template surface. All layouts share this shell. */
+/** One rendered template surface. All layouts share this shell.
+ *  `layout='centered-hero'` drops the left chevron rays and stacks a large
+ *  logo lockup above the copy, both center-aligned. */
 function TemplateSurface({
   format,
   content,
   accent,
   verticalLabel,
   logoUrl,
+  layout = 'default',
 }: {
   format: Format;
   content: { title: string; body: string; cta: string; date: string; venue: string };
   accent: string;
   verticalLabel: string;
   logoUrl?: string;
+  layout?: 'default' | 'centered-hero';
 }) {
   const isStory = format.id === 'story';
   const isTile = format.id === 'tile';
   const isBanner = format.id === 'banner' || format.id === 'hero';
+  const isCentered = layout === 'centered-hero';
 
-  // Scale everything relative to the surface's own em (set by parent inline font-size).
+  // CTA gradient: default uses pink → accent; centered-hero uses accent tones only.
+  const ctaBackground = isCentered
+    ? `linear-gradient(135deg, ${accent} 0%, ${accent}CC 100%)`
+    : PINK_CTA;
+
   return (
     <div
       className="relative h-full w-full overflow-hidden"
       style={{ backgroundColor: NAVY }}
     >
-      <ChevronBackdrop accent={accent} />
+      <ChevronBackdrop accent={accent} hideRays={isCentered} />
 
-      <div
-        className={`relative z-10 h-full w-full ${
-          isBanner ? 'flex items-center' : isTile ? 'flex flex-col justify-between' : 'flex flex-col justify-between'
-        }`}
-        style={{ padding: isStory ? '2em' : '1.6em' }}
-      >
-        {/* Lockup */}
-        <div className={isBanner ? 'flex-shrink-0' : ''} style={{ maxWidth: isBanner ? '38%' : '100%' }}>
-          <NextLockup label={verticalLabel} accent={accent} logoUrl={logoUrl} />
-          {(isStory || isTile) && (
-            <div className="mt-3 text-white/60 text-[0.55em] tracking-[0.3em]">
-              {content.date}
-            </div>
-          )}
-        </div>
-
-        {/* Copy block */}
+      {isCentered ? (
         <div
-          className={isBanner ? 'flex-1' : ''}
-          style={{
-            marginLeft: isBanner ? '2em' : 0,
-            marginTop: isBanner ? 0 : '1.2em',
-          }}
+          className="relative z-10 h-full w-full flex flex-col items-center justify-center text-center"
+          style={{ padding: '1.6em', gap: '0.9em' }}
         >
+          {/* Large logo above the headline */}
+          <div style={{ width: '100%', maxWidth: '70%' }}>
+            <NextLockup label={verticalLabel} accent={accent} logoUrl={logoUrl} sizeEm={5.6} centered />
+          </div>
+
           <h2
             className="font-bold"
             style={{
               color: accent,
-              fontSize: isStory ? '2em' : isBanner ? '1.6em' : '1.7em',
+              fontSize: '1.6em',
               lineHeight: 1.05,
               letterSpacing: '-0.02em',
+              maxWidth: '22em',
             }}
           >
             {content.title}
           </h2>
           <p
-            className="text-white/90 mt-3"
-            style={{
-              fontSize: isStory ? '0.95em' : '0.8em',
-              lineHeight: 1.35,
-              maxWidth: '22em',
-            }}
+            className="text-white/90"
+            style={{ fontSize: '0.8em', lineHeight: 1.35, maxWidth: '22em' }}
           >
             {content.body}
           </p>
 
-          {(isBanner || isStory) && content.cta && (
+          {content.cta && (
             <div
-              className="inline-flex items-center gap-2 mt-4 rounded-full text-white font-semibold"
+              className="inline-flex items-center gap-2 rounded-full text-white font-semibold"
               style={{
-                background: PINK_CTA,
+                background: ctaBackground,
                 padding: '0.55em 1.4em',
                 fontSize: '0.7em',
                 letterSpacing: '0.08em',
@@ -350,14 +342,79 @@ function TemplateSurface({
             </div>
           )}
         </div>
-
-        {/* Bottom meta */}
-        {!isBanner && (
-          <div className="text-white/70 text-[0.55em] tracking-[0.25em]">
-            {content.venue}
+      ) : (
+        <div
+          className={`relative z-10 h-full w-full ${
+            isBanner ? 'flex items-center' : 'flex flex-col justify-between'
+          }`}
+          style={{ padding: isStory ? '2em' : '1.6em' }}
+        >
+          <div className={isBanner ? 'flex-shrink-0' : ''} style={{ maxWidth: isBanner ? '38%' : '100%' }}>
+            <NextLockup label={verticalLabel} accent={accent} logoUrl={logoUrl} />
+            {(isStory || isTile) && (
+              <div className="mt-3 text-white/60 text-[0.55em] tracking-[0.3em]">
+                {content.date}
+              </div>
+            )}
           </div>
-        )}
-      </div>
+
+          <div
+            className={isBanner ? 'flex-1' : ''}
+            style={{
+              marginLeft: isBanner ? '2em' : 0,
+              marginTop: isBanner ? 0 : '1.2em',
+            }}
+          >
+            <h2
+              className="font-bold"
+              style={{
+                color: accent,
+                fontSize: isStory ? '2em' : isBanner ? '1.6em' : '1.7em',
+                lineHeight: 1.05,
+                letterSpacing: '-0.02em',
+              }}
+            >
+              {content.title}
+            </h2>
+            <p
+              className="text-white/90 mt-3"
+              style={{
+                fontSize: isStory ? '0.95em' : '0.8em',
+                lineHeight: 1.35,
+                maxWidth: '22em',
+              }}
+            >
+              {content.body}
+            </p>
+
+            {(isBanner || isStory) && content.cta && (
+              <div
+                className="inline-flex items-center gap-2 mt-4 rounded-full text-white font-semibold"
+                style={{
+                  background: ctaBackground,
+                  padding: '0.55em 1.4em',
+                  fontSize: '0.7em',
+                  letterSpacing: '0.08em',
+                }}
+              >
+                {content.cta.toUpperCase()}
+                <span
+                  className="inline-flex items-center justify-center rounded-full bg-white/20"
+                  style={{ width: '1.6em', height: '1.6em' }}
+                >
+                  →
+                </span>
+              </div>
+            )}
+          </div>
+
+          {!isBanner && (
+            <div className="text-white/70 text-[0.55em] tracking-[0.25em]">
+              {content.venue}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
