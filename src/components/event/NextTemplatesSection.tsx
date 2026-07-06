@@ -256,9 +256,9 @@ function NextLockup({
   );
 }
 
-/** One rendered template surface. All layouts share this shell.
- *  `layout='centered-hero'` drops the left chevron rays and stacks a large
- *  logo lockup above the copy, both center-aligned. */
+type SurfaceLayout = 'default' | 'centered-hero' | 'left-stack' | 'bottom-band' | 'bold-frame';
+
+/** One rendered template surface. All layouts share this shell. */
 function TemplateSurface({
   format,
   content,
@@ -272,75 +272,158 @@ function TemplateSurface({
   accent: string;
   verticalLabel: string;
   logoUrl?: string;
-  layout?: 'default' | 'centered-hero';
+  layout?: SurfaceLayout;
 }) {
   const isStory = format.id === 'story';
   const isTile = format.id === 'tile';
   const isBanner = format.id === 'banner' || format.id === 'hero';
-  const isCentered = layout === 'centered-hero';
 
-  // CTA gradient: default uses pink → accent; centered-hero uses accent tones only.
-  const ctaBackground = isCentered
-    ? `linear-gradient(135deg, ${accent} 0%, ${accent}CC 100%)`
-    : PINK_CTA;
+  // Every non-default layout uses an accent-only CTA (per sub-brand accent theming).
+  const ctaBackground =
+    layout === 'default'
+      ? PINK_CTA
+      : `linear-gradient(135deg, ${accent} 0%, ${accent}CC 100%)`;
+
+  const CTA = () =>
+    content.cta ? (
+      <div
+        className="inline-flex items-center gap-2 rounded-full text-white font-semibold"
+        style={{
+          background: ctaBackground,
+          padding: '0.55em 1.4em',
+          fontSize: '0.7em',
+          letterSpacing: '0.08em',
+        }}
+      >
+        {content.cta.toUpperCase()}
+        <span
+          className="inline-flex items-center justify-center rounded-full bg-white/20"
+          style={{ width: '1.6em', height: '1.6em' }}
+        >
+          →
+        </span>
+      </div>
+    ) : null;
 
   return (
-    <div
-      className="relative h-full w-full overflow-hidden"
-      style={{ backgroundColor: NAVY }}
-    >
-      <ChevronBackdrop accent={accent} hideRays={isCentered} />
+    <div className="relative h-full w-full overflow-hidden" style={{ backgroundColor: NAVY }}>
+      <ChevronBackdrop accent={accent} hideRays={layout !== 'default'} />
 
-      {isCentered ? (
+      {/* -------------------- CENTERED HERO -------------------- */}
+      {layout === 'centered-hero' && (
         <div
           className="relative z-10 h-full w-full flex flex-col items-center justify-center text-center"
           style={{ padding: '1.6em', gap: '0.9em' }}
         >
-          {/* Large logo above the headline */}
           <div style={{ width: '100%', maxWidth: '70%' }}>
             <NextLockup label={verticalLabel} accent={accent} logoUrl={logoUrl} sizeEm={5.6} centered />
           </div>
-
           <h2
             className="font-bold"
+            style={{ color: accent, fontSize: '1.6em', lineHeight: 1.05, letterSpacing: '-0.02em', maxWidth: '22em' }}
+          >
+            {content.title}
+          </h2>
+          <p className="text-white/90" style={{ fontSize: '0.8em', lineHeight: 1.35, maxWidth: '22em' }}>
+            {content.body}
+          </p>
+          <CTA />
+        </div>
+      )}
+
+      {/* -------------------- LEFT STACK -------------------- */}
+      {layout === 'left-stack' && (
+        <div className="relative z-10 h-full w-full grid grid-cols-2 gap-4" style={{ padding: '1.6em' }}>
+          <div className="flex flex-col justify-center">
+            <NextLockup label={verticalLabel} accent={accent} logoUrl={logoUrl} sizeEm={4.4} />
+          </div>
+          <div className="flex flex-col justify-center">
+            <h2
+              className="font-bold"
+              style={{ color: accent, fontSize: '1.5em', lineHeight: 1.05, letterSpacing: '-0.02em' }}
+            >
+              {content.title}
+            </h2>
+            <p className="text-white/90 mt-2" style={{ fontSize: '0.75em', lineHeight: 1.35 }}>
+              {content.body}
+            </p>
+            <div className="mt-3">
+              <CTA />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* -------------------- BOTTOM BAND -------------------- */}
+      {layout === 'bottom-band' && (
+        <div className="relative z-10 h-full w-full flex flex-col" style={{ padding: '1.6em' }}>
+          <div className="flex-1 flex items-start justify-center pt-4">
+            <NextLockup label={verticalLabel} accent={accent} logoUrl={logoUrl} sizeEm={5} centered />
+          </div>
+          <div
+            className="rounded-lg"
             style={{
-              color: accent,
-              fontSize: '1.6em',
-              lineHeight: 1.05,
-              letterSpacing: '-0.02em',
-              maxWidth: '22em',
+              background: `linear-gradient(135deg, ${accent}33 0%, ${accent}11 100%)`,
+              borderTop: `2px solid ${accent}`,
+              padding: '1em 1.2em',
+            }}
+          >
+            <h2
+              className="font-bold"
+              style={{ color: '#fff', fontSize: '1.3em', lineHeight: 1.1, letterSpacing: '-0.02em' }}
+            >
+              {content.title}
+            </h2>
+            <div className="flex items-center justify-between gap-3 mt-2">
+              <p className="text-white/85 flex-1" style={{ fontSize: '0.7em', lineHeight: 1.3 }}>
+                {content.body}
+              </p>
+              <CTA />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* -------------------- BOLD FRAME -------------------- */}
+      {layout === 'bold-frame' && (
+        <div
+          className="relative z-10 h-full w-full flex flex-col items-center justify-center text-center"
+          style={{
+            padding: '1.4em',
+            border: `3px solid ${accent}`,
+            margin: '0.6em',
+            borderRadius: '0.5em',
+            width: 'calc(100% - 1.2em)',
+            height: 'calc(100% - 1.2em)',
+          }}
+        >
+          <div style={{ maxWidth: '55%' }}>
+            <NextLockup label={verticalLabel} accent={accent} logoUrl={logoUrl} sizeEm={4} centered />
+          </div>
+          <h2
+            className="font-black mt-3"
+            style={{
+              color: '#fff',
+              fontSize: '2em',
+              lineHeight: 0.95,
+              letterSpacing: '-0.03em',
+              maxWidth: '18em',
+              textShadow: `0 2px 12px ${accent}66`,
             }}
           >
             {content.title}
           </h2>
-          <p
-            className="text-white/90"
-            style={{ fontSize: '0.8em', lineHeight: 1.35, maxWidth: '22em' }}
-          >
+          <p className="text-white/85 mt-2" style={{ fontSize: '0.72em', lineHeight: 1.3, maxWidth: '22em' }}>
             {content.body}
           </p>
-
-          {content.cta && (
-            <div
-              className="inline-flex items-center gap-2 rounded-full text-white font-semibold"
-              style={{
-                background: ctaBackground,
-                padding: '0.55em 1.4em',
-                fontSize: '0.7em',
-                letterSpacing: '0.08em',
-              }}
-            >
-              {content.cta.toUpperCase()}
-              <span
-                className="inline-flex items-center justify-center rounded-full bg-white/20"
-                style={{ width: '1.6em', height: '1.6em' }}
-              >
-                →
-              </span>
-            </div>
-          )}
+          <div className="mt-3">
+            <CTA />
+          </div>
         </div>
-      ) : (
+      )}
+
+      {/* -------------------- DEFAULT (used by main format previews) -------------------- */}
+      {layout === 'default' && (
         <div
           className={`relative z-10 h-full w-full ${
             isBanner ? 'flex items-center' : 'flex flex-col justify-between'
@@ -350,18 +433,12 @@ function TemplateSurface({
           <div className={isBanner ? 'flex-shrink-0' : ''} style={{ maxWidth: isBanner ? '38%' : '100%' }}>
             <NextLockup label={verticalLabel} accent={accent} logoUrl={logoUrl} />
             {(isStory || isTile) && (
-              <div className="mt-3 text-white/60 text-[0.55em] tracking-[0.3em]">
-                {content.date}
-              </div>
+              <div className="mt-3 text-white/60 text-[0.55em] tracking-[0.3em]">{content.date}</div>
             )}
           </div>
-
           <div
             className={isBanner ? 'flex-1' : ''}
-            style={{
-              marginLeft: isBanner ? '2em' : 0,
-              marginTop: isBanner ? 0 : '1.2em',
-            }}
+            style={{ marginLeft: isBanner ? '2em' : 0, marginTop: isBanner ? 0 : '1.2em' }}
           >
             <h2
               className="font-bold"
@@ -376,40 +453,18 @@ function TemplateSurface({
             </h2>
             <p
               className="text-white/90 mt-3"
-              style={{
-                fontSize: isStory ? '0.95em' : '0.8em',
-                lineHeight: 1.35,
-                maxWidth: '22em',
-              }}
+              style={{ fontSize: isStory ? '0.95em' : '0.8em', lineHeight: 1.35, maxWidth: '22em' }}
             >
               {content.body}
             </p>
-
-            {(isBanner || isStory) && content.cta && (
-              <div
-                className="inline-flex items-center gap-2 mt-4 rounded-full text-white font-semibold"
-                style={{
-                  background: ctaBackground,
-                  padding: '0.55em 1.4em',
-                  fontSize: '0.7em',
-                  letterSpacing: '0.08em',
-                }}
-              >
-                {content.cta.toUpperCase()}
-                <span
-                  className="inline-flex items-center justify-center rounded-full bg-white/20"
-                  style={{ width: '1.6em', height: '1.6em' }}
-                >
-                  →
-                </span>
+            {(isBanner || isStory) && (
+              <div className="mt-4">
+                <CTA />
               </div>
             )}
           </div>
-
           {!isBanner && (
-            <div className="text-white/70 text-[0.55em] tracking-[0.25em]">
-              {content.venue}
-            </div>
+            <div className="text-white/70 text-[0.55em] tracking-[0.25em]">{content.venue}</div>
           )}
         </div>
       )}
