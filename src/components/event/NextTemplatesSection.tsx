@@ -130,6 +130,9 @@ interface NextTemplatesSectionProps {
   /** Per-variant Canva template URLs, keyed by NEXT vertical slug. */
   nextVariationCanvaLinks?: Record<string, string>;
   onNextVariationCanvaLinksChange?: (next: Record<string, string>) => void;
+  /** Per-variant reversed/white logo image URLs, keyed by NEXT vertical slug. */
+  nextVariationLogos?: Record<string, string>;
+  onNextVariationLogosChange?: (next: Record<string, string>) => void;
   isAdmin?: boolean;
   /** Approved brand/event logos — the section prefers a reversed/white variant for the dark backdrop. */
   logos?: BrandLogo[];
