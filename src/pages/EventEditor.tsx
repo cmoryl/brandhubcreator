@@ -659,6 +659,17 @@ const EventEditor = () => {
             brandLogos={event.logos}
           />
         );
+      case 'nexttemplates':
+        return (
+          <NextTemplatesSection
+            eventSlug={(event as any).slug}
+            eventName={event.hero?.name}
+            defaultAccent={event.colors?.primary}
+            defaultTagline={event.tagline?.text || event.hero?.tagline}
+            defaultDate={event.eventDetails?.eventDates}
+            defaultVenue={event.eventDetails?.location}
+          />
+        );
       case 'eventspeakers':
         return (
           <EventSpeakersSection
