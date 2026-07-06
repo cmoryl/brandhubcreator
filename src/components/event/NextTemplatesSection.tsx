@@ -259,7 +259,7 @@ function NextLockup({
   );
 }
 
-type SurfaceLayout = 'default' | 'centered-hero' | 'left-stack' | 'bottom-band' | 'bold-frame';
+type SurfaceLayout = 'default' | 'centered-hero' | 'left-stack' | 'bottom-band' | 'bold-frame' | 'hero-showcase';
 
 /** One rendered template surface. All layouts share this shell. */
 function TemplateSurface({
