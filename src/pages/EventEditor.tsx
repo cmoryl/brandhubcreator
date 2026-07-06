@@ -55,6 +55,7 @@ import { TypographySection } from '@/components/brand/TypographySection';
 import { ImagerySection } from '@/components/brand/ImagerySection';
 import { SocialSection } from '@/components/brand/SocialSection';
 import { SocialAssetsSection } from '@/components/brand/SocialAssetsSection';
+import { NextTemplatesSection } from '@/components/event/NextTemplatesSection';
 import { AssetsSection } from '@/components/brand/AssetsSection';
 import { MisuseSection } from '@/components/brand/MisuseSection';
 import { DigitalCollateralSection } from '@/components/brand/DigitalCollateralSection';
@@ -656,6 +657,17 @@ const EventEditor = () => {
             entityId={event.id}
             entityType="event"
             brandLogos={event.logos}
+          />
+        );
+      case 'nexttemplates':
+        return (
+          <NextTemplatesSection
+            eventSlug={(event as any).slug}
+            eventName={event.hero?.name}
+            defaultAccent={event.colors?.find(c => c.role === 'primary')?.hex || event.colors?.[0]?.hex}
+            defaultTagline={event.tagline?.primary || event.hero?.tagline}
+            defaultDate={event.eventDetails?.eventDates}
+            defaultVenue={event.eventDetails?.location}
           />
         );
       case 'eventspeakers':

@@ -74,4 +74,5 @@ export const eventSectionMeta: Record<EventSectionId, { label: string; icon: Rea
   approvedimagery: { label: 'Approved Imagery', icon: ImageIcon, category: 'Assets' },
   studios: { label: 'Our Studios', icon: Building2, category: 'Ecosystem' },
   canvaaudits: { label: 'Canva Audits', icon: FileText, category: 'Operations' },
+  nexttemplates: { label: 'NEXT Template Kit', icon: LayoutGrid, category: 'Communication' },
 };

@@ -340,8 +340,9 @@ export type EventSectionId =
   | 'eventpatterns'     // Event-specific patterns
   | 'partnerbooths'     // Partner booth catalog
   | 'sponsorlogos'      // Sponsor logos
-  | 'clientlogos'       // Client logos
-  | 'eventprint';       // Print collateral
+  | 'clientlogos'         // Client logos
+  | 'eventprint'          // Print collateral
+  | 'nexttemplates';      // NEXT-branded social/banner template kit
 
 // Default Event Section Order
 // Note: eventsponsors now includes sponsor logos - sponsorlogos section is not used in events
@@ -367,6 +368,7 @@ export const DEFAULT_EVENT_SECTION_ORDER: EventSectionId[] = [
   'imagery',
   'social',
   'socialassets',
+  'nexttemplates',
   'eventschedule',
   'eventspeakers',
   'eventsponsors',       // Unified sponsors section with logos
