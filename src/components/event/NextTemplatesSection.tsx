@@ -136,6 +136,9 @@ interface NextTemplatesSectionProps {
   /** Per-variant reversed/white logo image URLs, keyed by NEXT vertical slug. */
   nextVariationLogos?: Record<string, string>;
   onNextVariationLogosChange?: (next: Record<string, string>) => void;
+  /** Per-variant transparent-PNG overlay image URLs (character/product cutout), keyed by NEXT vertical slug. */
+  nextVariationOverlays?: Record<string, string>;
+  onNextVariationOverlaysChange?: (next: Record<string, string>) => void;
   isAdmin?: boolean;
   /** Approved brand/event logos — the section prefers a reversed/white variant for the dark backdrop. */
   logos?: BrandLogo[];
@@ -261,6 +264,33 @@ function NextLockup({
 
 type SurfaceLayout = 'default' | 'centered-hero' | 'left-stack' | 'bottom-band' | 'bold-frame' | 'hero-showcase';
 
+/** Orbit rings + accent dots — sits above the bg image so every surface has
+ *  the signature NEXT dot/circle motif regardless of the underlying layout. */
+function OrbitDots({ accent }: { accent: string }) {
+  return (
+    <svg
+      className="absolute inset-0 h-full w-full pointer-events-none"
+      viewBox="0 0 1200 800"
+      preserveAspectRatio="xMidYMid slice"
+      aria-hidden
+    >
+      <g opacity="0.55" stroke={accent} strokeWidth="1.2" fill="none">
+        <circle cx="1000" cy="400" r="260" />
+        <circle cx="1000" cy="400" r="340" />
+        <circle cx="1000" cy="400" r="420" />
+      </g>
+      <g opacity="0.9">
+        <circle cx="740" cy="400" r="4" fill="#fff" />
+        <circle cx="1000" cy="60"  r="3" fill={accent} />
+        <circle cx="1000" cy="740" r="3" fill={accent} />
+        <circle cx="1180" cy="220" r="3" fill="#fff" />
+        <circle cx="820"  cy="120" r="2.5" fill={accent} />
+        <circle cx="880"  cy="680" r="2.5" fill="#fff" />
+      </g>
+    </svg>
+  );
+}
+
 /** One rendered template surface. All layouts share this shell. */
 function TemplateSurface({
   format,
@@ -268,6 +298,7 @@ function TemplateSurface({
   accent,
   verticalLabel,
   logoUrl,
+  overlayImageUrl,
   layout = 'default',
 }: {
   format: Format;
@@ -275,6 +306,7 @@ function TemplateSurface({
   accent: string;
   verticalLabel: string;
   logoUrl?: string;
+  overlayImageUrl?: string;
   layout?: SurfaceLayout;
 }) {
   const isStory = format.id === 'story';
@@ -326,6 +358,33 @@ function TemplateSurface({
           mixBlendMode: 'screen',
         }}
       />
+
+      {/* Circles + dots motif — always on, tinted with the sub-brand accent. */}
+      <OrbitDots accent={accent} />
+
+      {/* Optional transparent-PNG overlay (character/product cutout) positioned
+       *  on the right third using the rule-of-thirds grid, with a soft left-side
+       *  fade so the composition remains balanced against the copy. Story/tile
+       *  formats keep the overlay a little smaller so headline text stays clear. */}
+      {overlayImageUrl && (
+        <div
+          aria-hidden
+          className="absolute inset-y-0 right-0 pointer-events-none"
+          style={{
+            width: isStory || isTile ? '55%' : '42%',
+            backgroundImage: `url(${overlayImageUrl})`,
+            backgroundSize: 'contain',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'right center',
+            WebkitMaskImage:
+              'linear-gradient(to left, rgba(0,0,0,1) 55%, rgba(0,0,0,0.85) 78%, rgba(0,0,0,0) 100%)',
+            maskImage:
+              'linear-gradient(to left, rgba(0,0,0,1) 55%, rgba(0,0,0,0.85) 78%, rgba(0,0,0,0) 100%)',
+          }}
+        />
+      )}
+
+
 
 
       {/* -------------------- CENTERED HERO -------------------- */}
@@ -546,6 +605,8 @@ export function NextTemplatesSection({
   onNextVariationCanvaLinksChange,
   nextVariationLogos,
   onNextVariationLogosChange,
+  nextVariationOverlays,
+  onNextVariationOverlaysChange,
   isAdmin = false,
   logos,
 }: NextTemplatesSectionProps) {
@@ -565,6 +626,7 @@ export function NextTemplatesSection({
   const [cta, setCta] = useState('Request an Invite');
   const [date, setDate] = useState(defaultDate || '24 & 25 SEPTEMBER, 2026');
   const [venue, setVenue] = useState(defaultVenue || 'QEII CENTRE WESTMINSTER · LONDON');
+  const [overlayImageUrl, setOverlayImageUrl] = useState<string>('');
 
   const content = useMemo(() => ({ title, body, cta, date, venue }), [title, body, cta, date, venue]);
 
@@ -637,6 +699,18 @@ export function NextTemplatesSection({
           <Label>Venue</Label>
           <Input value={venue} onChange={(e) => setVenue(e.target.value)} />
         </div>
+        <div className="md:col-span-2">
+          <Label>Transparent Overlay Image URL (optional — right-third, rule of thirds)</Label>
+          <Input
+            value={overlayImageUrl}
+            onChange={(e) => setOverlayImageUrl(e.target.value)}
+            placeholder="Paste transparent PNG URL (character, product, venue cutout)…"
+          />
+          <p className="text-[11px] text-muted-foreground mt-1">
+            Applies to all four main previews below. Each sub-brand variation can also
+            set its own overlay in the grid further down.
+          </p>
+        </div>
       </Card>
 
       {/* Template previews */}
@@ -666,6 +740,7 @@ export function NextTemplatesSection({
                   accent={accent}
                   verticalLabel={verticalLabel}
                   logoUrl={logoUrl}
+                  overlayImageUrl={overlayImageUrl}
                 />
               </div>
             </div>
@@ -723,6 +798,7 @@ export function NextTemplatesSection({
                       accent={vPreset.accent}
                       verticalLabel={vPreset.label}
                       logoUrl={nextVariationLogos?.[vSlug] || stackedLogoUrl || logoUrl}
+                      overlayImageUrl={nextVariationOverlays?.[vSlug] || overlayImageUrl || undefined}
                       layout={variantLayout}
                     />
                   </div>
@@ -803,6 +879,19 @@ export function NextTemplatesSection({
                               })
                             }
                             placeholder="Paste logo image URL (reversed/white)…"
+                            className="h-7 text-[11px]"
+                          />
+                        )}
+                        {isAdmin && onNextVariationOverlaysChange && (
+                          <Input
+                            value={nextVariationOverlays?.[vSlug] || ''}
+                            onChange={(e) =>
+                              onNextVariationOverlaysChange({
+                                ...(nextVariationOverlays || {}),
+                                [vSlug]: e.target.value,
+                              })
+                            }
+                            placeholder="Paste transparent overlay PNG URL…"
                             className="h-7 text-[11px]"
                           />
                         )}
