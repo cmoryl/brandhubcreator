@@ -14,7 +14,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
-import { Download, Sparkles, LayoutGrid } from 'lucide-react';
+import { Download, Sparkles, LayoutGrid, Image as ImageIcon, X } from 'lucide-react';
+import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { toast } from 'sonner';
 import type { BrandLogo } from '@/types/brand';
 import nextHeroBgAsset from '@/assets/next-hero-bg.png.asset.json';
@@ -704,14 +705,39 @@ export function NextTemplatesSection({
           <Label>Venue</Label>
           <Input value={venue} onChange={(e) => setVenue(e.target.value)} />
         </div>
-        <div className="md:col-span-2">
-          <Label>Transparent Overlay Image URL (optional — right-third, rule of thirds)</Label>
-          <Input
-            value={overlayImageUrl}
-            onChange={(e) => setOverlayImageUrl(e.target.value)}
-            placeholder="Paste transparent PNG URL (character, product, venue cutout)…"
-          />
-          <p className="text-[11px] text-muted-foreground mt-1">
+        <div className="md:col-span-2 space-y-2">
+          <Label>Transparent Overlay Image (optional — right-third, rule of thirds)</Label>
+          <div className="flex flex-wrap items-center gap-2">
+            {overlayImageUrl && (
+              <div className="relative h-14 w-14 rounded border border-border bg-muted/40 shrink-0 overflow-hidden">
+                <img src={overlayImageUrl} alt="Overlay preview" className="h-full w-full object-contain" />
+                <button
+                  type="button"
+                  onClick={() => setOverlayImageUrl('')}
+                  className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-background border border-border shadow flex items-center justify-center hover:bg-destructive hover:text-destructive-foreground transition"
+                  aria-label="Remove overlay"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            )}
+            <ImageLibraryPicker
+              onSelect={(url) => setOverlayImageUrl(url)}
+              trigger={
+                <Button type="button" variant="outline" size="sm" className="h-9 gap-1.5">
+                  <ImageIcon className="h-4 w-4" />
+                  {overlayImageUrl ? 'Change from Library / Upload' : 'Pick or Upload PNG'}
+                </Button>
+              }
+            />
+            <Input
+              value={overlayImageUrl}
+              onChange={(e) => setOverlayImageUrl(e.target.value)}
+              placeholder="…or paste a transparent PNG URL"
+              className="flex-1 min-w-[220px] h-9"
+            />
+          </div>
+          <p className="text-[11px] text-muted-foreground">
             Applies to all four main previews below. Each sub-brand variation can also
             set its own overlay in the grid further down.
           </p>
@@ -888,17 +914,60 @@ export function NextTemplatesSection({
                           />
                         )}
                         {isAdmin && onNextVariationOverlaysChange && (
-                          <Input
-                            value={nextVariationOverlays?.[vSlug] || ''}
-                            onChange={(e) =>
-                              onNextVariationOverlaysChange({
-                                ...(nextVariationOverlays || {}),
-                                [vSlug]: e.target.value,
-                              })
-                            }
-                            placeholder="Paste transparent overlay PNG URL…"
-                            className="h-7 text-[11px]"
-                          />
+                          <div className="flex items-center gap-1.5">
+                            {nextVariationOverlays?.[vSlug] && (
+                              <div className="relative h-7 w-7 rounded border border-border bg-muted/40 shrink-0 overflow-hidden">
+                                <img
+                                  src={nextVariationOverlays[vSlug]}
+                                  alt=""
+                                  className="h-full w-full object-contain"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    onNextVariationOverlaysChange({
+                                      ...(nextVariationOverlays || {}),
+                                      [vSlug]: '',
+                                    })
+                                  }
+                                  className="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full bg-background border border-border shadow flex items-center justify-center hover:bg-destructive hover:text-destructive-foreground"
+                                  aria-label="Remove overlay"
+                                >
+                                  <X className="h-2 w-2" />
+                                </button>
+                              </div>
+                            )}
+                            <ImageLibraryPicker
+                              onSelect={(url) =>
+                                onNextVariationOverlaysChange({
+                                  ...(nextVariationOverlays || {}),
+                                  [vSlug]: url,
+                                })
+                              }
+                              trigger={
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-7 px-2 text-[11px] gap-1 shrink-0"
+                                >
+                                  <ImageIcon className="h-3 w-3" />
+                                  {nextVariationOverlays?.[vSlug] ? 'Change' : 'PNG'}
+                                </Button>
+                              }
+                            />
+                            <Input
+                              value={nextVariationOverlays?.[vSlug] || ''}
+                              onChange={(e) =>
+                                onNextVariationOverlaysChange({
+                                  ...(nextVariationOverlays || {}),
+                                  [vSlug]: e.target.value,
+                                })
+                              }
+                              placeholder="…or paste PNG URL"
+                              className="h-7 text-[11px] flex-1 min-w-0"
+                            />
+                          </div>
                         )}
                       </>
                     );
