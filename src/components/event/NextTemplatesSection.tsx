@@ -282,7 +282,7 @@ function TemplateSurface({
       >
         {/* Lockup */}
         <div className={isBanner ? 'flex-shrink-0' : ''} style={{ maxWidth: isBanner ? '38%' : '100%' }}>
-          <NextLockup label={verticalLabel} accent={accent} />
+          <NextLockup label={verticalLabel} accent={accent} logoUrl={logoUrl} />
           {(isStory || isTile) && (
             <div className="mt-3 text-white/60 text-[0.55em] tracking-[0.3em]">
               {content.date}
