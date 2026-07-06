@@ -740,6 +740,7 @@ export function NextTemplatesSection({
                   accent={accent}
                   verticalLabel={verticalLabel}
                   logoUrl={logoUrl}
+                  overlayImageUrl={overlayImageUrl}
                 />
               </div>
             </div>
