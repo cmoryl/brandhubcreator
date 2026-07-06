@@ -914,17 +914,60 @@ export function NextTemplatesSection({
                           />
                         )}
                         {isAdmin && onNextVariationOverlaysChange && (
-                          <Input
-                            value={nextVariationOverlays?.[vSlug] || ''}
-                            onChange={(e) =>
-                              onNextVariationOverlaysChange({
-                                ...(nextVariationOverlays || {}),
-                                [vSlug]: e.target.value,
-                              })
-                            }
-                            placeholder="Paste transparent overlay PNG URL…"
-                            className="h-7 text-[11px]"
-                          />
+                          <div className="flex items-center gap-1.5">
+                            {nextVariationOverlays?.[vSlug] && (
+                              <div className="relative h-7 w-7 rounded border border-border bg-muted/40 shrink-0 overflow-hidden">
+                                <img
+                                  src={nextVariationOverlays[vSlug]}
+                                  alt=""
+                                  className="h-full w-full object-contain"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    onNextVariationOverlaysChange({
+                                      ...(nextVariationOverlays || {}),
+                                      [vSlug]: '',
+                                    })
+                                  }
+                                  className="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full bg-background border border-border shadow flex items-center justify-center hover:bg-destructive hover:text-destructive-foreground"
+                                  aria-label="Remove overlay"
+                                >
+                                  <X className="h-2 w-2" />
+                                </button>
+                              </div>
+                            )}
+                            <ImageLibraryPicker
+                              onSelect={(url) =>
+                                onNextVariationOverlaysChange({
+                                  ...(nextVariationOverlays || {}),
+                                  [vSlug]: url,
+                                })
+                              }
+                              trigger={
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-7 px-2 text-[11px] gap-1 shrink-0"
+                                >
+                                  <ImageIcon className="h-3 w-3" />
+                                  {nextVariationOverlays?.[vSlug] ? 'Change' : 'PNG'}
+                                </Button>
+                              }
+                            />
+                            <Input
+                              value={nextVariationOverlays?.[vSlug] || ''}
+                              onChange={(e) =>
+                                onNextVariationOverlaysChange({
+                                  ...(nextVariationOverlays || {}),
+                                  [vSlug]: e.target.value,
+                                })
+                              }
+                              placeholder="…or paste PNG URL"
+                              className="h-7 text-[11px] flex-1 min-w-0"
+                            />
+                          </div>
                         )}
                       </>
                     );
