@@ -328,6 +328,9 @@ export const FullEventPage = ({
               brandLogos={event.logos}
               brandSlug={event.slug}
               entityName={event.hero?.name}
+              canvaTemplateKit={event.canvaTemplateKit}
+              onCanvaTemplateKitChange={canEdit ? (canvaTemplateKit) => updateEvent({ canvaTemplateKit }) : undefined}
+              isAdmin={isAdmin || canEdit}
             />
           );
         }
