@@ -315,8 +315,8 @@ function TemplateSurface({
           className="relative z-10 h-full w-full flex flex-col items-center justify-center text-center"
           style={{ padding: '1.6em', gap: '0.9em' }}
         >
-          <div style={{ width: '100%', maxWidth: '70%' }}>
-            <NextLockup label={verticalLabel} accent={accent} logoUrl={logoUrl} sizeEm={5.6} centered />
+          <div style={{ width: '100%', maxWidth: '90%' }}>
+            <NextLockup label={verticalLabel} accent={accent} logoUrl={logoUrl} sizeEm={10.5} centered />
           </div>
           <h2
             className="font-bold"
@@ -335,7 +335,7 @@ function TemplateSurface({
       {layout === 'left-stack' && (
         <div className="relative z-10 h-full w-full grid grid-cols-2 gap-4" style={{ padding: '1.6em' }}>
           <div className="flex flex-col justify-center">
-            <NextLockup label={verticalLabel} accent={accent} logoUrl={logoUrl} sizeEm={4.4} />
+            <NextLockup label={verticalLabel} accent={accent} logoUrl={logoUrl} sizeEm={8.5} />
           </div>
           <div className="flex flex-col justify-center">
             <h2
@@ -358,7 +358,7 @@ function TemplateSurface({
       {layout === 'bottom-band' && (
         <div className="relative z-10 h-full w-full flex flex-col" style={{ padding: '1.6em' }}>
           <div className="flex-1 flex items-start justify-center pt-4">
-            <NextLockup label={verticalLabel} accent={accent} logoUrl={logoUrl} sizeEm={5} centered />
+            <NextLockup label={verticalLabel} accent={accent} logoUrl={logoUrl} sizeEm={9.2} centered />
           </div>
           <div
             className="rounded-lg"
@@ -397,8 +397,8 @@ function TemplateSurface({
             height: 'calc(100% - 1.2em)',
           }}
         >
-          <div style={{ maxWidth: '55%' }}>
-            <NextLockup label={verticalLabel} accent={accent} logoUrl={logoUrl} sizeEm={4} centered />
+          <div style={{ maxWidth: '80%' }}>
+            <NextLockup label={verticalLabel} accent={accent} logoUrl={logoUrl} sizeEm={8.0} centered />
           </div>
           <h2
             className="font-black mt-3"
@@ -430,8 +430,8 @@ function TemplateSurface({
           }`}
           style={{ padding: isStory ? '2em' : '1.6em' }}
         >
-          <div className={isBanner ? 'flex-shrink-0' : ''} style={{ maxWidth: isBanner ? '38%' : '100%' }}>
-            <NextLockup label={verticalLabel} accent={accent} logoUrl={logoUrl} />
+          <div className={isBanner ? 'flex-shrink-0' : ''} style={{ maxWidth: isBanner ? '60%' : '100%' }}>
+            <NextLockup label={verticalLabel} accent={accent} logoUrl={logoUrl} sizeEm={6.8} />
             {(isStory || isTile) && (
               <div className="mt-3 text-white/60 text-[0.55em] tracking-[0.3em]">{content.date}</div>
             )}
@@ -653,7 +653,7 @@ export function NextTemplatesSection({
               >
                 {/* Preview surface — matches Social Templates 4/3 card frame */}
                 <div className="aspect-[4/3] relative overflow-hidden">
-                  <div className="absolute inset-0" style={{ fontSize: 10 }}>
+                  <div className="absolute inset-0" style={{ fontSize: 14 }}>
                     <TemplateSurface
                       format={FORMATS[0]}
                       content={variantContent}
