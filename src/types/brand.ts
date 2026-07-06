@@ -1176,6 +1176,8 @@ export interface BaseGuide {
   canvaTemplateKit?: CanvaTemplateKit;
   // NEXT sub-brand variation Canva template links — keyed by NEXT vertical slug (e.g. 'globallink-next')
   nextVariationCanvaLinks?: Record<string, string>;
+  /** Per-NEXT-vertical logo overrides for the sub-brand variation cards, keyed by vertical slug. */
+  nextVariationLogos?: Record<string, string>;
   // Display Banners (Industry Standard Specs)
   displayBanners?: BrandDisplayBannerSpec[];
   // Linked Guides (for Product Guides section - links to other brand/product guides)

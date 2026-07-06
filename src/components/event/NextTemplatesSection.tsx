@@ -130,6 +130,9 @@ interface NextTemplatesSectionProps {
   /** Per-variant Canva template URLs, keyed by NEXT vertical slug. */
   nextVariationCanvaLinks?: Record<string, string>;
   onNextVariationCanvaLinksChange?: (next: Record<string, string>) => void;
+  /** Per-variant reversed/white logo image URLs, keyed by NEXT vertical slug. */
+  nextVariationLogos?: Record<string, string>;
+  onNextVariationLogosChange?: (next: Record<string, string>) => void;
   isAdmin?: boolean;
   /** Approved brand/event logos — the section prefers a reversed/white variant for the dark backdrop. */
   logos?: BrandLogo[];
@@ -151,8 +154,9 @@ const FORMATS: Format[] = [
   { id: 'tile',    label: 'Portal Tile',  width: 800,  height: 1000, aspect: 'aspect-[4/5]' },
 ];
 
-/** Diagonal chevron pattern rendered as SVG for crisp export at any scale. */
-function ChevronBackdrop({ accent }: { accent: string }) {
+/** Diagonal chevron pattern rendered as SVG for crisp export at any scale.
+ *  `hideRays` removes the left-side chevron rays for the centered hero layout. */
+function ChevronBackdrop({ accent, hideRays = false }: { accent: string; hideRays?: boolean }) {
   return (
     <svg
       className="absolute inset-0 h-full w-full"
@@ -172,20 +176,20 @@ function ChevronBackdrop({ accent }: { accent: string }) {
         </linearGradient>
       </defs>
       <rect width="1200" height="800" fill="url(#np-bg)" />
-      {/* Left-side chevron rays */}
-      <g opacity="0.85" stroke="url(#np-chev)" strokeWidth="2" fill="none">
-        {Array.from({ length: 18 }).map((_, i) => {
-          const x = -200 + i * 40;
-          return <path key={i} d={`M${x} 800 L${x + 400} 0`} />;
-        })}
-      </g>
+      {!hideRays && (
+        <g opacity="0.85" stroke="url(#np-chev)" strokeWidth="2" fill="none">
+          {Array.from({ length: 18 }).map((_, i) => {
+            const x = -200 + i * 40;
+            return <path key={i} d={`M${x} 800 L${x + 400} 0`} />;
+          })}
+        </g>
+      )}
       {/* Right-side orbit rings */}
       <g opacity="0.35" stroke={accent} strokeWidth="1.2" fill="none">
         <circle cx="1000" cy="400" r="260" />
         <circle cx="1000" cy="400" r="340" />
         <circle cx="1000" cy="400" r="420" />
       </g>
-      {/* Orbit dots */}
       <g fill="#fff">
         <circle cx="740" cy="400" r="4" />
         <circle cx="1000" cy="60" r="3" />
@@ -201,20 +205,24 @@ function NextLockup({
   label,
   accent,
   logoUrl,
+  sizeEm = 3.2,
+  centered = false,
 }: {
   label: string;
   accent: string;
   logoUrl?: string;
+  sizeEm?: number;
+  centered?: boolean;
 }) {
   if (logoUrl) {
     return (
-      <div className="leading-none">
+      <div className={`leading-none ${centered ? 'flex flex-col items-center text-center' : ''}`}>
         <img
           src={logoUrl}
           alt={label}
           crossOrigin="anonymous"
           style={{
-            height: '3.2em',
+            height: `${sizeEm}em`,
             width: 'auto',
             maxWidth: '100%',
             objectFit: 'contain',
@@ -231,14 +239,14 @@ function NextLockup({
   const [prefix, ...rest] = label.replace(/\s*NEXT\s*/i, '|NEXT').split('|');
   const suffix = rest.join('') || 'NEXT';
   return (
-    <div className="leading-none">
-      <div className="text-white font-black tracking-tight" style={{ fontSize: '0.9em' }}>
+    <div className={`leading-none ${centered ? 'flex flex-col items-center text-center' : ''}`}>
+      <div className="text-white font-black tracking-tight" style={{ fontSize: `${sizeEm * 0.28}em` }}>
         {prefix.trim() || 'TransPerfect'}
       </div>
       <div
         className="font-black tracking-tighter"
         style={{
-          fontSize: '2.4em',
+          fontSize: `${sizeEm * 0.75}em`,
           background: `linear-gradient(90deg, #fff 0%, ${accent} 60%, ${PINK_CTA} 100%)`,
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
@@ -254,83 +262,75 @@ function NextLockup({
   );
 }
 
-/** One rendered template surface. All layouts share this shell. */
+/** One rendered template surface. All layouts share this shell.
+ *  `layout='centered-hero'` drops the left chevron rays and stacks a large
+ *  logo lockup above the copy, both center-aligned. */
 function TemplateSurface({
   format,
   content,
   accent,
   verticalLabel,
   logoUrl,
+  layout = 'default',
 }: {
   format: Format;
   content: { title: string; body: string; cta: string; date: string; venue: string };
   accent: string;
   verticalLabel: string;
   logoUrl?: string;
+  layout?: 'default' | 'centered-hero';
 }) {
   const isStory = format.id === 'story';
   const isTile = format.id === 'tile';
   const isBanner = format.id === 'banner' || format.id === 'hero';
+  const isCentered = layout === 'centered-hero';
 
-  // Scale everything relative to the surface's own em (set by parent inline font-size).
+  // CTA gradient: default uses pink → accent; centered-hero uses accent tones only.
+  const ctaBackground = isCentered
+    ? `linear-gradient(135deg, ${accent} 0%, ${accent}CC 100%)`
+    : PINK_CTA;
+
   return (
     <div
       className="relative h-full w-full overflow-hidden"
       style={{ backgroundColor: NAVY }}
     >
-      <ChevronBackdrop accent={accent} />
+      <ChevronBackdrop accent={accent} hideRays={isCentered} />
 
-      <div
-        className={`relative z-10 h-full w-full ${
-          isBanner ? 'flex items-center' : isTile ? 'flex flex-col justify-between' : 'flex flex-col justify-between'
-        }`}
-        style={{ padding: isStory ? '2em' : '1.6em' }}
-      >
-        {/* Lockup */}
-        <div className={isBanner ? 'flex-shrink-0' : ''} style={{ maxWidth: isBanner ? '38%' : '100%' }}>
-          <NextLockup label={verticalLabel} accent={accent} logoUrl={logoUrl} />
-          {(isStory || isTile) && (
-            <div className="mt-3 text-white/60 text-[0.55em] tracking-[0.3em]">
-              {content.date}
-            </div>
-          )}
-        </div>
-
-        {/* Copy block */}
+      {isCentered ? (
         <div
-          className={isBanner ? 'flex-1' : ''}
-          style={{
-            marginLeft: isBanner ? '2em' : 0,
-            marginTop: isBanner ? 0 : '1.2em',
-          }}
+          className="relative z-10 h-full w-full flex flex-col items-center justify-center text-center"
+          style={{ padding: '1.6em', gap: '0.9em' }}
         >
+          {/* Large logo above the headline */}
+          <div style={{ width: '100%', maxWidth: '70%' }}>
+            <NextLockup label={verticalLabel} accent={accent} logoUrl={logoUrl} sizeEm={5.6} centered />
+          </div>
+
           <h2
             className="font-bold"
             style={{
               color: accent,
-              fontSize: isStory ? '2em' : isBanner ? '1.6em' : '1.7em',
+              fontSize: '1.6em',
               lineHeight: 1.05,
               letterSpacing: '-0.02em',
+              maxWidth: '22em',
             }}
           >
             {content.title}
           </h2>
           <p
-            className="text-white/90 mt-3"
-            style={{
-              fontSize: isStory ? '0.95em' : '0.8em',
-              lineHeight: 1.35,
-              maxWidth: '22em',
-            }}
+            className="text-white/90"
+            style={{ fontSize: '0.8em', lineHeight: 1.35, maxWidth: '22em' }}
           >
             {content.body}
           </p>
 
-          {(isBanner || isStory) && content.cta && (
+          {content.cta && (
             <div
-              className="inline-flex items-center gap-2 mt-4 rounded-full text-white font-semibold"
+              className="inline-flex items-center gap-2 rounded-full text-white font-semibold"
               style={{
-                background: PINK_CTA,
+                background: ctaBackground,
                 padding: '0.55em 1.4em',
                 fontSize: '0.7em',
                 letterSpacing: '0.08em',
@@ -346,14 +346,79 @@ function TemplateSurface({
             </div>
           )}
         </div>
-
-        {/* Bottom meta */}
-        {!isBanner && (
-          <div className="text-white/70 text-[0.55em] tracking-[0.25em]">
-            {content.venue}
+      ) : (
+        <div
+          className={`relative z-10 h-full w-full ${
+            isBanner ? 'flex items-center' : 'flex flex-col justify-between'
+          }`}
+          style={{ padding: isStory ? '2em' : '1.6em' }}
+        >
+          <div className={isBanner ? 'flex-shrink-0' : ''} style={{ maxWidth: isBanner ? '38%' : '100%' }}>
+            <NextLockup label={verticalLabel} accent={accent} logoUrl={logoUrl} />
+            {(isStory || isTile) && (
+              <div className="mt-3 text-white/60 text-[0.55em] tracking-[0.3em]">
+                {content.date}
+              </div>
+            )}
           </div>
-        )}
-      </div>
+
+          <div
+            className={isBanner ? 'flex-1' : ''}
+            style={{
+              marginLeft: isBanner ? '2em' : 0,
+              marginTop: isBanner ? 0 : '1.2em',
+            }}
+          >
+            <h2
+              className="font-bold"
+              style={{
+                color: accent,
+                fontSize: isStory ? '2em' : isBanner ? '1.6em' : '1.7em',
+                lineHeight: 1.05,
+                letterSpacing: '-0.02em',
+              }}
+            >
+              {content.title}
+            </h2>
+            <p
+              className="text-white/90 mt-3"
+              style={{
+                fontSize: isStory ? '0.95em' : '0.8em',
+                lineHeight: 1.35,
+                maxWidth: '22em',
+              }}
+            >
+              {content.body}
+            </p>
+
+            {(isBanner || isStory) && content.cta && (
+              <div
+                className="inline-flex items-center gap-2 mt-4 rounded-full text-white font-semibold"
+                style={{
+                  background: ctaBackground,
+                  padding: '0.55em 1.4em',
+                  fontSize: '0.7em',
+                  letterSpacing: '0.08em',
+                }}
+              >
+                {content.cta.toUpperCase()}
+                <span
+                  className="inline-flex items-center justify-center rounded-full bg-white/20"
+                  style={{ width: '1.6em', height: '1.6em' }}
+                >
+                  →
+                </span>
+              </div>
+            )}
+          </div>
+
+          {!isBanner && (
+            <div className="text-white/70 text-[0.55em] tracking-[0.25em]">
+              {content.venue}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -367,6 +432,8 @@ export function NextTemplatesSection({
   defaultVenue,
   nextVariationCanvaLinks,
   onNextVariationCanvaLinksChange,
+  nextVariationLogos,
+  onNextVariationLogosChange,
   isAdmin = false,
   logos,
 }: NextTemplatesSectionProps) {
@@ -541,7 +608,8 @@ export function NextTemplatesSection({
                       content={variantContent}
                       accent={vPreset.accent}
                       verticalLabel={vPreset.label}
-                      logoUrl={stackedLogoUrl || logoUrl}
+                      logoUrl={nextVariationLogos?.[vSlug] || stackedLogoUrl || logoUrl}
+                      layout="centered-hero"
                     />
                   </div>
                   {/* Character / orb graphic — accent-tinted, subtle */}
@@ -588,7 +656,7 @@ export function NextTemplatesSection({
                           className="w-full h-8 text-xs font-semibold text-white border-0 hover:opacity-90 disabled:opacity-50"
                           style={{
                             background: hasUrl
-                              ? `linear-gradient(135deg, ${vPreset.accent} 0%, ${PINK_CTA} 100%)`
+                              ? `linear-gradient(135deg, ${vPreset.accent} 0%, ${vPreset.accent}CC 100%)`
                               : undefined,
                           }}
                           onClick={() => {
@@ -608,6 +676,19 @@ export function NextTemplatesSection({
                               })
                             }
                             placeholder="Paste Canva template URL…"
+                            className="h-7 text-[11px]"
+                          />
+                        )}
+                        {isAdmin && onNextVariationLogosChange && (
+                          <Input
+                            value={nextVariationLogos?.[vSlug] || ''}
+                            onChange={(e) =>
+                              onNextVariationLogosChange({
+                                ...(nextVariationLogos || {}),
+                                [vSlug]: e.target.value,
+                              })
+                            }
+                            placeholder="Paste logo image URL (reversed/white)…"
                             className="h-7 text-[11px]"
                           />
                         )}
