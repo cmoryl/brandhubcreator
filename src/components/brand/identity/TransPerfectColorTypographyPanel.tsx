@@ -146,23 +146,43 @@ function ColorBody() {
   return (
     <>
       <p className="text-xs text-muted-foreground leading-relaxed">
-        TransPerfect leads with <strong className="text-foreground">Digital Blue #003FC7</strong>{' '}
-        paired with <strong className="text-foreground">Dark Blue #03002C</strong>. Accents are
-        reserved for moments of energy; neutrals do the heavy lifting in long-form layouts.
+        The <strong className="text-foreground">Master Brand</strong> palette leads with{' '}
+        <strong className="text-foreground">Blue 500 #003FC7</strong> and{' '}
+        <strong className="text-foreground">Blue 800 #03002C</strong>. Secondary Aqua & Lavender
+        are used at ~10% as accents; tertiary colours are reserved for CTAs, icons, hi-lights
+        and colour pops.
       </p>
 
-      <SubHeading>Core</SubHeading>
+      <div className="rounded-lg border border-border/60 bg-muted/30 p-3">
+        <p className="text-[10px] uppercase tracking-wide font-semibold text-primary mb-1.5">
+          Approved For
+        </p>
+        <div className="flex flex-wrap gap-1.5">
+          {APPROVED_FOR.map((label) => (
+            <Badge key={label} variant="secondary" className="text-[10px] font-medium">
+              {label}
+            </Badge>
+          ))}
+        </div>
+      </div>
+
+      <SubHeading>Primary Color Palette</SubHeading>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {CORE_COLORS.map((c) => <SwatchCard key={c.hex} {...c} large />)}
+        {PRIMARY_COLORS.map((c) => <SwatchCard key={c.hex} {...c} large />)}
       </div>
 
-      <SubHeading>Accents</SubHeading>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {ACCENT_COLORS.map((c) => <SwatchCard key={c.hex} {...c} />)}
+      <SubHeading>Secondary Color Palette · 10% accent</SubHeading>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {SECONDARY_COLORS.map((c) => <SwatchCard key={c.hex} {...c} />)}
       </div>
 
-      <SubHeading>Neutrals</SubHeading>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <SubHeading>Tertiary Colors · CTAs, icons, hi-lights, colour pops</SubHeading>
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        {TERTIARY_COLORS.map((c) => <SwatchCard key={c.hex} {...c} />)}
+      </div>
+
+      <SubHeading>Supporting Neutrals</SubHeading>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {NEUTRALS.map((c) => <SwatchCard key={c.hex} {...c} />)}
       </div>
 
@@ -173,6 +193,7 @@ function ColorBody() {
     </>
   );
 }
+
 
 // ============== Type body ==============
 function TypeBody() {
