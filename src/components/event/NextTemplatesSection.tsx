@@ -432,6 +432,8 @@ export function NextTemplatesSection({
   defaultVenue,
   nextVariationCanvaLinks,
   onNextVariationCanvaLinksChange,
+  nextVariationLogos,
+  onNextVariationLogosChange,
   isAdmin = false,
   logos,
 }: NextTemplatesSectionProps) {
