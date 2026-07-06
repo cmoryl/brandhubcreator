@@ -81,7 +81,7 @@ const AuthPage = () => {
 
     (async () => {
       setIsGoogleLoading(true);
-      const { error } = await signInWithGoogle();
+      const { error } = await signInWithGoogle(searchParams.get('next') ? `/auth?next=${encodeURIComponent(searchParams.get('next')!)}` : '/auth');
       if (error) {
         console.error('[AUTH] Google sign-in failed:', error.message);
         toast({
@@ -154,24 +154,36 @@ const AuthPage = () => {
     if (authLoading) return;
     if (!user) return;
 
+    // Honor ?next= for OAuth consent flow (same-origin relative path only).
+    const rawNext = searchParams.get('next');
+    const nextPath =
+      rawNext && rawNext.startsWith('/') && !rawNext.startsWith('//')
+        ? rawNext
+        : null;
+
     if (accessStatus === 'error') {
       toast({
         title: 'Signed in, but access could not be verified',
         description: accessError || 'Please refresh and try again.',
         variant: 'destructive',
       });
-      navigate('/dashboard', { replace: true });
+      navigate(nextPath || '/dashboard', { replace: true });
       return;
     }
 
     if (accessStatus !== 'ready') return;
 
     if (!isAdmin && !isApproved) {
-      navigate('/pending-approval', { replace: true });
+      navigate(nextPath || '/pending-approval', { replace: true });
       return;
     }
 
     if (orgLoading) return;
+
+    if (nextPath) {
+      navigate(nextPath, { replace: true });
+      return;
+    }
 
     if (organization) {
       sessionStorage.setItem('welcomeToast', JSON.stringify({
@@ -182,7 +194,7 @@ const AuthPage = () => {
     } else {
       navigate('/dashboard', { replace: true });
     }
-  }, [user, isAdmin, isApproved, accessStatus, accessError, authLoading, orgLoading, organization, navigate, toast, isPasswordRecovery]);
+  }, [user, isAdmin, isApproved, accessStatus, accessError, authLoading, orgLoading, organization, navigate, toast, isPasswordRecovery, searchParams]);
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -227,7 +239,7 @@ const AuthPage = () => {
       if (err instanceof z.ZodError) {
         toast({
           title: 'Validation Error',
-          description: err.errors[0].message,
+          description: err.issues[0].message,
           variant: 'destructive',
         });
         return;
@@ -349,7 +361,7 @@ const AuthPage = () => {
       if (err instanceof z.ZodError) {
         toast({
           title: 'Validation Error',
-          description: err.errors[0].message,
+          description: err.issues[0].message,
           variant: 'destructive',
         });
         return;
@@ -688,7 +700,7 @@ const AuthPage = () => {
                       onClick={async () => {
                         setIsGoogleLoading(true);
                         try {
-                          const { error } = await signInWithGoogle();
+                          const { error } = await signInWithGoogle(searchParams.get('next') ? `/auth?next=${encodeURIComponent(searchParams.get('next')!)}` : '/auth');
                           if (error) {
                             const message = error.message || 'Unable to sign in with Google.';
                             const isNetwork = /failed to fetch|network error|timeout|unreachable/i.test(message);

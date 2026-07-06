@@ -21,7 +21,7 @@ interface AuthContextType {
   refreshAccess: () => void;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signInWithGoogle: () => Promise<{ error: Error | null }>;
+  signInWithGoogle: (redirectPath?: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -289,12 +289,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = async (redirectPath?: string) => {
     try {
+      const safePath =
+        redirectPath && redirectPath.startsWith('/') && !redirectPath.startsWith('//')
+          ? redirectPath
+          : '';
+      const redirect_uri = `${window.location.origin}${safePath}`;
       // Lovable Cloud managed OAuth (required for this project)
       const { error } = await withTimeout(
         lovable.auth.signInWithOAuth('google', {
-          redirect_uri: window.location.origin,
+          redirect_uri,
           // Keep UX stable if a user is already signed into multiple Google accounts.
           extraParams: {
             prompt: 'select_account',

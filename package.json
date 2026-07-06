@@ -18,6 +18,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@hookform/resolvers": "^3.10.0",
     "@lovable.dev/cloud-auth-js": "^1.0.0",
+    "@lovable.dev/mcp-js": "^0.20.0",
     "@playwright/test": "^1.57.0",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-alert-dialog": "^1.1.14",
@@ -98,7 +99,7 @@
     "vite-plugin-pwa": "0.19.8",
     "vitest": "^4.1.4",
     "xlsx": "^0.18.5",
-    "zod": "^3.25.76"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
