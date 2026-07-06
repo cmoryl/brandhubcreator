@@ -656,7 +656,7 @@ export function NextTemplatesSection({
                           className="w-full h-8 text-xs font-semibold text-white border-0 hover:opacity-90 disabled:opacity-50"
                           style={{
                             background: hasUrl
-                              ? `linear-gradient(135deg, ${vPreset.accent} 0%, ${PINK_CTA} 100%)`
+                              ? `linear-gradient(135deg, ${vPreset.accent} 0%, ${vPreset.accent}CC 100%)`
                               : undefined,
                           }}
                           onClick={() => {
@@ -676,6 +676,19 @@ export function NextTemplatesSection({
                               })
                             }
                             placeholder="Paste Canva template URL…"
+                            className="h-7 text-[11px]"
+                          />
+                        )}
+                        {isAdmin && onNextVariationLogosChange && (
+                          <Input
+                            value={nextVariationLogos?.[vSlug] || ''}
+                            onChange={(e) =>
+                              onNextVariationLogosChange({
+                                ...(nextVariationLogos || {}),
+                                [vSlug]: e.target.value,
+                              })
+                            }
+                            placeholder="Paste logo image URL (reversed/white)…"
                             className="h-7 text-[11px]"
                           />
                         )}
