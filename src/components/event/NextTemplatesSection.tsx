@@ -16,6 +16,22 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Download, Sparkles, LayoutGrid } from 'lucide-react';
 import { toast } from 'sonner';
+import type { BrandLogo } from '@/types/brand';
+
+/** Pick the best logo for a dark navy backdrop — prefer reversed/white/mono, then anything. */
+function pickLogoForDark(logos?: BrandLogo[]): BrandLogo | undefined {
+  if (!logos?.length) return undefined;
+  const score = (l: BrandLogo) => {
+    const v = (l.variant || '').toLowerCase();
+    const n = (l.name || '').toLowerCase();
+    const t = `${v} ${n}`;
+    if (t.includes('reversed') || t.includes('white') || t.includes('on-dark') || t.includes('on dark')) return 3;
+    if (t.includes('monochrome') || t.includes('mono')) return 2;
+    if (t.includes('primary') || t.includes('main') || t.includes('color')) return 1;
+    return 0;
+  };
+  return [...logos].sort((a, b) => score(b) - score(a))[0];
+}
 
 // ------- Vertical accent map (matches restructured NEXT event colors) -------
 const NEXT_ACCENTS: Record<string, { accent: string; label: string }> = {
