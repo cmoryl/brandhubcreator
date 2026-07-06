@@ -207,6 +207,14 @@ const App = () => (
                       }
                     />
                     <Route
+                      path="connect"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <ConnectPage />
+                        </Suspense>
+                      }
+                    />
+                    <Route
                       path="pending-approval"
                       element={
                         <Suspense fallback={<PageSkeleton />}>
