@@ -336,7 +336,7 @@ export const FullBrandPage = ({
       case 'socialassets': {
         const isNextPilot = brand.slug === 'transperfect-next' || (brand.slug || '').endsWith('-next');
         if (isNextPilot) {
-          return <SocialAssetsRefreshed socialAssets={brand.socialAssets || []} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandLogos={brand.logos} brandSlug={brand.slug} entityName={brand.hero?.name} />;
+          return <SocialAssetsRefreshed socialAssets={brand.socialAssets || []} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandLogos={brand.logos} brandSlug={brand.slug} entityName={brand.hero?.name} canvaTemplateKit={brand.canvaTemplateKit} onCanvaTemplateKitChange={canEdit ? (canvaTemplateKit) => onBrandUpdate({ canvaTemplateKit }) : undefined} isAdmin={isAdmin || canEdit} />;
         }
         return <SocialAssetsSection socialAssets={brand.socialAssets || []} onSocialAssetsChange={editHandler((socialAssets) => onBrandUpdate({ socialAssets }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} entityId={brandId} entityType={entityType as 'brand' | 'product' | 'event' || 'brand'} brandLogos={brand.logos} brandSlug={brand.slug} />;
       }

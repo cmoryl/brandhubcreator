@@ -1,4 +1,19 @@
 // Core types
+
+// Canva Template Kit — per-platform Canva template links
+// Used by SocialAssetsRefreshed to render the Live Templates row.
+export interface CanvaTemplateKitItem {
+  id: string;
+  name: string;
+  url: string;
+  format?: string;
+  thumbnailUrl?: string;
+}
+export type CanvaTemplateKit = Partial<Record<
+  'LinkedIn' | 'Instagram' | 'X' | 'YouTube' | 'Facebook' | 'TikTok',
+  CanvaTemplateKitItem[]
+>>;
+
 export interface BrandColor {
   id: string;
   name: string;
@@ -1157,6 +1172,8 @@ export interface BaseGuide {
   services: BrandService[];
   // Social Assets (Platform Specifications)
   socialAssets?: BrandSocialAssetSpec[];
+  // Canva Template Kit — per-platform Canva template links (auto-branded per event)
+  canvaTemplateKit?: CanvaTemplateKit;
   // Display Banners (Industry Standard Specs)
   displayBanners?: BrandDisplayBannerSpec[];
   // Linked Guides (for Product Guides section - links to other brand/product guides)

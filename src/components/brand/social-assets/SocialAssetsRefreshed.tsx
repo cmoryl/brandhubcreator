@@ -36,13 +36,15 @@ import {
   ImageIcon,
   Shield,
 } from 'lucide-react';
-import { BrandSocialAssetSpec, SocialAssetTemplate, BrandLogo } from '@/types/brand';
+import { BrandSocialAssetSpec, SocialAssetTemplate, BrandLogo, CanvaTemplateKit, CanvaTemplateKitItem } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LazyImage } from '@/components/ui/lazy-image';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { CanvaTemplateKitEditor } from './CanvaTemplateKitEditor';
+import { Settings2 } from 'lucide-react';
 
 interface Props {
   socialAssets: BrandSocialAssetSpec[];
@@ -51,6 +53,9 @@ interface Props {
   brandLogos?: BrandLogo[];
   brandSlug?: string;
   entityName?: string;
+  canvaTemplateKit?: CanvaTemplateKit;
+  onCanvaTemplateKitChange?: (next: CanvaTemplateKit) => void;
+  isAdmin?: boolean;
 }
 
 const PLATFORM_ORDER = ['LinkedIn', 'Instagram', 'X', 'YouTube', 'Facebook', 'TikTok'] as const;
@@ -305,17 +310,36 @@ const PlatformPanel = ({
   brandLogos,
   entityName,
   isAdmin,
+  kitItems,
+  onEditKit,
 }: {
   platform: Platform;
   templates: SocialAssetTemplate[];
   brandLogos?: BrandLogo[];
   entityName?: string;
   isAdmin?: boolean;
+  kitItems?: CanvaTemplateKitItem[];
+  onEditKit?: () => void;
 }) => {
   const specs = PLATFORM_SPECS[platform] || [];
-  // "Live" = first 4 templates presented as Canva-connected auto-branded set.
-  const liveTemplates = templates.slice(0, 4);
-  const publishedTemplates = templates.slice(4);
+  // Convert Canva Template Kit items into TemplateCard-compatible objects.
+  const kitAsTemplates: SocialAssetTemplate[] = (kitItems || []).map((k) => ({
+    id: `kit-${k.id}`,
+    name: k.name || 'Canva Template',
+    fileType: 'other' as const,
+    url: k.url,
+    previewImageUrl: k.thumbnailUrl,
+    dimensions: k.format,
+    sizeCategory: 'other' as const,
+  }));
+  // Live row = Canva-connected kit items (auto-branded per event).
+  // Fall back to the first few generic templates when no kit is set yet.
+  const liveTemplates = kitAsTemplates.length > 0
+    ? kitAsTemplates
+    : templates.slice(0, 4);
+  const publishedTemplates = kitAsTemplates.length > 0
+    ? templates
+    : templates.slice(4);
 
   return (
     <div className="space-y-6 pt-4">
@@ -326,25 +350,30 @@ const PlatformPanel = ({
             <div className="flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-primary" />
               <h4 className="text-sm font-semibold text-foreground">Live Templates</h4>
-              <Badge variant="outline" className="text-[9px] border-primary/40 text-primary">Canva connected</Badge>
+              <Badge variant="outline" className="text-[9px] border-primary/40 text-primary">
+                {kitAsTemplates.length > 0 ? 'Canva kit' : 'Canva connected'}
+              </Badge>
+              {kitAsTemplates.length > 0 && (
+                <span className="text-[10px] text-muted-foreground">
+                  · {kitAsTemplates.length} linked
+                </span>
+              )}
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Auto-branded to {entityName || 'this event'}. Duplicating pulls the latest Canva design and injects the event logo + location.
+              Auto-branded to {entityName || 'this event'}. Opening a template goes straight to your event-specific Canva design.
             </p>
           </div>
           {isAdmin && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 text-xs"
-              onClick={() =>
-                toast.info('Canva sync scheduled', {
-                  description: 'Templates will refresh from the linked Canva folder in a moment.',
-                })
-              }
-            >
-              <RefreshCw className="h-3 w-3 mr-1.5" /> Sync from Canva
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-xs"
+                onClick={onEditKit}
+              >
+                <Settings2 className="h-3 w-3 mr-1.5" /> Edit Kit
+              </Button>
+            </div>
           )}
         </div>
         {liveTemplates.length === 0 ? (
@@ -353,7 +382,7 @@ const PlatformPanel = ({
             <div className="text-sm text-muted-foreground">No live templates linked yet</div>
             {isAdmin && (
               <p className="text-xs text-muted-foreground/70 mt-1">
-                Connect a Canva folder to auto-populate this row.
+                Click <span className="font-medium">Edit Kit</span> to paste Canva template URLs for {platform}.
               </p>
             )}
           </div>
@@ -372,6 +401,8 @@ const PlatformPanel = ({
           </div>
         )}
       </div>
+
+
 
       {/* ROW B — Published creations */}
       {publishedTemplates.length > 0 && (
@@ -499,6 +530,9 @@ export const SocialAssetsRefreshed = ({
   brandLogos,
   brandSlug,
   entityName,
+  canvaTemplateKit,
+  onCanvaTemplateKitChange,
+  isAdmin = false,
 }: Props) => {
   // Group templates by platform (case-insensitive fuzzy match)
   const templatesByPlatform = useMemo(() => {
@@ -516,17 +550,33 @@ export const SocialAssetsRefreshed = ({
   }, [socialAssets]);
 
   const [activePlatform, setActivePlatform] = useState<Platform>(() => {
+    const firstKit = PLATFORM_ORDER.find((p) => (canvaTemplateKit?.[p]?.length || 0) > 0);
+    if (firstKit) return firstKit;
     const first = PLATFORM_ORDER.find((p) => templatesByPlatform[p]?.length > 0);
     return first || 'LinkedIn';
   });
 
+  const [kitEditorOpen, setKitEditorOpen] = useState(false);
+
   return (
     <section className="space-y-6">
-      <div className="space-y-1">
-        <h2 className="text-2xl font-bold tracking-tight text-foreground">Social Assets & Guidelines</h2>
-        <p className="text-sm text-muted-foreground">
-          {customSubtitle || 'Playbook, live Canva templates, and every published creation — in one calmer place.'}
-        </p>
+      <div className="space-y-1 flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">Social Assets & Guidelines</h2>
+          <p className="text-sm text-muted-foreground">
+            {customSubtitle || 'Playbook, live Canva templates, and every published creation — in one calmer place.'}
+          </p>
+        </div>
+        {isAdmin && onCanvaTemplateKitChange && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs shrink-0"
+            onClick={() => setKitEditorOpen(true)}
+          >
+            <Settings2 className="h-3 w-3 mr-1.5" /> Canva Template Kit
+          </Button>
+        )}
       </div>
 
       {/* Zone 1 — Playbook */}
@@ -538,7 +588,8 @@ export const SocialAssetsRefreshed = ({
           <TabsList className="w-full h-auto flex-wrap justify-start bg-muted/40 p-1">
             {PLATFORM_ORDER.map((p) => {
               const Icon = platformIcons[p] || LayoutGrid;
-              const count = templatesByPlatform[p]?.length || 0;
+              const count = (templatesByPlatform[p]?.length || 0) + (canvaTemplateKit?.[p]?.length || 0);
+              const hasKit = (canvaTemplateKit?.[p]?.length || 0) > 0;
               return (
                 <TabsTrigger
                   key={p}
@@ -547,6 +598,7 @@ export const SocialAssetsRefreshed = ({
                 >
                   <Icon className="h-3.5 w-3.5" />
                   {p}
+                  {hasKit && <span className="h-1.5 w-1.5 rounded-full bg-primary" title="Canva kit configured" />}
                   {count > 0 && (
                     <span className="text-[10px] bg-muted-foreground/20 text-muted-foreground rounded px-1.5 py-0">
                       {count}
@@ -564,7 +616,9 @@ export const SocialAssetsRefreshed = ({
                 templates={templatesByPlatform[p] || []}
                 brandLogos={brandLogos}
                 entityName={entityName}
-                isAdmin
+                isAdmin={isAdmin && !!onCanvaTemplateKitChange}
+                kitItems={canvaTemplateKit?.[p]}
+                onEditKit={() => setKitEditorOpen(true)}
               />
             </TabsContent>
           ))}
@@ -573,6 +627,15 @@ export const SocialAssetsRefreshed = ({
 
       {/* Zone 3 — Asset library */}
       <AssetLibrary socialAssets={socialAssets} />
+
+      {kitEditorOpen && onCanvaTemplateKitChange && (
+        <CanvaTemplateKitEditor
+          value={canvaTemplateKit}
+          onChange={onCanvaTemplateKitChange}
+          onClose={() => setKitEditorOpen(false)}
+        />
+      )}
     </section>
   );
 };
+
