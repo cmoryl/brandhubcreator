@@ -279,13 +279,18 @@ function OrbitDots({ accent }: { accent: string }) {
         <circle cx="1000" cy="400" r="340" />
         <circle cx="1000" cy="400" r="420" />
       </g>
-      <g opacity="0.9">
-        <circle cx="740" cy="400" r="4" fill="#fff" />
-        <circle cx="1000" cy="60"  r="3" fill={accent} />
-        <circle cx="1000" cy="740" r="3" fill={accent} />
-        <circle cx="1180" cy="220" r="3" fill="#fff" />
-        <circle cx="820"  cy="120" r="2.5" fill={accent} />
-        <circle cx="880"  cy="680" r="2.5" fill="#fff" />
+      {/* Dots sit ON the orbit rings, not floating in space. Positions are
+       *  computed on each circle's circumference at cx=1000, cy=400. */}
+      <g opacity="0.95">
+        {/* Inner ring (r=260) */}
+        <circle cx="756.7"  cy="311.1" r="4"   fill="#fff" />
+        <circle cx="1088.9" cy="644.3" r="3.5" fill={accent} />
+        {/* Middle ring (r=340) */}
+        <circle cx="660"    cy="400"   r="4"   fill={accent} />
+        <circle cx="1116.3" cy="80.5"  r="3.5" fill="#fff" />
+        {/* Outer ring (r=420) */}
+        <circle cx="636.3"  cy="190"   r="3.5" fill="#fff" />
+        <circle cx="619.4"  cy="577.5" r="3"   fill={accent} />
       </g>
     </svg>
   );
