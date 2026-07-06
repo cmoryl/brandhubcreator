@@ -227,7 +227,7 @@ const AuthPage = () => {
       if (err instanceof z.ZodError) {
         toast({
           title: 'Validation Error',
-          description: err.errors[0].message,
+          description: err.issues[0].message,
           variant: 'destructive',
         });
         return;
@@ -349,7 +349,7 @@ const AuthPage = () => {
       if (err instanceof z.ZodError) {
         toast({
           title: 'Validation Error',
-          description: err.errors[0].message,
+          description: err.issues[0].message,
           variant: 'destructive',
         });
         return;

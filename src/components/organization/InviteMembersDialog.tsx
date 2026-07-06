@@ -80,7 +80,7 @@ export const InviteMembersDialog = ({ asButton = false }: InviteMembersDialogPro
       if (err instanceof z.ZodError) {
         toast({
           title: 'Invalid Email',
-          description: err.errors[0].message,
+          description: err.issues[0].message,
           variant: 'destructive',
         });
         return;
