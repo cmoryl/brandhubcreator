@@ -41,10 +41,10 @@ Deno.serve(async (req) => {
       }
     } catch {/* ignore bad state */}
 
-    if (error) return htmlResponse('Canva connection cancelled', `<p>${error}</p>`, returnTo);
-    if (!code) return htmlResponse('Missing authorization code', '<p>Canva did not return a code.</p>', returnTo);
+    if (error) return redirectResponse(returnTo, { canva: 'error', reason: error });
+    if (!code) return redirectResponse(returnTo, { canva: 'error', reason: 'missing_code' });
     if (!clientId || !clientSecret) {
-      return htmlResponse('Missing credentials', '<p>State did not carry your Canva client_id / client_secret. Open the panel and try again.</p>', returnTo);
+      return redirectResponse(returnTo, { canva: 'error', reason: 'missing_credentials' });
     }
 
     const redirectUri = `${SUPABASE_URL}/functions/v1/canva-oauth-callback`;
@@ -69,7 +69,11 @@ Deno.serve(async (req) => {
     const tokenText = await tokenRes.text();
     if (!tokenRes.ok) {
       console.error('Canva token exchange failed', tokenRes.status, tokenText);
-      return htmlResponse('Canva token exchange failed', `<p>${tokenRes.status}: ${tokenText.slice(0, 400)}</p>`, returnTo);
+      return redirectResponse(returnTo, {
+        canva: 'error',
+        reason: 'token_exchange_failed',
+        detail: `${tokenRes.status}: ${tokenText.slice(0, 200)}`,
+      });
     }
     const token = JSON.parse(tokenText);
 
@@ -92,12 +96,13 @@ Deno.serve(async (req) => {
 
     if (upsertErr) {
       console.error('Token upsert failed', upsertErr);
-      return htmlResponse('Failed to save token', `<p>${upsertErr.message}</p>`, returnTo);
+      return redirectResponse(returnTo, { canva: 'error', reason: 'save_failed', detail: upsertErr.message });
     }
 
-    return htmlResponse('Canva connected ✓', '<p>You can now click <strong>Refresh Canva</strong> on the audit page to pull the latest templates.</p>', returnTo);
+    return redirectResponse(returnTo, { canva: 'connected' });
   } catch (e) {
     console.error('canva-oauth-callback error', e);
-    return htmlResponse('Unexpected error', `<p>${(e as Error).message}</p>`);
+    return redirectResponse('/', { canva: 'error', reason: 'unexpected', detail: (e as Error).message });
   }
 });
+
