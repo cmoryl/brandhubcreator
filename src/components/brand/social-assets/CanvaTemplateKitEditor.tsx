@@ -12,7 +12,7 @@
  * so it round-trips through existing update handlers.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Plus, Trash2, ExternalLink, X, Save, Wand2, LayoutGrid, Loader2, Search, Plug, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -214,19 +214,29 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const startCanvaConnect = () => {
+  const buildCanvaConnectUrl = () => {
     const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL as string | undefined;
     if (!supabaseUrl) {
-      toast.error('Backend URL not configured');
-      return;
+      return null;
     }
-    if (connectingCanva) return;
-    setConnectingCanva(true);
-
     const url = new URL(`${supabaseUrl}/functions/v1/canva-oauth-start`);
     url.searchParams.set('return_to', buildReturnPath());
     url.searchParams.set('app_origin', window.location.origin);
-    const href = url.toString();
+    return url.toString();
+  };
+
+  const handleCanvaConnectClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    const href = buildCanvaConnectUrl();
+    if (!href) {
+      event.preventDefault();
+      toast.error('Backend URL not configured');
+      return;
+    }
+    if (connectingCanva) {
+      event.preventDefault();
+      return;
+    }
+    setConnectingCanva(true);
 
     try {
       window.sessionStorage.setItem('canvaConnectReturnPath', buildReturnPath());
@@ -236,27 +246,10 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
 
     toast.loading('Opening Canva…', {
       id: 'canva-connect-opening',
-      description: 'Approve access in Canva, then you’ll return here automatically.',
+      description: 'Approve access in the Canva tab, then you’ll return here automatically.',
     });
 
-    try {
-      if (window.top && window.top !== window) {
-        const popup = window.open(href, '_blank', 'noopener,noreferrer');
-        if (popup) {
-          toast.success('Canva opened in a new tab', {
-            id: 'canva-connect-opening',
-            description: 'Finish the Canva approval there; the template picker will reopen after redirect.',
-          });
-          return;
-        }
-        window.top.location.href = href;
-        return;
-      }
-    } catch {
-      // Lovable preview runs the app in a protected iframe, so top-level navigation can be blocked.
-    }
-
-    window.location.assign(href);
+    window.setTimeout(() => setConnectingCanva(false), 2500);
   };
 
   const addFromCanva = (tpl: CanvaSyncedTemplate) => {
@@ -280,6 +273,8 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
         (t.title || '').toLowerCase().includes(pickerQuery.trim().toLowerCase()),
       )
     : pickerTemplates;
+
+  const canvaConnectHref = buildCanvaConnectUrl() || '#';
 
   const handleSave = () => {
     // Basic validation
