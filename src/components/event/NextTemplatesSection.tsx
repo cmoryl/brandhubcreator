@@ -605,6 +605,8 @@ export function NextTemplatesSection({
   onNextVariationCanvaLinksChange,
   nextVariationLogos,
   onNextVariationLogosChange,
+  nextVariationOverlays,
+  onNextVariationOverlaysChange,
   isAdmin = false,
   logos,
 }: NextTemplatesSectionProps) {
