@@ -27,16 +27,17 @@ Deno.serve(async (req) => {
     const state = url.searchParams.get('state');
     const error = url.searchParams.get('error');
 
-    let returnTo = '/transperfect/lifesci-canva-audit.html';
-    let clientId = '';
-    let clientSecret = '';
+    let returnTo = '/';
     let codeVerifier = '';
+    // Legacy panel flow may still pass creds in state; prefer stored env vars.
+    let clientId = Deno.env.get('CANVA_CLIENT_ID') || '';
+    let clientSecret = Deno.env.get('CANVA_CLIENT_SECRET') || '';
     try {
       if (state) {
         const decoded = JSON.parse(atob(state));
         if (decoded?.returnTo) returnTo = String(decoded.returnTo);
-        if (decoded?.cid) clientId = String(decoded.cid);
-        if (decoded?.csec) clientSecret = String(decoded.csec);
+        if (!clientId && decoded?.cid) clientId = String(decoded.cid);
+        if (!clientSecret && decoded?.csec) clientSecret = String(decoded.csec);
         if (decoded?.cv) codeVerifier = String(decoded.cv);
       }
     } catch {/* ignore bad state */}
@@ -46,6 +47,7 @@ Deno.serve(async (req) => {
     if (!clientId || !clientSecret) {
       return redirectResponse(returnTo, { canva: 'error', reason: 'missing_credentials' });
     }
+
 
     const redirectUri = `${SUPABASE_URL}/functions/v1/canva-oauth-callback`;
     const basic = btoa(`${clientId}:${clientSecret}`);

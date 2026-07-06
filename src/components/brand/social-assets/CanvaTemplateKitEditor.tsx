@@ -169,23 +169,16 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
   }, []);
 
   const startCanvaConnect = () => {
-    if (!connectClientId.trim() || !connectClientSecret.trim()) {
-      toast.error('Enter both Client ID and Client Secret');
-      return;
-    }
     const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL as string | undefined;
     if (!supabaseUrl) {
       toast.error('Backend URL not configured');
       return;
     }
     const returnTo = window.location.pathname + window.location.search;
-    const url = `${supabaseUrl}/functions/v1/canva-oauth-start?return_to=${encodeURIComponent(
-      returnTo,
-    )}&client_id=${encodeURIComponent(connectClientId.trim())}&client_secret=${encodeURIComponent(
-      connectClientSecret.trim(),
-    )}`;
+    const url = `${supabaseUrl}/functions/v1/canva-oauth-start?return_to=${encodeURIComponent(returnTo)}`;
     window.location.href = url;
   };
+
 
   const runCanvaSync = async () => {
     setSyncing(true);
