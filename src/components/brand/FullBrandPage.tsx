@@ -24,6 +24,7 @@ import { SocialIconsSection } from './SocialIconsSection';
 import { ImagerySection } from './ImagerySection';
 import { SocialSection } from './SocialSection';
 import { SocialAssetsSection } from './SocialAssetsSection';
+import { SocialAssetsRefreshed } from './social-assets/SocialAssetsRefreshed';
 import { WebsiteSection } from './WebsiteSection';
 import { SignaturesSection } from './SignaturesSection';
 import { QRSection } from './QRSection';
