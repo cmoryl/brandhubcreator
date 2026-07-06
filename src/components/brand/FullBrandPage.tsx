@@ -336,7 +336,6 @@ export const FullBrandPage = ({
       case 'socialassets': {
         const isNextPilot = brand.slug === 'transperfect-next' || (brand.slug || '').endsWith('-next');
         if (isNextPilot) {
-        if (isNextPilot) {
           return <SocialAssetsRefreshed socialAssets={brand.socialAssets || []} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandLogos={brand.logos} brandSlug={brand.slug} entityName={brand.hero?.name} />;
         }
         }
