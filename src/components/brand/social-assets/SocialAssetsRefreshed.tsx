@@ -57,10 +57,14 @@ const TemplateCard = ({
   item,
   platform,
   brandLogo,
+  isAdmin,
+  onEdit,
 }: {
   item: CanvaTemplateKitItem;
   platform: Platform;
   brandLogo?: BrandLogo;
+  isAdmin?: boolean;
+  onEdit?: () => void;
 }) => {
   const Icon = PLATFORM_ICONS[platform];
 
@@ -87,7 +91,16 @@ const TemplateCard = ({
           </div>
         )}
 
-        <div className="absolute top-2 right-2">
+        <div className="absolute top-2 right-2 flex items-center gap-1">
+          {isAdmin && onEdit && (
+            <button
+              onClick={onEdit}
+              title="Edit template details"
+              className="h-6 w-6 rounded-md bg-background/85 backdrop-blur-sm border border-border/70 shadow-sm flex items-center justify-center text-foreground/80 hover:text-primary hover:border-primary opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <Pencil className="h-3 w-3" />
+            </button>
+          )}
           <Badge className="text-[9px] bg-primary text-primary-foreground px-1.5 py-0 h-5 gap-1">
             <Sparkles className="h-2.5 w-2.5" /> Canva
           </Badge>
@@ -105,15 +118,28 @@ const TemplateCard = ({
           <Icon className={`h-4 w-4 shrink-0 ${PLATFORM_ACCENT[platform]}`} />
         </div>
 
-        <Button
-          size="sm"
-          variant="outline"
-          className="w-full h-8 text-xs gap-1.5"
-          onClick={() => window.open(item.url, '_blank', 'noopener,noreferrer')}
-        >
-          Open in Canva
-          <ExternalLink className="h-3 w-3" />
-        </Button>
+        <div className="flex gap-1.5">
+          <Button
+            size="sm"
+            variant="outline"
+            className="flex-1 h-8 text-xs gap-1.5"
+            onClick={() => window.open(item.url, '_blank', 'noopener,noreferrer')}
+          >
+            Open in Canva
+            <ExternalLink className="h-3 w-3" />
+          </Button>
+          {isAdmin && onEdit && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 px-2 text-xs"
+              onClick={onEdit}
+              title="Edit"
+            >
+              <Pencil className="h-3 w-3" />
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
