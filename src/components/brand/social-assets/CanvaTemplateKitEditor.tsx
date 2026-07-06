@@ -12,7 +12,7 @@
  * so it round-trips through existing update handlers.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Trash2, ExternalLink, X, Save, Wand2, LayoutGrid, Loader2, Search, Plug, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -144,6 +144,29 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
     if (pickerTemplates.length || pickerConnected !== null) return;
     await loadPickerTemplates();
   };
+
+  // Detect return from Canva OAuth (?canva=connected or ?canva=error)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get('canva');
+    if (!status) return;
+    if (status === 'connected') {
+      toast.success('Canva connected ✓', { description: 'Click Sync to pull the latest templates.' });
+      setPickerOpen(true);
+      loadPickerTemplates();
+    } else {
+      const reason = params.get('reason') || 'unknown';
+      const detail = params.get('detail') || '';
+      toast.error(`Canva connection failed: ${reason}`, { description: detail.slice(0, 200) });
+    }
+    // Clean the query string
+    params.delete('canva');
+    params.delete('reason');
+    params.delete('detail');
+    const clean = window.location.pathname + (params.toString() ? `?${params}` : '');
+    window.history.replaceState({}, '', clean);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const startCanvaConnect = () => {
     if (!connectClientId.trim() || !connectClientSecret.trim()) {
