@@ -86,6 +86,7 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
   const [pickerTemplates, setPickerTemplates] = useState<CanvaSyncedTemplate[]>([]);
   const [pickerQuery, setPickerQuery] = useState('');
   const [syncing, setSyncing] = useState(false);
+  const [connectingCanva, setConnectingCanva] = useState(false);
 
   const items = kit[activePlatform] || [];
 
@@ -219,10 +220,43 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
       toast.error('Backend URL not configured');
       return;
     }
+    if (connectingCanva) return;
+    setConnectingCanva(true);
+
     const url = new URL(`${supabaseUrl}/functions/v1/canva-oauth-start`);
     url.searchParams.set('return_to', buildReturnPath());
     url.searchParams.set('app_origin', window.location.origin);
-    window.location.href = url.toString();
+    const href = url.toString();
+
+    try {
+      window.sessionStorage.setItem('canvaConnectReturnPath', buildReturnPath());
+    } catch {
+      // Session storage can be unavailable in embedded previews; OAuth still works without it.
+    }
+
+    toast.loading('Opening Canva…', {
+      id: 'canva-connect-opening',
+      description: 'Approve access in Canva, then you’ll return here automatically.',
+    });
+
+    try {
+      if (window.top && window.top !== window) {
+        const popup = window.open(href, '_blank', 'noopener,noreferrer');
+        if (popup) {
+          toast.success('Canva opened in a new tab', {
+            id: 'canva-connect-opening',
+            description: 'Finish the Canva approval there; the template picker will reopen after redirect.',
+          });
+          return;
+        }
+        window.top.location.href = href;
+        return;
+      }
+    } catch {
+      // Lovable preview runs the app in a protected iframe, so top-level navigation can be blocked.
+    }
+
+    window.location.assign(href);
   };
 
   const addFromCanva = (tpl: CanvaSyncedTemplate) => {
@@ -455,9 +489,9 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
                     Sync
                   </Button>
                 )}
-                <Button variant="outline" size="sm" onClick={startCanvaConnect} className="h-8 text-xs">
-                  <Plug className="h-3.5 w-3.5 mr-1.5" />
-                  {pickerConnected ? 'Reconnect' : 'Connect Canva'}
+                <Button variant="outline" size="sm" onClick={startCanvaConnect} disabled={connectingCanva} className="h-8 text-xs">
+                  {connectingCanva ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Plug className="h-3.5 w-3.5 mr-1.5" />}
+                  {connectingCanva ? 'Opening…' : pickerConnected ? 'Reconnect' : 'Connect Canva'}
                 </Button>
                 <Button variant="ghost" size="icon" onClick={() => setPickerOpen(false)} className="h-8 w-8">
                   <X className="h-4 w-4" />
@@ -484,10 +518,15 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
               ) : pickerConnected === false ? (
                 <div className="text-center py-10 text-sm text-muted-foreground border border-dashed border-border rounded-lg space-y-3">
                   <div>Canva isn't connected yet.</div>
-                  <Button size="sm" onClick={startCanvaConnect} className="h-8 text-xs">
-                    <Plug className="h-3.5 w-3.5 mr-1.5" />
-                    Connect Canva
+                  <Button size="sm" onClick={startCanvaConnect} disabled={connectingCanva} className="h-8 text-xs">
+                    {connectingCanva ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Plug className="h-3.5 w-3.5 mr-1.5" />}
+                    {connectingCanva ? 'Opening Canva…' : 'Connect Canva'}
                   </Button>
+                  {connectingCanva && (
+                    <div className="text-xs text-muted-foreground" role="status" aria-live="polite">
+                      If Canva does not open, allow pop-ups for this preview and click again.
+                    </div>
+                  )}
                 </div>
               ) : filteredPickerTemplates.length === 0 ? (
                 <div className="text-center py-10 text-sm text-muted-foreground border border-dashed border-border rounded-lg">
