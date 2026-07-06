@@ -9,6 +9,7 @@ import { TypographySection } from '@/components/brand/TypographySection';
 import { ImagerySection } from '@/components/brand/ImagerySection';
 import { SocialSection } from '@/components/brand/SocialSection';
 import { SocialAssetsSection } from '@/components/brand/SocialAssetsSection';
+import { SocialAssetsRefreshed } from '@/components/brand/social-assets/SocialAssetsRefreshed';
 import { AssetsSection } from '@/components/brand/AssetsSection';
 import { ImageAssetsSection } from '@/components/brand/ImageAssetsSection';
 import { MisuseSection } from '@/components/brand/MisuseSection';
