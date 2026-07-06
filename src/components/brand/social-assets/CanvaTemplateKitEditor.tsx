@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { FunctionsHttpError } from '@supabase/supabase-js';
 import type { CanvaTemplateKit, CanvaTemplateKitItem } from '@/types/brand';
 
 interface CanvaSyncedTemplate {
@@ -42,6 +43,7 @@ interface Props {
   onClose: () => void;
   initialPlatform?: Platform;
   focusItemId?: string;
+  autoOpenPicker?: boolean;
 }
 
 const isCanvaUrl = (u: string) =>
@@ -51,7 +53,29 @@ const genId = () =>
   (globalThis.crypto as any)?.randomUUID?.() ??
   `kit_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
-export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatform, focusItemId }: Props) => {
+const readFunctionError = async (error: unknown, fallback: string) => {
+  if (error instanceof FunctionsHttpError) {
+    const text = await error.context.text();
+    try {
+      const json = JSON.parse(text);
+      return json.details || json.error || text || fallback;
+    } catch {
+      return text || fallback;
+    }
+  }
+  return error instanceof Error ? error.message : fallback;
+};
+
+const buildReturnPath = () => {
+  const params = new URLSearchParams(window.location.search);
+  params.delete('canva');
+  params.delete('reason');
+  params.delete('detail');
+  params.set('canvaKit', '1');
+  return `${window.location.pathname}?${params.toString()}`;
+};
+
+export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatform, focusItemId, autoOpenPicker = false }: Props) => {
   const [kit, setKit] = useState<CanvaTemplateKit>(() => ({ ...(value || {}) }));
   const [activePlatform, setActivePlatform] = useState<Platform>(initialPlatform || 'LinkedIn');
   const [hydratingIdx, setHydratingIdx] = useState<number | null>(null);
@@ -60,9 +84,6 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
   const [pickerConnected, setPickerConnected] = useState<boolean | null>(null);
   const [pickerTemplates, setPickerTemplates] = useState<CanvaSyncedTemplate[]>([]);
   const [pickerQuery, setPickerQuery] = useState('');
-  const [connectOpen, setConnectOpen] = useState(false);
-  const [connectClientId, setConnectClientId] = useState('');
-  const [connectClientSecret, setConnectClientSecret] = useState('');
   const [syncing, setSyncing] = useState(false);
 
   const items = kit[activePlatform] || [];
@@ -105,7 +126,7 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
       const { data, error } = await supabase.functions.invoke('canva-resolve-design', {
         body: { url: item.url.trim() },
       });
-      if (error) throw error;
+      if (error) throw new Error(await readFunctionError(error, 'Could not fetch from Canva'));
       if (!data?.ok) throw new Error(data?.error || 'Failed');
       updateItem(idx, {
         name: item.name?.trim() || data.title || item.name,
@@ -127,7 +148,7 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
     setPickerLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('canva-list');
-      if (error) throw error;
+      if (error) throw new Error(await readFunctionError(error, 'Could not load Canva templates'));
       if (!data?.ok) throw new Error(data?.error || 'Failed');
       setPickerConnected(!!data.connected);
       setPickerTemplates(data.templates || []);
@@ -145,15 +166,37 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
     await loadPickerTemplates();
   };
 
+  useEffect(() => {
+    if (!autoOpenPicker) return;
+    openPicker();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoOpenPicker]);
+
+  const runCanvaSync = async () => {
+    setSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('canva-sync');
+      if (error) throw new Error(await readFunctionError(error, 'Sync failed'));
+      if (!data?.ok) throw new Error(data?.error || 'Sync failed');
+      toast.success(`Synced ${data.synced} templates from Canva`);
+      await loadPickerTemplates();
+    } catch (e: any) {
+      toast.error('Sync failed', { description: e?.message?.slice(0, 200) });
+      await loadPickerTemplates();
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   // Detect return from Canva OAuth (?canva=connected or ?canva=error)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const status = params.get('canva');
     if (!status) return;
     if (status === 'connected') {
-      toast.success('Canva connected ✓', { description: 'Click Sync to pull the latest templates.' });
+      toast.success('Canva connected', { description: 'Syncing your templates now.' });
       setPickerOpen(true);
-      loadPickerTemplates();
+      runCanvaSync();
     } else {
       const reason = params.get('reason') || 'unknown';
       const detail = params.get('detail') || '';
@@ -163,6 +206,7 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
     params.delete('canva');
     params.delete('reason');
     params.delete('detail');
+    params.delete('canvaKit');
     const clean = window.location.pathname + (params.toString() ? `?${params}` : '');
     window.history.replaceState({}, '', clean);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -174,25 +218,10 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
       toast.error('Backend URL not configured');
       return;
     }
-    const returnTo = window.location.pathname + window.location.search;
-    const url = `${supabaseUrl}/functions/v1/canva-oauth-start?return_to=${encodeURIComponent(returnTo)}`;
+    const url = new URL(`${supabaseUrl}/functions/v1/canva-oauth-start`);
+    url.searchParams.set('return_to', buildReturnPath());
+    url.searchParams.set('app_origin', window.location.origin);
     window.location.href = url;
-  };
-
-
-  const runCanvaSync = async () => {
-    setSyncing(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('canva-sync');
-      if (error) throw error;
-      if (!data?.ok) throw new Error(data?.error || 'Sync failed');
-      toast.success(`Synced ${data.synced} templates from Canva`);
-      await loadPickerTemplates();
-    } catch (e: any) {
-      toast.error('Sync failed', { description: e?.message?.slice(0, 200) });
-    } finally {
-      setSyncing(false);
-    }
   };
 
   const addFromCanva = (tpl: CanvaSyncedTemplate) => {
@@ -425,7 +454,7 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
                     Sync
                   </Button>
                 )}
-                <Button variant="outline" size="sm" onClick={() => setConnectOpen((v) => !v)} className="h-8 text-xs">
+                <Button variant="outline" size="sm" onClick={startCanvaConnect} className="h-8 text-xs">
                   <Plug className="h-3.5 w-3.5 mr-1.5" />
                   {pickerConnected ? 'Reconnect' : 'Connect Canva'}
                 </Button>
@@ -434,56 +463,6 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
                 </Button>
               </div>
             </div>
-
-            {connectOpen && (
-              <div className="px-4 py-3 border-b border-border bg-muted/30 space-y-2">
-                <div className="text-xs text-muted-foreground">
-                  Create an Integration at{' '}
-                  <a
-                    href="https://www.canva.com/developers/integrations"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary underline"
-                  >
-                    canva.com/developers/integrations
-                  </a>
-                  , set redirect URL to{' '}
-                  <code className="text-[10px] bg-background px-1 py-0.5 rounded">
-                    {(import.meta as any).env?.VITE_SUPABASE_URL}/functions/v1/canva-oauth-callback
-                  </code>
-                  , enable scopes <code className="text-[10px]">brandtemplate:meta:read</code>,{' '}
-                  <code className="text-[10px]">brandtemplate:content:read</code>,{' '}
-                  <code className="text-[10px]">design:meta:read</code>, then paste ID + Secret below.
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <div className="space-y-1">
-                    <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Client ID</Label>
-                    <Input
-                      value={connectClientId}
-                      onChange={(e) => setConnectClientId(e.target.value)}
-                      placeholder="OA..."
-                      className="h-8 text-sm font-mono"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Client Secret</Label>
-                    <Input
-                      type="password"
-                      value={connectClientSecret}
-                      onChange={(e) => setConnectClientSecret(e.target.value)}
-                      placeholder="••••••••••••"
-                      className="h-8 text-sm font-mono"
-                    />
-                  </div>
-                </div>
-                <div className="flex justify-end">
-                  <Button size="sm" onClick={startCanvaConnect} className="h-8 text-xs">
-                    <Plug className="h-3.5 w-3.5 mr-1.5" />
-                    Authorize with Canva
-                  </Button>
-                </div>
-              </div>
-            )}
 
             <div className="px-4 py-3 border-b border-border">
               <div className="relative">
@@ -502,8 +481,12 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
                   <Loader2 className="h-4 w-4 animate-spin mr-2" /> Loading templates…
                 </div>
               ) : pickerConnected === false ? (
-                <div className="text-center py-10 text-sm text-muted-foreground border border-dashed border-border rounded-lg">
-                  Canva isn't connected yet. Click <span className="font-medium text-foreground">Connect Canva</span> above to link your account.
+                <div className="text-center py-10 text-sm text-muted-foreground border border-dashed border-border rounded-lg space-y-3">
+                  <div>Canva isn't connected yet.</div>
+                  <Button size="sm" onClick={startCanvaConnect} className="h-8 text-xs">
+                    <Plug className="h-3.5 w-3.5 mr-1.5" />
+                    Connect Canva
+                  </Button>
                 </div>
               ) : filteredPickerTemplates.length === 0 ? (
                 <div className="text-center py-10 text-sm text-muted-foreground border border-dashed border-border rounded-lg">
