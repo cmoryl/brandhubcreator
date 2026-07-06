@@ -443,6 +443,8 @@ export interface EventGuide {
   // Communication (reused from brand)
   social: BrandSocialProfile[];
   socialAssets?: BrandSocialAssetSpec[];
+  /** Per-platform Canva template links (auto-branded per event). */
+  canvaTemplateKit?: import('./brand').CanvaTemplateKit;
   displayBanners?: BrandDisplayBannerSpec[];
   websites: BrandWebsiteLink[];
   signatures: BrandSignature[];
