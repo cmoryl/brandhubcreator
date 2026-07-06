@@ -1,4 +1,19 @@
 // Core types
+
+// Canva Template Kit — per-platform Canva template links
+// Used by SocialAssetsRefreshed to render the Live Templates row.
+export interface CanvaTemplateKitItem {
+  id: string;
+  name: string;
+  url: string;
+  format?: string;
+  thumbnailUrl?: string;
+}
+export type CanvaTemplateKit = Partial<Record<
+  'LinkedIn' | 'Instagram' | 'X' | 'YouTube' | 'Facebook' | 'TikTok',
+  CanvaTemplateKitItem[]
+>>;
+
 export interface BrandColor {
   id: string;
   name: string;
