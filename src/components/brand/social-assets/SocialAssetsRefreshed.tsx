@@ -221,7 +221,7 @@ export const SocialAssetsRefreshed = ({
             <Button
               size="sm"
               className="mt-4 h-9"
-              onClick={() => setEditorOpen(true)}
+              onClick={openEditor}
             >
               <Settings2 className="h-3.5 w-3.5 mr-1.5" />
               Add Canva templates
