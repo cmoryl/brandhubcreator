@@ -1,53 +1,25 @@
 /**
- * SocialAssetsRefreshed
- * -------------------------------------------------------------
- * Redesigned Social Assets & Guidelines section, piloted on
- * TransPerfect NEXT and its sub-events.
+ * SocialAssetsRefreshed — clean-slate rebuild
+ * ---------------------------------------------------------
+ * A minimal Social section that shows only the Canva templates
+ * this event actually has (LinkedIn / Instagram / Facebook posts
+ * out of the box, extendable to any platform).
  *
- * Three zones:
- *   1. Social Playbook (voice, hashtags, imagery, do/don't, sizing)
- *   2. Platform-first tabs with three rows per platform:
- *        A. Live Canva templates (auto-branded to this event)
- *        B. Published creations (ready-to-download)
- *        C. Specs strip (dimensions for THIS platform only)
- *   3. Collapsed asset library (dense table)
+ * Everything is driven by `canvaTemplateKit` on the entity's
+ * guide_data. Admins add / edit / remove links via the Kit editor.
+ * No playbook, no specs table, no asset library — just the
+ * templates and where to open them.
  */
 
-import { useMemo, useState } from 'react';
-import {
-  Linkedin,
-  Twitter,
-  Instagram,
-  Facebook,
-  Youtube,
-  Monitor,
-  LayoutGrid,
-  ExternalLink,
-  Download,
-  Sparkles,
-  RefreshCw,
-  ChevronDown,
-  ChevronRight,
-  CheckCircle2,
-  XCircle,
-  Ruler,
-  Hash,
-  MessageSquareQuote,
-  ImageIcon,
-  Shield,
-} from 'lucide-react';
-import { BrandSocialAssetSpec, SocialAssetTemplate, BrandLogo, CanvaTemplateKit, CanvaTemplateKitItem } from '@/types/brand';
+import { useState, useMemo } from 'react';
+import { Linkedin, Instagram, Facebook, Twitter, Youtube, Monitor, ExternalLink, Settings2, Sparkles, LayoutGrid } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LazyImage } from '@/components/ui/lazy-image';
-import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
+import type { BrandLogo, BrandSocialAssetSpec, CanvaTemplateKit, CanvaTemplateKitItem } from '@/types/brand';
 import { CanvaTemplateKitEditor } from './CanvaTemplateKitEditor';
-import { Settings2 } from 'lucide-react';
 
 interface Props {
-  socialAssets: BrandSocialAssetSpec[];
+  socialAssets?: BrandSocialAssetSpec[]; // accepted for API compat; not rendered
   customSubtitle?: string;
   onSubtitleChange?: (s: string) => void;
   brandLogos?: BrandLogo[];
@@ -58,584 +30,210 @@ interface Props {
   isAdmin?: boolean;
 }
 
-const PLATFORM_ORDER = ['LinkedIn', 'Instagram', 'X', 'YouTube', 'Facebook', 'TikTok'] as const;
+const PLATFORM_ORDER = ['LinkedIn', 'Instagram', 'Facebook', 'X', 'YouTube', 'TikTok'] as const;
 type Platform = typeof PLATFORM_ORDER[number];
 
-const platformIcons: Record<string, React.ElementType> = {
+const PLATFORM_ICONS: Record<Platform, React.ElementType> = {
   LinkedIn: Linkedin,
   Instagram: Instagram,
-  X: Twitter,
-  'X (Twitter)': Twitter,
-  YouTube: Youtube,
   Facebook: Facebook,
+  X: Twitter,
+  YouTube: Youtube,
   TikTok: Monitor,
-  General: LayoutGrid,
 };
 
-const PLATFORM_SPECS: Record<Platform, { format: string; dims: string; safe: string }[]> = {
-  LinkedIn: [
-    { format: 'Cover banner', dims: '1584 × 396', safe: 'Keep text 60px from edges' },
-    { format: 'Feed post', dims: '1200 × 627', safe: 'Center-safe 1080 × 566' },
-    { format: 'Square post', dims: '1080 × 1080', safe: 'Text within 900 × 900' },
-  ],
-  Instagram: [
-    { format: 'Square feed', dims: '1080 × 1080', safe: 'Text within 900 × 900' },
-    { format: 'Portrait feed', dims: '1080 × 1350', safe: 'Top/bottom 250px cropped in grid' },
-    { format: 'Story / Reel', dims: '1080 × 1920', safe: 'Top 250 / bottom 340 UI overlap' },
-  ],
-  X: [
-    { format: 'Header', dims: '1500 × 500', safe: 'Avatar overlaps bottom-left' },
-    { format: 'Post landscape', dims: '1600 × 900', safe: '16:9 crop preview' },
-    { format: 'Post square', dims: '1080 × 1080', safe: 'Text within 900 × 900' },
-  ],
-  YouTube: [
-    { format: 'Channel art', dims: '2560 × 1440', safe: 'TV-safe center 1546 × 423' },
-    { format: 'Thumbnail', dims: '1280 × 720', safe: 'Duration badge bottom-right' },
-    { format: 'Short', dims: '1080 × 1920', safe: 'UI safe center 1080 × 1080' },
-  ],
-  Facebook: [
-    { format: 'Cover', dims: '1640 × 856', safe: 'Mobile crops to 640 × 360' },
-    { format: 'Feed post', dims: '1200 × 630', safe: 'Text within 1080 × 566' },
-    { format: 'Story', dims: '1080 × 1920', safe: 'Top 250 / bottom 340 UI overlap' },
-  ],
-  TikTok: [
-    { format: 'Video', dims: '1080 × 1920', safe: 'Center-safe 1080 × 1080' },
-    { format: 'Profile', dims: '200 × 200', safe: 'Circle crop' },
-  ],
+const PLATFORM_ACCENT: Record<Platform, string> = {
+  LinkedIn: 'text-[#0A66C2]',
+  Instagram: 'text-[#E4405F]',
+  Facebook: 'text-[#1877F2]',
+  X: 'text-foreground',
+  YouTube: 'text-[#FF0000]',
+  TikTok: 'text-foreground',
 };
 
-const VOICE_RULES = [
-  'Confident, not corporate — write like a smart colleague sharing a discovery.',
-  'One idea per post. If it needs two headlines, it needs two posts.',
-  'Lead with the human outcome, not the technology.',
-  'Plain English first — translations flow through GlobalLink.',
-];
-
-const HASHTAG_SYSTEM = [
-  { label: 'Master', tags: ['#TransPerfectNEXT', '#TransPerfect'] },
-  { label: 'Event / sub-event', tags: ['#{{event}}NEXT'] },
-  { label: 'Campaign', tags: ['#GlobalGrowth', '#LanguageIsInfrastructure'] },
-];
-
-const DO_RULES = [
-  'Lock the sub-event wordmark to a consistent corner across the series',
-  'Keep to one Digital Blue accent per frame (CTA or single shape)',
-  'Design for the 1:1 safe area, then extend art to 4:5 and 9:16',
-  'Alt-text every image — describe the subject, not the brand',
-];
-
-const DONT_RULES = [
-  "Don't place the wordmark over faces or busy photography",
-  "Don't stack more than two type sizes in one post",
-  "Don't mix Soft Transition orbs with photography in the same frame",
-  "Don't ship paid placements without Brand Operations review",
-];
-
-// -----------------------------------------------------------------
-
-const PlaybookZone = () => {
-  const [openSection, setOpenSection] = useState<string | null>('voice');
-
-  const Section = ({ id, title, icon: Icon, children }: any) => {
-    const isOpen = openSection === id;
-    return (
-      <div className="border border-border/60 rounded-lg bg-card/40 overflow-hidden">
-        <button
-          onClick={() => setOpenSection(isOpen ? null : id)}
-          className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/40 transition-colors text-left"
-        >
-          <div className="flex items-center gap-2.5">
-            <Icon className="h-4 w-4 text-primary" />
-            <span className="text-sm font-semibold text-foreground">{title}</span>
-          </div>
-          {isOpen ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
-        </button>
-        {isOpen && <div className="px-4 pb-4 pt-1 border-t border-border/60">{children}</div>}
-      </div>
-    );
-  };
-
-  return (
-    <div className="rounded-2xl border border-border bg-gradient-to-br from-card via-card to-muted/20 p-6 space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold tracking-tight text-foreground">Social Playbook</h3>
-          <p className="text-xs text-muted-foreground mt-0.5">The brand's rules for every post, story, and reel.</p>
-        </div>
-        <Badge variant="outline" className="text-[10px] font-medium border-primary/30 text-primary">
-          Brand Guidelines · 2026
-        </Badge>
-      </div>
-
-      <div className="grid gap-2">
-        <Section id="voice" title="Voice & Tone" icon={MessageSquareQuote}>
-          <ul className="text-sm text-muted-foreground space-y-1.5 mt-2">
-            {VOICE_RULES.map((r) => (
-              <li key={r} className="flex gap-2"><span className="text-primary mt-1">·</span>{r}</li>
-            ))}
-          </ul>
-        </Section>
-
-        <Section id="hashtags" title="Hashtag System" icon={Hash}>
-          <div className="grid sm:grid-cols-3 gap-3 mt-2">
-            {HASHTAG_SYSTEM.map((h) => (
-              <div key={h.label} className="rounded-md border border-border/60 bg-background/40 p-3">
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">{h.label}</div>
-                <div className="flex flex-wrap gap-1.5">
-                  {h.tags.map((t) => (
-                    <span key={t} className="text-xs font-mono text-primary bg-primary/10 px-2 py-0.5 rounded">{t}</span>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </Section>
-
-        <Section id="imagery" title="Imagery Rules" icon={ImageIcon}>
-          <ul className="text-sm text-muted-foreground space-y-1.5 mt-2">
-            <li className="flex gap-2"><span className="text-primary mt-1">·</span>One hero photograph OR one Soft Transition orb — never both in a frame.</li>
-            <li className="flex gap-2"><span className="text-primary mt-1">·</span>Digital Blue #003FC7 only for CTAs, link stickers, or a single accent shape.</li>
-            <li className="flex gap-2"><span className="text-primary mt-1">·</span>Wordmark stays in a consistent corner across a series (top-left or bottom-left).</li>
-          </ul>
-        </Section>
-
-        <Section id="dodont" title="Do & Don't" icon={Shield}>
-          <div className="grid md:grid-cols-2 gap-4 mt-2">
-            <div>
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-500 mb-2">
-                <CheckCircle2 className="h-3.5 w-3.5" /> DO
-              </div>
-              <ul className="text-sm text-muted-foreground space-y-1.5">
-                {DO_RULES.map((r) => <li key={r} className="flex gap-2"><span className="text-emerald-500 mt-1">·</span>{r}</li>)}
-              </ul>
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-destructive mb-2">
-                <XCircle className="h-3.5 w-3.5" /> DON'T
-              </div>
-              <ul className="text-sm text-muted-foreground space-y-1.5">
-                {DONT_RULES.map((r) => <li key={r} className="flex gap-2"><span className="text-destructive mt-1">·</span>{r}</li>)}
-              </ul>
-            </div>
-          </div>
-        </Section>
-      </div>
-    </div>
-  );
-};
-
-// -----------------------------------------------------------------
+// ------------------------------------------------------------------
 
 const TemplateCard = ({
-  template,
+  item,
   platform,
-  brandLogos,
-  entityName,
-  isLive,
+  brandLogo,
 }: {
-  template: SocialAssetTemplate;
-  platform: string;
-  brandLogos?: BrandLogo[];
-  entityName?: string;
-  isLive?: boolean;
+  item: CanvaTemplateKitItem;
+  platform: Platform;
+  brandLogo?: BrandLogo;
 }) => {
-  const logo = brandLogos?.[0];
+  const Icon = PLATFORM_ICONS[platform];
+
   return (
-    <div className="group relative rounded-lg overflow-hidden border border-border/60 bg-card hover:border-primary/50 transition-all">
-      <div className="aspect-[4/3] relative bg-muted overflow-hidden">
-        {template.previewImageUrl ? (
-          <LazyImage
-            src={template.previewImageUrl}
-            alt={template.name}
+    <div className="group rounded-xl border border-border bg-card overflow-hidden hover:border-primary/50 hover:shadow-lg transition-all">
+      <div className="aspect-[4/3] relative bg-gradient-to-br from-muted/60 to-muted overflow-hidden">
+        {item.thumbnailUrl ? (
+          <img
+            src={item.thumbnailUrl}
+            alt={item.name}
             className="w-full h-full object-cover"
+            loading="lazy"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
-            No preview
+          <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+            <Icon className={`h-10 w-10 ${PLATFORM_ACCENT[platform]} opacity-70`} />
+            <span className="text-xs text-muted-foreground">{item.format || `${platform} template`}</span>
           </div>
         )}
-        {logo?.url && (
-          <div className="absolute top-2 left-2 h-6 w-6 rounded bg-background/80 backdrop-blur-sm p-1 border border-border/60">
-            <img src={logo.url} alt="" className="w-full h-full object-contain" />
+
+        {brandLogo?.url && (
+          <div className="absolute top-2 left-2 h-7 w-7 rounded-md bg-background/85 backdrop-blur-sm p-1 border border-border/70 shadow-sm">
+            <img src={brandLogo.url} alt="" className="w-full h-full object-contain" />
           </div>
         )}
-        {isLive && (
-          <div className="absolute top-2 right-2">
-            <Badge className="text-[9px] bg-primary text-primary-foreground px-1.5 py-0 h-4">
-              <Sparkles className="h-2.5 w-2.5 mr-0.5" /> LIVE
-            </Badge>
-          </div>
-        )}
-        <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex gap-1.5">
-          {template.url && (
-            <Button
-              size="sm"
-              variant="secondary"
-              className="h-7 text-[11px] flex-1"
-              onClick={() => window.open(template.url, '_blank')}
-            >
-              <ExternalLink className="h-3 w-3 mr-1" /> Open
-            </Button>
-          )}
-          {isLive && (
-            <Button
-              size="sm"
-              className="h-7 text-[11px] flex-1"
-              onClick={() =>
-                toast.success(`Duplicating "${template.name}" for ${entityName || 'this event'}`, {
-                  description: 'Canva autofill will inject the event logo, location, and colors.',
-                })
-              }
-            >
-              Duplicate
-            </Button>
-          )}
+
+        <div className="absolute top-2 right-2">
+          <Badge className="text-[9px] bg-primary text-primary-foreground px-1.5 py-0 h-5 gap-1">
+            <Sparkles className="h-2.5 w-2.5" /> Canva
+          </Badge>
         </div>
       </div>
-      <div className="p-2.5">
-        <div className="text-xs font-medium text-foreground truncate">{template.name}</div>
-        {template.dimensions && (
-          <div className="text-[10px] text-muted-foreground mt-0.5">{template.dimensions}</div>
-        )}
-      </div>
-    </div>
-  );
-};
 
-// -----------------------------------------------------------------
-
-const PlatformPanel = ({
-  platform,
-  templates,
-  brandLogos,
-  entityName,
-  isAdmin,
-  kitItems,
-  onEditKit,
-}: {
-  platform: Platform;
-  templates: SocialAssetTemplate[];
-  brandLogos?: BrandLogo[];
-  entityName?: string;
-  isAdmin?: boolean;
-  kitItems?: CanvaTemplateKitItem[];
-  onEditKit?: () => void;
-}) => {
-  const specs = PLATFORM_SPECS[platform] || [];
-  // Convert Canva Template Kit items into TemplateCard-compatible objects.
-  const kitAsTemplates: SocialAssetTemplate[] = (kitItems || []).map((k) => ({
-    id: `kit-${k.id}`,
-    name: k.name || 'Canva Template',
-    fileType: 'other' as const,
-    url: k.url,
-    previewImageUrl: k.thumbnailUrl,
-    dimensions: k.format,
-    sizeCategory: 'other' as const,
-  }));
-  // Live row = Canva-connected kit items (auto-branded per event).
-  // Fall back to the first few generic templates when no kit is set yet.
-  const liveTemplates = kitAsTemplates.length > 0
-    ? kitAsTemplates
-    : templates.slice(0, 4);
-  const publishedTemplates = kitAsTemplates.length > 0
-    ? templates
-    : templates.slice(4);
-
-  return (
-    <div className="space-y-6 pt-4">
-      {/* ROW A — Live Canva templates */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-primary" />
-              <h4 className="text-sm font-semibold text-foreground">Live Templates</h4>
-              <Badge variant="outline" className="text-[9px] border-primary/40 text-primary">
-                {kitAsTemplates.length > 0 ? 'Canva kit' : 'Canva connected'}
-              </Badge>
-              {kitAsTemplates.length > 0 && (
-                <span className="text-[10px] text-muted-foreground">
-                  · {kitAsTemplates.length} linked
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Auto-branded to {entityName || 'this event'}. Opening a template goes straight to your event-specific Canva design.
-            </p>
-          </div>
-          {isAdmin && (
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 text-xs"
-                onClick={onEditKit}
-              >
-                <Settings2 className="h-3 w-3 mr-1.5" /> Edit Kit
-              </Button>
-            </div>
-          )}
-        </div>
-        {liveTemplates.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-border bg-muted/20 p-8 text-center">
-            <Sparkles className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
-            <div className="text-sm text-muted-foreground">No live templates linked yet</div>
-            {isAdmin && (
-              <p className="text-xs text-muted-foreground/70 mt-1">
-                Click <span className="font-medium">Edit Kit</span> to paste Canva template URLs for {platform}.
-              </p>
+      <div className="p-3 space-y-2">
+        <div className="flex items-start justify-between gap-2 min-w-0">
+          <div className="min-w-0 flex-1">
+            <h4 className="text-sm font-semibold text-foreground truncate">{item.name || 'Untitled template'}</h4>
+            {item.format && (
+              <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{item.format}</p>
             )}
           </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {liveTemplates.map((t) => (
-              <TemplateCard
-                key={t.id}
-                template={t}
-                platform={platform}
-                brandLogos={brandLogos}
-                entityName={entityName}
-                isLive
-              />
-            ))}
-          </div>
-        )}
-      </div>
-
-
-
-      {/* ROW B — Published creations */}
-      {publishedTemplates.length > 0 && (
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <Download className="h-4 w-4 text-muted-foreground" />
-            <h4 className="text-sm font-semibold text-foreground">Published Creations</h4>
-            <span className="text-xs text-muted-foreground">· {publishedTemplates.length}</span>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {publishedTemplates.map((t) => (
-              <TemplateCard
-                key={t.id}
-                template={t}
-                platform={platform}
-                brandLogos={brandLogos}
-                entityName={entityName}
-              />
-            ))}
-          </div>
+          <Icon className={`h-4 w-4 shrink-0 ${PLATFORM_ACCENT[platform]}`} />
         </div>
-      )}
 
-      {/* ROW C — Specs strip */}
-      <div>
-        <div className="flex items-center gap-2 mb-3">
-          <Ruler className="h-4 w-4 text-muted-foreground" />
-          <h4 className="text-sm font-semibold text-foreground">{platform} Specs</h4>
-        </div>
-        <div className="rounded-lg border border-border/60 overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
-              <tr>
-                <th className="text-left px-3 py-2 font-medium">Format</th>
-                <th className="text-left px-3 py-2 font-medium">Dimensions</th>
-                <th className="text-left px-3 py-2 font-medium">Safe zone / notes</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/40">
-              {specs.map((s) => (
-                <tr key={s.format} className="hover:bg-muted/20">
-                  <td className="px-3 py-2 font-medium text-foreground">{s.format}</td>
-                  <td className="px-3 py-2 font-mono text-xs text-primary">{s.dims}</td>
-                  <td className="px-3 py-2 text-xs text-muted-foreground">{s.safe}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Button
+          size="sm"
+          variant="outline"
+          className="w-full h-8 text-xs gap-1.5"
+          onClick={() => window.open(item.url, '_blank', 'noopener,noreferrer')}
+        >
+          Open in Canva
+          <ExternalLink className="h-3 w-3" />
+        </Button>
       </div>
     </div>
   );
 };
 
-// -----------------------------------------------------------------
-
-const AssetLibrary = ({ socialAssets }: { socialAssets: BrandSocialAssetSpec[] }) => {
-  const [open, setOpen] = useState(false);
-  const allTemplates = useMemo(
-    () =>
-      socialAssets.flatMap((spec) =>
-        (spec.templates || []).map((t) => ({ ...t, platform: spec.platform }))
-      ),
-    [socialAssets]
-  );
-
-  return (
-    <div className="rounded-xl border border-border bg-card/40 overflow-hidden">
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/40 transition-colors"
-      >
-        <div className="flex items-center gap-2">
-          <LayoutGrid className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-semibold text-foreground">Full Asset Library</span>
-          <Badge variant="secondary" className="text-[10px]">{allTemplates.length} files</Badge>
-        </div>
-        {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-      </button>
-      {open && (
-        <div className="border-t border-border max-h-96 overflow-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground sticky top-0">
-              <tr>
-                <th className="text-left px-3 py-2">Name</th>
-                <th className="text-left px-3 py-2">Platform</th>
-                <th className="text-left px-3 py-2">Format</th>
-                <th className="text-left px-3 py-2">Dimensions</th>
-                <th className="text-right px-3 py-2">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/40">
-              {allTemplates.map((t: any) => (
-                <tr key={t.id} className="hover:bg-muted/20">
-                  <td className="px-3 py-2 text-foreground">{t.name}</td>
-                  <td className="px-3 py-2 text-muted-foreground">{t.platform}</td>
-                  <td className="px-3 py-2 text-muted-foreground uppercase text-[10px]">{t.fileType}</td>
-                  <td className="px-3 py-2 font-mono text-xs text-muted-foreground">{t.dimensions || '—'}</td>
-                  <td className="px-3 py-2 text-right">
-                    {t.url && (
-                      <a href={t.url} target="_blank" rel="noreferrer" className="text-primary hover:underline text-xs">
-                        Open
-                      </a>
-                    )}
-                  </td>
-                </tr>
-              ))}
-              {allTemplates.length === 0 && (
-                <tr><td colSpan={5} className="px-3 py-8 text-center text-muted-foreground text-xs">No assets in library yet.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// -----------------------------------------------------------------
+// ------------------------------------------------------------------
 
 export const SocialAssetsRefreshed = ({
-  socialAssets,
   customSubtitle,
-  onSubtitleChange,
   brandLogos,
-  brandSlug,
   entityName,
   canvaTemplateKit,
   onCanvaTemplateKitChange,
   isAdmin = false,
 }: Props) => {
-  // Group templates by platform (case-insensitive fuzzy match)
-  const templatesByPlatform = useMemo(() => {
-    const result: Record<Platform, SocialAssetTemplate[]> = {
-      LinkedIn: [], Instagram: [], X: [], YouTube: [], Facebook: [], TikTok: [],
-    };
-    for (const spec of socialAssets) {
-      const p = spec.platform;
-      const key = (PLATFORM_ORDER.find((x) => p?.toLowerCase().includes(x.toLowerCase())) ||
-        (p === 'X (Twitter)' ? 'X' : null)) as Platform | null;
-      if (!key) continue;
-      result[key].push(...(spec.templates || []));
-    }
-    return result;
-  }, [socialAssets]);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const brandLogo = brandLogos?.[0];
 
-  const [activePlatform, setActivePlatform] = useState<Platform>(() => {
-    const firstKit = PLATFORM_ORDER.find((p) => (canvaTemplateKit?.[p]?.length || 0) > 0);
-    if (firstKit) return firstKit;
-    const first = PLATFORM_ORDER.find((p) => templatesByPlatform[p]?.length > 0);
-    return first || 'LinkedIn';
-  });
+  // Only show platforms that actually have templates (or all if admin editing)
+  const populatedPlatforms = useMemo(
+    () => PLATFORM_ORDER.filter((p) => (canvaTemplateKit?.[p]?.length || 0) > 0),
+    [canvaTemplateKit],
+  );
 
-  const [kitEditorOpen, setKitEditorOpen] = useState(false);
+  const totalTemplates = useMemo(
+    () => PLATFORM_ORDER.reduce((sum, p) => sum + (canvaTemplateKit?.[p]?.length || 0), 0),
+    [canvaTemplateKit],
+  );
+
+  const hasAny = totalTemplates > 0;
 
   return (
     <section className="space-y-6">
-      <div className="space-y-1 flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight text-foreground">Social Assets & Guidelines</h2>
-          <p className="text-sm text-muted-foreground">
-            {customSubtitle || 'Playbook, live Canva templates, and every published creation — in one calmer place.'}
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="space-y-1">
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">Social Templates</h2>
+          <p className="text-sm text-muted-foreground max-w-2xl">
+            {customSubtitle ||
+              `Every Canva template linked to ${entityName || 'this event'} — open one, duplicate in Canva, export.`}
           </p>
         </div>
         {isAdmin && onCanvaTemplateKitChange && (
           <Button
             variant="outline"
             size="sm"
-            className="h-8 text-xs shrink-0"
-            onClick={() => setKitEditorOpen(true)}
+            className="h-9 text-xs shrink-0"
+            onClick={() => setEditorOpen(true)}
           >
-            <Settings2 className="h-3 w-3 mr-1.5" /> Canva Template Kit
+            <Settings2 className="h-3.5 w-3.5 mr-1.5" />
+            {hasAny ? 'Manage templates' : 'Add Canva templates'}
           </Button>
         )}
       </div>
 
-      {/* Zone 1 — Playbook */}
-      <PlaybookZone />
+      {/* Empty state */}
+      {!hasAny && (
+        <div className="rounded-2xl border border-dashed border-border bg-card/40 p-10 text-center">
+          <div className="mx-auto w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-3">
+            <LayoutGrid className="h-6 w-6 text-primary" />
+          </div>
+          <h3 className="text-base font-semibold text-foreground">No templates linked yet</h3>
+          <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto">
+            {isAdmin
+              ? 'Click "Add Canva templates" and paste your Canva links per platform. LinkedIn, Instagram, Facebook — whatever you have.'
+              : 'Canva templates for this event will appear here once an admin links them.'}
+          </p>
+          {isAdmin && onCanvaTemplateKitChange && (
+            <Button
+              size="sm"
+              className="mt-4 h-9"
+              onClick={() => setEditorOpen(true)}
+            >
+              <Settings2 className="h-3.5 w-3.5 mr-1.5" />
+              Add Canva templates
+            </Button>
+          )}
+        </div>
+      )}
 
-      {/* Zone 2 — Platform-first tabs */}
-      <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
-        <Tabs value={activePlatform} onValueChange={(v) => setActivePlatform(v as Platform)}>
-          <TabsList className="w-full h-auto flex-wrap justify-start bg-muted/40 p-1">
-            {PLATFORM_ORDER.map((p) => {
-              const Icon = platformIcons[p] || LayoutGrid;
-              const count = (templatesByPlatform[p]?.length || 0) + (canvaTemplateKit?.[p]?.length || 0);
-              const hasKit = (canvaTemplateKit?.[p]?.length || 0) > 0;
-              return (
-                <TabsTrigger
-                  key={p}
-                  value={p}
-                  className="data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs gap-1.5 px-3 py-2"
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                  {p}
-                  {hasKit && <span className="h-1.5 w-1.5 rounded-full bg-primary" title="Canva kit configured" />}
-                  {count > 0 && (
-                    <span className="text-[10px] bg-muted-foreground/20 text-muted-foreground rounded px-1.5 py-0">
-                      {count}
-                    </span>
-                  )}
-                </TabsTrigger>
-              );
-            })}
-          </TabsList>
+      {/* Platform groups */}
+      {populatedPlatforms.map((platform) => {
+        const items = canvaTemplateKit?.[platform] || [];
+        const Icon = PLATFORM_ICONS[platform];
 
-          {PLATFORM_ORDER.map((p) => (
-            <TabsContent key={p} value={p} className="mt-0">
-              <PlatformPanel
-                platform={p}
-                templates={templatesByPlatform[p] || []}
-                brandLogos={brandLogos}
-                entityName={entityName}
-                isAdmin={isAdmin && !!onCanvaTemplateKitChange}
-                kitItems={canvaTemplateKit?.[p]}
-                onEditKit={() => setKitEditorOpen(true)}
-              />
-            </TabsContent>
-          ))}
-        </Tabs>
-      </div>
+        return (
+          <div key={platform} className="space-y-3">
+            <div className="flex items-center gap-2.5">
+              <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center">
+                <Icon className={`h-4 w-4 ${PLATFORM_ACCENT[platform]}`} />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold text-foreground">{platform}</h3>
+                <p className="text-[11px] text-muted-foreground">
+                  {items.length} template{items.length === 1 ? '' : 's'}
+                </p>
+              </div>
+            </div>
 
-      {/* Zone 3 — Asset library */}
-      <AssetLibrary socialAssets={socialAssets} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {items.map((item) => (
+                <TemplateCard
+                  key={item.id}
+                  item={item}
+                  platform={platform}
+                  brandLogo={brandLogo}
+                />
+              ))}
+            </div>
+          </div>
+        );
+      })}
 
-      {kitEditorOpen && onCanvaTemplateKitChange && (
+      {editorOpen && onCanvaTemplateKitChange && (
         <CanvaTemplateKitEditor
           value={canvaTemplateKit}
           onChange={onCanvaTemplateKitChange}
-          onClose={() => setKitEditorOpen(false)}
+          onClose={() => setEditorOpen(false)}
         />
       )}
     </section>
   );
 };
-
