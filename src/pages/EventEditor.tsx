@@ -687,8 +687,10 @@ const EventEditor = () => {
             defaultVenue={event.eventDetails?.location}
             nextVariationCanvaLinks={(event as any).nextVariationCanvaLinks}
             onNextVariationCanvaLinksChange={canEdit ? (nextVariationCanvaLinks) => updateEvent({ nextVariationCanvaLinks } as any) : undefined}
-            nextVariationLogos={(event as any).nextVariationLogos}
-            onNextVariationLogosChange={canEdit ? (nextVariationLogos) => updateEvent({ nextVariationLogos } as any) : undefined}
+           nextVariationLogos={(event as any).nextVariationLogos}
+           onNextVariationLogosChange={canEdit ? (nextVariationLogos) => updateEvent({ nextVariationLogos } as any) : undefined}
+           nextVariationOverlays={(event as any).nextVariationOverlays}
+           onNextVariationOverlaysChange={canEdit ? (nextVariationOverlays) => updateEvent({ nextVariationOverlays } as any) : undefined}
             isAdmin={canEdit || false}
             logos={event.logos}
           />
