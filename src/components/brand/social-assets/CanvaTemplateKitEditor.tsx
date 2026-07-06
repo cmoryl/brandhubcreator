@@ -277,14 +277,30 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
                     className="h-8 text-sm font-mono"
                   />
                   {item.url && (
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => window.open(item.url, '_blank', 'noopener,noreferrer')}
-                      className="h-8 w-8 shrink-0"
-                    >
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </Button>
+                    <>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => hydrateItemFromCanva(idx)}
+                        disabled={hydratingIdx === idx}
+                        title="Auto-fill name + thumbnail from Canva"
+                        className="h-8 w-8 shrink-0"
+                      >
+                        {hydratingIdx === idx ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Wand2 className="h-3.5 w-3.5" />
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => window.open(item.url, '_blank', 'noopener,noreferrer')}
+                        className="h-8 w-8 shrink-0"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </Button>
+                    </>
                   )}
                 </div>
               </div>
