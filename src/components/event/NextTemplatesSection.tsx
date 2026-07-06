@@ -882,6 +882,18 @@ export function NextTemplatesSection({
                             className="h-7 text-[11px]"
                           />
                         )}
+                        {isAdmin && onNextVariationOverlaysChange && (
+                          <Input
+                            value={nextVariationOverlays?.[vSlug] || ''}
+                            onChange={(e) =>
+                              onNextVariationOverlaysChange({
+                                ...(nextVariationOverlays || {}),
+                                [vSlug]: e.target.value,
+                              })
+                            }
+                            placeholder="Paste transparent overlay PNG URL…"
+                            className="h-7 text-[11px]"
+                          />
                       </>
                     );
                   })()}
