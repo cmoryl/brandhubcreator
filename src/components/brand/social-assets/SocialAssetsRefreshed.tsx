@@ -12,7 +12,7 @@
  */
 
 import { useState, useMemo } from 'react';
-import { Linkedin, Instagram, Facebook, Twitter, Youtube, Monitor, ExternalLink, Settings2, Sparkles, LayoutGrid } from 'lucide-react';
+import { Linkedin, Instagram, Facebook, Twitter, Youtube, Monitor, ExternalLink, Settings2, Sparkles, LayoutGrid, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { BrandLogo, BrandSocialAssetSpec, CanvaTemplateKit, CanvaTemplateKitItem } from '@/types/brand';
@@ -57,10 +57,14 @@ const TemplateCard = ({
   item,
   platform,
   brandLogo,
+  isAdmin,
+  onEdit,
 }: {
   item: CanvaTemplateKitItem;
   platform: Platform;
   brandLogo?: BrandLogo;
+  isAdmin?: boolean;
+  onEdit?: () => void;
 }) => {
   const Icon = PLATFORM_ICONS[platform];
 
@@ -87,7 +91,16 @@ const TemplateCard = ({
           </div>
         )}
 
-        <div className="absolute top-2 right-2">
+        <div className="absolute top-2 right-2 flex items-center gap-1">
+          {isAdmin && onEdit && (
+            <button
+              onClick={onEdit}
+              title="Edit template details"
+              className="h-6 w-6 rounded-md bg-background/85 backdrop-blur-sm border border-border/70 shadow-sm flex items-center justify-center text-foreground/80 hover:text-primary hover:border-primary opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <Pencil className="h-3 w-3" />
+            </button>
+          )}
           <Badge className="text-[9px] bg-primary text-primary-foreground px-1.5 py-0 h-5 gap-1">
             <Sparkles className="h-2.5 w-2.5" /> Canva
           </Badge>
@@ -105,15 +118,28 @@ const TemplateCard = ({
           <Icon className={`h-4 w-4 shrink-0 ${PLATFORM_ACCENT[platform]}`} />
         </div>
 
-        <Button
-          size="sm"
-          variant="outline"
-          className="w-full h-8 text-xs gap-1.5"
-          onClick={() => window.open(item.url, '_blank', 'noopener,noreferrer')}
-        >
-          Open in Canva
-          <ExternalLink className="h-3 w-3" />
-        </Button>
+        <div className="flex gap-1.5">
+          <Button
+            size="sm"
+            variant="outline"
+            className="flex-1 h-8 text-xs gap-1.5"
+            onClick={() => window.open(item.url, '_blank', 'noopener,noreferrer')}
+          >
+            Open in Canva
+            <ExternalLink className="h-3 w-3" />
+          </Button>
+          {isAdmin && onEdit && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 px-2 text-xs"
+              onClick={onEdit}
+              title="Edit"
+            >
+              <Pencil className="h-3 w-3" />
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -130,7 +156,17 @@ export const SocialAssetsRefreshed = ({
   isAdmin = false,
 }: Props) => {
   const [editorOpen, setEditorOpen] = useState(false);
+  const [editorFocus, setEditorFocus] = useState<{ platform: Platform; itemId: string } | null>(null);
   const brandLogo = brandLogos?.[0];
+
+  const openEditorFor = (platform: Platform, itemId: string) => {
+    setEditorFocus({ platform, itemId });
+    setEditorOpen(true);
+  };
+  const openEditor = () => {
+    setEditorFocus(null);
+    setEditorOpen(true);
+  };
 
   // Only show platforms that actually have templates (or all if admin editing)
   const populatedPlatforms = useMemo(
@@ -161,7 +197,7 @@ export const SocialAssetsRefreshed = ({
             variant="outline"
             size="sm"
             className="h-9 text-xs shrink-0"
-            onClick={() => setEditorOpen(true)}
+            onClick={openEditor}
           >
             <Settings2 className="h-3.5 w-3.5 mr-1.5" />
             {hasAny ? 'Manage templates' : 'Add Canva templates'}
@@ -185,7 +221,7 @@ export const SocialAssetsRefreshed = ({
             <Button
               size="sm"
               className="mt-4 h-9"
-              onClick={() => setEditorOpen(true)}
+              onClick={openEditor}
             >
               <Settings2 className="h-3.5 w-3.5 mr-1.5" />
               Add Canva templates
@@ -220,6 +256,8 @@ export const SocialAssetsRefreshed = ({
                   item={item}
                   platform={platform}
                   brandLogo={brandLogo}
+                  isAdmin={isAdmin && !!onCanvaTemplateKitChange}
+                  onEdit={onCanvaTemplateKitChange ? () => openEditorFor(platform, item.id) : undefined}
                 />
               ))}
             </div>
@@ -231,7 +269,9 @@ export const SocialAssetsRefreshed = ({
         <CanvaTemplateKitEditor
           value={canvaTemplateKit}
           onChange={onCanvaTemplateKitChange}
-          onClose={() => setEditorOpen(false)}
+          onClose={() => { setEditorOpen(false); setEditorFocus(null); }}
+          initialPlatform={editorFocus?.platform}
+          focusItemId={editorFocus?.itemId}
         />
       )}
     </section>

@@ -27,6 +27,8 @@ interface Props {
   value: CanvaTemplateKit | undefined;
   onChange: (next: CanvaTemplateKit) => void;
   onClose: () => void;
+  initialPlatform?: Platform;
+  focusItemId?: string;
 }
 
 const isCanvaUrl = (u: string) =>
@@ -36,9 +38,9 @@ const genId = () =>
   (globalThis.crypto as any)?.randomUUID?.() ??
   `kit_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
-export const CanvaTemplateKitEditor = ({ value, onChange, onClose }: Props) => {
+export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatform, focusItemId }: Props) => {
   const [kit, setKit] = useState<CanvaTemplateKit>(() => ({ ...(value || {}) }));
-  const [activePlatform, setActivePlatform] = useState<Platform>('LinkedIn');
+  const [activePlatform, setActivePlatform] = useState<Platform>(initialPlatform || 'LinkedIn');
 
   const items = kit[activePlatform] || [];
 
@@ -137,7 +139,12 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose }: Props) => {
             </div>
           )}
           {items.map((item, idx) => (
-            <div key={item.id} className="border border-border rounded-lg p-3 space-y-2.5 bg-background/40">
+            <div
+              key={item.id}
+              className={`border rounded-lg p-3 space-y-2.5 bg-background/40 ${
+                focusItemId === item.id ? 'border-primary ring-2 ring-primary/30' : 'border-border'
+              }`}
+            >
               <div className="grid grid-cols-1 sm:grid-cols-[1fr_140px_auto] gap-2">
                 <div className="space-y-1">
                   <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Name</Label>
