@@ -310,17 +310,36 @@ const PlatformPanel = ({
   brandLogos,
   entityName,
   isAdmin,
+  kitItems,
+  onEditKit,
 }: {
   platform: Platform;
   templates: SocialAssetTemplate[];
   brandLogos?: BrandLogo[];
   entityName?: string;
   isAdmin?: boolean;
+  kitItems?: CanvaTemplateKitItem[];
+  onEditKit?: () => void;
 }) => {
   const specs = PLATFORM_SPECS[platform] || [];
-  // "Live" = first 4 templates presented as Canva-connected auto-branded set.
-  const liveTemplates = templates.slice(0, 4);
-  const publishedTemplates = templates.slice(4);
+  // Convert Canva Template Kit items into TemplateCard-compatible objects.
+  const kitAsTemplates: SocialAssetTemplate[] = (kitItems || []).map((k) => ({
+    id: `kit-${k.id}`,
+    name: k.name || 'Canva Template',
+    fileType: 'other' as const,
+    url: k.url,
+    previewImageUrl: k.thumbnailUrl,
+    dimensions: k.format,
+    sizeCategory: 'other' as const,
+  }));
+  // Live row = Canva-connected kit items (auto-branded per event).
+  // Fall back to the first few generic templates when no kit is set yet.
+  const liveTemplates = kitAsTemplates.length > 0
+    ? kitAsTemplates
+    : templates.slice(0, 4);
+  const publishedTemplates = kitAsTemplates.length > 0
+    ? templates
+    : templates.slice(4);
 
   return (
     <div className="space-y-6 pt-4">
@@ -331,25 +350,30 @@ const PlatformPanel = ({
             <div className="flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-primary" />
               <h4 className="text-sm font-semibold text-foreground">Live Templates</h4>
-              <Badge variant="outline" className="text-[9px] border-primary/40 text-primary">Canva connected</Badge>
+              <Badge variant="outline" className="text-[9px] border-primary/40 text-primary">
+                {kitAsTemplates.length > 0 ? 'Canva kit' : 'Canva connected'}
+              </Badge>
+              {kitAsTemplates.length > 0 && (
+                <span className="text-[10px] text-muted-foreground">
+                  · {kitAsTemplates.length} linked
+                </span>
+              )}
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Auto-branded to {entityName || 'this event'}. Duplicating pulls the latest Canva design and injects the event logo + location.
+              Auto-branded to {entityName || 'this event'}. Opening a template goes straight to your event-specific Canva design.
             </p>
           </div>
           {isAdmin && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 text-xs"
-              onClick={() =>
-                toast.info('Canva sync scheduled', {
-                  description: 'Templates will refresh from the linked Canva folder in a moment.',
-                })
-              }
-            >
-              <RefreshCw className="h-3 w-3 mr-1.5" /> Sync from Canva
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-xs"
+                onClick={onEditKit}
+              >
+                <Settings2 className="h-3 w-3 mr-1.5" /> Edit Kit
+              </Button>
+            </div>
           )}
         </div>
         {liveTemplates.length === 0 ? (
@@ -358,7 +382,7 @@ const PlatformPanel = ({
             <div className="text-sm text-muted-foreground">No live templates linked yet</div>
             {isAdmin && (
               <p className="text-xs text-muted-foreground/70 mt-1">
-                Connect a Canva folder to auto-populate this row.
+                Click <span className="font-medium">Edit Kit</span> to paste Canva template URLs for {platform}.
               </p>
             )}
           </div>
@@ -377,6 +401,8 @@ const PlatformPanel = ({
           </div>
         )}
       </div>
+
+
 
       {/* ROW B — Published creations */}
       {publishedTemplates.length > 0 && (
