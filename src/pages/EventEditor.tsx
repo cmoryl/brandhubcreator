@@ -664,8 +664,8 @@ const EventEditor = () => {
           <NextTemplatesSection
             eventSlug={(event as any).slug}
             eventName={event.hero?.name}
-            defaultAccent={event.colors?.primary}
-            defaultTagline={event.tagline?.text || event.hero?.tagline}
+            defaultAccent={event.colors?.find(c => c.role === 'primary')?.hex || event.colors?.[0]?.hex}
+            defaultTagline={event.tagline?.primary || event.hero?.tagline}
             defaultDate={event.eventDetails?.eventDates}
             defaultVenue={event.eventDetails?.location}
           />
