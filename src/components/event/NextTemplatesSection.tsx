@@ -205,20 +205,24 @@ function NextLockup({
   label,
   accent,
   logoUrl,
+  sizeEm = 3.2,
+  centered = false,
 }: {
   label: string;
   accent: string;
   logoUrl?: string;
+  sizeEm?: number;
+  centered?: boolean;
 }) {
   if (logoUrl) {
     return (
-      <div className="leading-none">
+      <div className={`leading-none ${centered ? 'flex flex-col items-center text-center' : ''}`}>
         <img
           src={logoUrl}
           alt={label}
           crossOrigin="anonymous"
           style={{
-            height: '3.2em',
+            height: `${sizeEm}em`,
             width: 'auto',
             maxWidth: '100%',
             objectFit: 'contain',
@@ -235,14 +239,14 @@ function NextLockup({
   const [prefix, ...rest] = label.replace(/\s*NEXT\s*/i, '|NEXT').split('|');
   const suffix = rest.join('') || 'NEXT';
   return (
-    <div className="leading-none">
-      <div className="text-white font-black tracking-tight" style={{ fontSize: '0.9em' }}>
+    <div className={`leading-none ${centered ? 'flex flex-col items-center text-center' : ''}`}>
+      <div className="text-white font-black tracking-tight" style={{ fontSize: `${sizeEm * 0.28}em` }}>
         {prefix.trim() || 'TransPerfect'}
       </div>
       <div
         className="font-black tracking-tighter"
         style={{
-          fontSize: '2.4em',
+          fontSize: `${sizeEm * 0.75}em`,
           background: `linear-gradient(90deg, #fff 0%, ${accent} 60%, ${PINK_CTA} 100%)`,
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
