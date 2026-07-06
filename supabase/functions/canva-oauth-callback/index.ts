@@ -37,12 +37,14 @@ Deno.serve(async (req) => {
     let returnTo = '/transperfect/lifesci-canva-audit.html';
     let clientId = '';
     let clientSecret = '';
+    let codeVerifier = '';
     try {
       if (state) {
         const decoded = JSON.parse(atob(state));
         if (decoded?.returnTo) returnTo = String(decoded.returnTo);
         if (decoded?.cid) clientId = String(decoded.cid);
         if (decoded?.csec) clientSecret = String(decoded.csec);
+        if (decoded?.cv) codeVerifier = String(decoded.cv);
       }
     } catch {/* ignore bad state */}
 
@@ -55,17 +57,20 @@ Deno.serve(async (req) => {
     const redirectUri = `${SUPABASE_URL}/functions/v1/canva-oauth-callback`;
     const basic = btoa(`${clientId}:${clientSecret}`);
 
+    const tokenBody: Record<string, string> = {
+      grant_type: 'authorization_code',
+      code,
+      redirect_uri: redirectUri,
+    };
+    if (codeVerifier) tokenBody.code_verifier = codeVerifier;
+
     const tokenRes = await fetch('https://api.canva.com/rest/v1/oauth/token', {
       method: 'POST',
       headers: {
         'Authorization': `Basic ${basic}`,
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: new URLSearchParams({
-        grant_type: 'authorization_code',
-        code,
-        redirect_uri: redirectUri,
-      }),
+      body: new URLSearchParams(tokenBody),
     });
 
     const tokenText = await tokenRes.text();
