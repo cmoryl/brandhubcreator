@@ -81,7 +81,7 @@ const AuthPage = () => {
 
     (async () => {
       setIsGoogleLoading(true);
-      const { error } = await signInWithGoogle();
+      const { error } = await signInWithGoogle(searchParams.get('next') ? `/auth?next=${encodeURIComponent(searchParams.get('next')!)}` : '/auth');
       if (error) {
         console.error('[AUTH] Google sign-in failed:', error.message);
         toast({
@@ -700,7 +700,7 @@ const AuthPage = () => {
                       onClick={async () => {
                         setIsGoogleLoading(true);
                         try {
-                          const { error } = await signInWithGoogle();
+                          const { error } = await signInWithGoogle(searchParams.get('next') ? `/auth?next=${encodeURIComponent(searchParams.get('next')!)}` : '/auth');
                           if (error) {
                             const message = error.message || 'Unable to sign in with Google.';
                             const isNetwork = /failed to fetch|network error|timeout|unreachable/i.test(message);
