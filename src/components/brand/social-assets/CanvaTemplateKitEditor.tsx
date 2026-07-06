@@ -54,6 +54,11 @@ const genId = () =>
 export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatform, focusItemId }: Props) => {
   const [kit, setKit] = useState<CanvaTemplateKit>(() => ({ ...(value || {}) }));
   const [activePlatform, setActivePlatform] = useState<Platform>(initialPlatform || 'LinkedIn');
+  const [hydratingIdx, setHydratingIdx] = useState<number | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerLoading, setPickerLoading] = useState(false);
+  const [pickerTemplates, setPickerTemplates] = useState<CanvaSyncedTemplate[]>([]);
+  const [pickerQuery, setPickerQuery] = useState('');
 
   const items = kit[activePlatform] || [];
 
