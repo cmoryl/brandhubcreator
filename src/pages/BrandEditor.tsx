@@ -44,6 +44,7 @@ import { TextStylesSection } from '@/components/brand/TextStylesSection';
 import { IconographySection } from '@/components/brand/IconographySection';
 import { SocialIconsSection } from '@/components/brand/SocialIconsSection';
 import { ImagerySection } from '@/components/brand/ImagerySection';
+import { MasterImagerySection } from '@/components/brand/MasterImagerySection';
 import { LayoutTemplatesSection } from '@/components/brand/LayoutTemplatesSection';
 import { resolveBrandVisuals } from '@/lib/deriveBrandVisuals';
 import { SocialSection } from '@/components/brand/SocialSection';
@@ -70,7 +71,7 @@ import { GlobalLinkUniverseSection } from '@/components/brand/GlobalLinkUniverse
 import { BrandUniverseOrbit } from '@/components/brand/BrandUniverseOrbit';
 import { BrandEventSignageSection } from '@/components/brand/BrandEventSignageSection';
 import { PresentationTemplatesSection } from '@/components/brand/PresentationTemplatesSection';
-import { ApprovedImagerySection } from '@/components/brand/approved-imagery/ApprovedImagerySection';
+// ApprovedImagerySection is now composed inside MasterImagerySection
 import { StudiosSection } from '@/components/brand/StudiosSection';
 const LeafletLocationsSection = lazy(() => import('@/components/brand/LeafletLocationsSection').then(m => ({ default: m.LeafletLocationsSection })));
 import { ExportPdfButton } from '@/components/brand/ExportPdfButton';
@@ -768,7 +769,22 @@ const BrandEditor = () => {
       case 'textstyles': return <TextStylesSection textStyles={brand.textStyles} onTextStylesChange={editHandler((textStyles) => updateBrand({ textStyles }))} adminCustomStyle={brand.adminCustomStyle} onAdminCustomStyleChange={canEdit ? (adminCustomStyle) => updateBrand({ adminCustomStyle }) : undefined} canEdit={canEdit} />;
       case 'iconography': return <IconographySection iconography={brand.iconography} onIconographyChange={editHandler((iconography) => updateBrand({ iconography }))} defaultIconColor={brand.defaultIconColor} onDefaultIconColorChange={editHandler((defaultIconColor) => updateBrand({ defaultIconColor }))} brandColors={brand.colors?.map(c => ({ hex: c.hex, name: c.name })) || []} organizationId={organization?.id} brandId={brand.id} entityType="brand" entityName={brand.hero?.name || ''} entitySlug={brand.slug} />;
       case 'socialicons': return <SocialIconsSection socialIcons={brand.socialIcons} onSocialIconsChange={editHandler((socialIcons) => updateBrand({ socialIcons }))} />;
-      case 'imagery': return <ImagerySection imagery={brand.imagery} onImageryChange={editHandler((imagery) => updateBrand({ imagery }))} entityId={brand.id} entityType="brand" isAdmin={isGuideAdmin} brandSlug={brand.slug} brandVisuals={(brand as any).brandVisuals} />;
+      case 'imagery': return (
+        <MasterImagerySection
+          imagery={brand.imagery}
+          onImageryChange={editHandler((imagery) => updateBrand({ imagery }))}
+          approvedImagery={brand.approvedImagery}
+          onApprovedImageryChange={editHandler((approvedImagery) => updateBrand({ approvedImagery }))}
+          entityId={brand.id}
+          entityType="brand"
+          entityName={brand.hero?.name || ''}
+          organizationId={brand.organizationId}
+          guideData={brand as unknown as Record<string, unknown>}
+          isAdmin={isGuideAdmin}
+          brandSlug={brand.slug}
+          brandVisuals={(brand as any).brandVisuals}
+        />
+      );
       case 'social': return <SocialSection social={brand.social} onSocialChange={editHandler((social) => updateBrand({ social }))} entityId={brand.id} entityType="brand" organizationId={brand.organizationId} entityName={brand.hero?.name} />;
       case 'socialassets': return (
         <SocialAssetsSection
@@ -873,8 +889,7 @@ const BrandEditor = () => {
         }
         return <BrandUniverseOrbit organizationId={brand.organizationId} brandColors={brand.colors} organizationName={brand.hero?.name} />;
       case 'presentations': return <PresentationTemplatesSection presentations={brand.presentationTemplates || []} onUpdate={editHandler((presentationTemplates) => updateBrand({ presentationTemplates }))} brandSlug={brand.slug} />;
-      case 'approvedimagery':
-        return <ApprovedImagerySection approvedImagery={brand.approvedImagery} onApprovedImageryChange={editHandler((approvedImagery) => updateBrand({ approvedImagery }))} canEdit={canEdit} entityId={brand.id} entityType="brand" organizationId={brand.organizationId} />;
+      // 'approvedimagery' consolidated into 'imagery' — handled by sectionOrder deprecation map
       case 'studios':
         return <StudiosSection studios={brand.studios || []} onStudiosChange={editHandler((studios) => updateBrand({ studios }))} entityId={brand.id} />;
       default: return null;
