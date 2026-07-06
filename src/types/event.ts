@@ -368,6 +368,7 @@ export const DEFAULT_EVENT_SECTION_ORDER: EventSectionId[] = [
   'imagery',
   'social',
   'socialassets',
+  'nexttemplates',
   'eventschedule',
   'eventspeakers',
   'eventsponsors',       // Unified sponsors section with logos
