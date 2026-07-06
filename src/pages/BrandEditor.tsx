@@ -889,8 +889,7 @@ const BrandEditor = () => {
         }
         return <BrandUniverseOrbit organizationId={brand.organizationId} brandColors={brand.colors} organizationName={brand.hero?.name} />;
       case 'presentations': return <PresentationTemplatesSection presentations={brand.presentationTemplates || []} onUpdate={editHandler((presentationTemplates) => updateBrand({ presentationTemplates }))} brandSlug={brand.slug} />;
-      case 'approvedimagery':
-        return <ApprovedImagerySection approvedImagery={brand.approvedImagery} onApprovedImageryChange={editHandler((approvedImagery) => updateBrand({ approvedImagery }))} canEdit={canEdit} entityId={brand.id} entityType="brand" organizationId={brand.organizationId} />;
+      // 'approvedimagery' consolidated into 'imagery' — handled by sectionOrder deprecation map
       case 'studios':
         return <StudiosSection studios={brand.studios || []} onStudiosChange={editHandler((studios) => updateBrand({ studios }))} entityId={brand.id} />;
       default: return null;
