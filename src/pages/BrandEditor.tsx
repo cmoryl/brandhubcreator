@@ -49,6 +49,7 @@ import { LayoutTemplatesSection } from '@/components/brand/LayoutTemplatesSectio
 import { resolveBrandVisuals } from '@/lib/deriveBrandVisuals';
 import { SocialSection } from '@/components/brand/SocialSection';
 import { SocialAssetsSection } from '@/components/brand/SocialAssetsSection';
+import { SocialAssetsRefreshed } from '@/components/brand/social-assets/SocialAssetsRefreshed';
 import { WebsiteSection } from '@/components/brand/WebsiteSection';
 import { SignaturesSection } from '@/components/brand/SignaturesSection';
 import { QRSection } from '@/components/brand/QRSection';
