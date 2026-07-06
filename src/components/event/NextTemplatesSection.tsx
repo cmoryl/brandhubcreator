@@ -660,7 +660,7 @@ export function NextTemplatesSection({
                       accent={vPreset.accent}
                       verticalLabel={vPreset.label}
                       logoUrl={nextVariationLogos?.[vSlug] || stackedLogoUrl || logoUrl}
-                      layout="centered-hero"
+                      layout={variantLayout}
                     />
                   </div>
                   {/* Character / orb graphic — accent-tinted, subtle */}
