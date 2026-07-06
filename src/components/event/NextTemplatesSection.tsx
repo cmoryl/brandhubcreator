@@ -310,7 +310,18 @@ function TemplateSurface({
 
   return (
     <div className="relative h-full w-full overflow-hidden" style={{ backgroundColor: NAVY }}>
-      <ChevronBackdrop accent={accent} hideRays={layout !== 'default'} />
+      {layout === 'hero-showcase' ? (
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `url(${NEXT_HERO_BG_URL})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        />
+      ) : (
+        <ChevronBackdrop accent={accent} hideRays={layout !== 'default'} />
+      )}
 
       {/* -------------------- CENTERED HERO -------------------- */}
       {layout === 'centered-hero' && (
