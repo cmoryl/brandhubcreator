@@ -371,6 +371,7 @@ export function NextTemplatesSection({
   logos,
 }: NextTemplatesSectionProps) {
   const logoUrl = useMemo(() => pickLogoForDark(logos)?.url, [logos]);
+  const stackedLogoUrl = useMemo(() => pickLogoForDark(logos, true)?.url, [logos]);
   const slugKey = (eventSlug || '').toLowerCase();
   const preset = NEXT_ACCENTS[slugKey];
   const accent = preset?.accent || defaultAccent || '#13B1F3';
