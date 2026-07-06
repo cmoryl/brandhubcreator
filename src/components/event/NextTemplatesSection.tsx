@@ -308,6 +308,9 @@ export function NextTemplatesSection({
   defaultTagline,
   defaultDate,
   defaultVenue,
+  nextVariationCanvaLinks,
+  onNextVariationCanvaLinksChange,
+  isAdmin = false,
 }: NextTemplatesSectionProps) {
   const slugKey = (eventSlug || '').toLowerCase();
   const preset = NEXT_ACCENTS[slugKey];
