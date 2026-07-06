@@ -362,7 +362,9 @@ export function NextTemplatesSection({
   nextVariationCanvaLinks,
   onNextVariationCanvaLinksChange,
   isAdmin = false,
+  logos,
 }: NextTemplatesSectionProps) {
+  const logoUrl = useMemo(() => pickLogoForDark(logos)?.url, [logos]);
   const slugKey = (eventSlug || '').toLowerCase();
   const preset = NEXT_ACCENTS[slugKey];
   const accent = preset?.accent || defaultAccent || '#13B1F3';
