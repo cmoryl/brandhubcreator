@@ -4,6 +4,8 @@ import { DEFAULT_SECTION_ORDER, SectionId } from "@/types/brand";
 const DEPRECATED_SECTION_MAP: Partial<Record<string, SectionId>> = {
   casestudies: 'brochures',
   templates: 'presentations',
+  // Approved imagery is now consolidated into the master Imagery section
+  approvedimagery: 'imagery',
 };
 
 // Set of canonical (non-deprecated) section IDs
