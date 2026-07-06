@@ -1,40 +1,66 @@
-## Goal
-Expand the Global Logo Hub with additional client logos (with proper black variants) to better populate 5 TransPerfect industry pages.
+# Social Assets & Guidelines — Rebuild
 
-## Industries to cover
-1. **Manufacturing** — `transperfect.com/industries/manufacturing`
-2. **Automotive** — `transperfect.com/industries/automotive`
-3. **Digital Marketing / Advertising** — `transperfect.com/industries/marketing-translation-services`
-4. **Medical Device** — `transperfect.com/industries/medical-device` (goes into existing Life Sciences category)
-5. **Legal** — `transperfect.com/industries/legal` (audit/top-up existing Legal category)
+Piloted on the TransPerfect NEXT brand + sub-event pages. Once approved, we roll the same pattern to other brands.
 
-## Approach
+## The problem today
 
-### 1. Discover clients (Firecrawl)
-- Scrape each of the 5 TransPerfect industry pages for client/case-study brand names + logos.
-- Deduplicate against `global_client_logos` to identify only net-new brands per industry.
+Templates, guidelines, sizing rules, and platform assets are all stacked into one long scrolling wall. It's hard to tell what platform an asset belongs to, what's a template vs. a finished creation, and where the rules live. There's no live link to where designs actually get made (Canva).
 
-### 2. Category setup
-- Create new categories where missing: **Manufacturing**, **Automotive**, **Digital Marketing** (Digital Marketing may fold into existing `Digital` — I'll confirm during discovery, defaulting to a new "Marketing & Advertising" category to keep client-side vs marketing-agency clients separate).
-- Medical Device brands → existing **Life Sciences** category.
-- Legal brands → existing **Legal** category (fill gaps only).
+## New structure
 
-### 3. Sourcing pipeline (reuse existing infra)
-For each new brand:
-1. Insert row into `global_client_logos` with `name`, `category`, `website_url`.
-2. Run `hard-search-logos` edge function — Firecrawl scrapes official site branding, uploads color SVG/PNG + derives true monochrome **black** and **white** variants.
-3. Fallback for gaps: Wikimedia/simple-icons via `resource-icons-libs`, then `deep-icon-fetch`, then `derive-mono-icons` to guarantee a black variant exists.
-4. Rasterize any SVG-only wordmarks to 2048px PNG via `rasterize-wordmark-png`.
+Three clearly separated zones, in this order:
 
-### 4. Verification
-- Extend the existing Missing Logos queue filter to surface these 5 industries.
-- Run a targeted audit (mirroring `travel_audit`/`games_audit`) that reports per-brand: has `wordmark-black` (SVG or ≥1024px PNG)? Any brand failing = flagged for manual upload.
-- Publish results to a lightweight `/logohub/industry-fill-qa` page grouped by industry, with the same repair actions (Upload / Deep-fetch / Derive B/W) already used on the Travel Review page.
+**1. Social Playbook (top)**
+The always-visible brand social identity — read-only reference.
+- Voice & tone (short, punchy, TP NEXT-specific)
+- Hashtag system (event, sub-event, campaign)
+- Imagery rules (orb aesthetic, no text on hero shots, safe zones)
+- Do / Don't gallery (small paired thumbnails)
+- Response & moderation guidelines
+- Platform sizing table (cover, post, story, reel, square) as one compact reference
 
-## Deliverables
-- New/updated categories and brand rows populated with color + **black** wordmark variants (white variants also derived for free by the pipeline).
-- QA page at `/logohub/industry-fill-qa` showing coverage per industry with one-click repair.
-- Any brand the pipeline can't auto-resolve is queued in `/logohub/missing` for manual SVG upload.
+**2. Platform-first tabs (middle)**
+Horizontal tabs: LinkedIn · Instagram · X · YouTube · TikTok · Facebook.
+Each tab shows only that platform's content, in three rows:
+- Row A — **Live Templates (Canva-connected)**: cards pulled from a linked Canva folder, auto-branded with the current event's logo + location. "Open in Canva" and "Duplicate for this event" actions.
+- Row B — **Published creations**: finished, approved assets ready to download/share.
+- Row C — **Specs strip**: dimensions, safe zones, file types for that platform only (so specs live where they're used, not in a separate rules dump).
 
-## Question before I start
-Roughly how many logos per industry do you want (e.g. top 10–15 each, or every logo shown on the page)? Default: I'll ingest every distinct brand featured on each of the 5 pages.
+**3. Asset Library (bottom, collapsed by default)**
+The full raw asset dump for power users — filterable by platform, format, campaign. No cards, just a dense searchable table.
+
+## Canva integration
+
+- Add a `canva_folder_id` field on the event (and per sub-event) so each event points to its own Canva template folder.
+- New edge function `canva-templates-sync` calls the Canva Connect API to list templates in that folder, caches to a new `canva_templates` table (thumbnail, template_id, name, updated_at, platform tag).
+- On the frontend, the "Live Templates" row reads from cache and refreshes on demand via a "Sync from Canva" button (admin only).
+- Each card injects the sub-event's logo + location as Canva autofill variables when the user clicks "Duplicate for this event", so the opened Canva design already has the right branding baked in.
+- Canva OAuth tokens already exist in `canva_oauth_tokens` — reuse that connection.
+
+## Component work
+
+Refactor `SocialAssetsSection` (or equivalent) into:
+- `SocialPlaybookHeader.tsx` — the playbook zone
+- `SocialPlatformTabs.tsx` — the tabbed platform view
+- `SocialPlatformPanel.tsx` — one platform's three rows
+- `CanvaTemplateCard.tsx` — live template card with sync/duplicate actions
+- `SocialAssetLibrary.tsx` — collapsed raw table
+
+Data still comes from `guide_data.socialAssets`; we're regrouping by `platform` on the client and layering the Canva rows on top.
+
+## Scope for this pass
+
+- Only the TransPerfect NEXT brand page + its 10 sub-event pages.
+- Other brands keep the current UI untouched until we validate the pattern.
+- Canva sync starts as a stub returning the existing template list; wiring the real Canva Connect call can be a follow-up if the OAuth scope isn't already granted.
+
+## Technical notes
+
+- New table: `canva_templates` (id, event_id, sub_event_id nullable, platform, canva_template_id, thumbnail_url, name, updated_at). RLS + grants per project rules.
+- New edge function: `canva-templates-sync` (verify_jwt=false, manual JWT check, admin-only).
+- Extend `events.guide_data` with `canvaFolderId` (no schema change — it's JSONB).
+- No changes to existing template preview images; those become fallbacks when Canva sync hasn't run.
+
+## Deliverable
+
+A single, calmer Social section on `/event/transperfect-next` (and each sub-event) with: playbook on top, platform tabs in the middle, and a live Canva-connected template row inside each platform tab that auto-brands to the current event.
