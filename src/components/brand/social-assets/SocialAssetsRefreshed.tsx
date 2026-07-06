@@ -12,7 +12,7 @@
  */
 
 import { useState, useMemo } from 'react';
-import { Linkedin, Instagram, Facebook, Twitter, Youtube, Monitor, ExternalLink, Settings2, Sparkles, LayoutGrid } from 'lucide-react';
+import { Linkedin, Instagram, Facebook, Twitter, Youtube, Monitor, ExternalLink, Settings2, Sparkles, LayoutGrid, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { BrandLogo, BrandSocialAssetSpec, CanvaTemplateKit, CanvaTemplateKitItem } from '@/types/brand';
