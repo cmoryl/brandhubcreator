@@ -125,6 +125,8 @@ interface NextTemplatesSectionProps {
   nextVariationCanvaLinks?: Record<string, string>;
   onNextVariationCanvaLinksChange?: (next: Record<string, string>) => void;
   isAdmin?: boolean;
+  /** Approved brand/event logos — the section prefers a reversed/white variant for the dark backdrop. */
+  logos?: BrandLogo[];
 }
 
 type Format = {
