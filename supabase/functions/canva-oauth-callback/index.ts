@@ -10,20 +10,13 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '
 
 const PUBLIC_APP_ORIGIN = Deno.env.get('PUBLIC_APP_ORIGIN') ?? 'https://brandhubcreator.lovable.app';
 
-function htmlResponse(title: string, body: string, returnTo?: string) {
-  const dest = returnTo ? `${PUBLIC_APP_ORIGIN}${returnTo}` : PUBLIC_APP_ORIGIN;
-  const accent = title.includes('✓') ? '#00c853' : '#f85149';
-  return new Response(
-    `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${title}</title>
-<style>body{font-family:-apple-system,sans-serif;background:#0d1117;color:#e6edf3;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;}
-.card{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:32px 40px;max-width:520px;text-align:center;}
-h1{color:${accent};margin:0 0 12px;font-size:20px;}p{color:#8b949e;margin:0 0 18px;line-height:1.5;word-break:break-word;}
-a{display:inline-block;background:${accent};color:#001a0a;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:700;}</style></head>
-<body><div class="card"><h1>${title}</h1>${body}<a href="${dest}">Return to audit page</a></div>
-<script>setTimeout(()=>{location.href=${JSON.stringify(dest)};},2800);</script></body></html>`,
-    { headers: { 'Content-Type': 'text/html; charset=utf-8' } },
-  );
+function redirectResponse(returnTo: string, params: Record<string, string>) {
+  const base = returnTo.startsWith('http') ? returnTo : `${PUBLIC_APP_ORIGIN}${returnTo}`;
+  const dest = new URL(base);
+  for (const [k, v] of Object.entries(params)) dest.searchParams.set(k, v);
+  return Response.redirect(dest.toString(), 302);
 }
+
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
