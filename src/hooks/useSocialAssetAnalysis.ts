@@ -124,8 +124,15 @@ export const useSocialAssetAnalysis = (placementId?: string) => {
   }) => {
     setLoading(true);
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      if (!accessToken) {
+        throw new Error('You need to be signed in to run social asset analysis.');
+      }
+
       const { data, error } = await supabase.functions.invoke('analyze-social-asset', {
         body: params,
+        headers: { Authorization: `Bearer ${accessToken}` },
       });
 
       if (error) throw error;
