@@ -27,37 +27,60 @@ interface Props {
   variant: Variant;
 }
 
-// ---------- Color system ----------
-const CORE_COLORS = [
-  { name: 'Digital Blue', hex: '#003FC7', role: 'Primary brand colour · CTAs, links, accents', pantone: 'PMS 2728 C' },
-  { name: 'Dark Blue',    hex: '#03002C', role: 'Authority surface · headlines on light, base on dark', pantone: 'PMS 282 C' },
+// ---------- Color system (Master Brand v3.0) ----------
+// Values sourced verbatim from TransPerfect Master Brand Color Palette.
+type Swatch = {
+  name: string;
+  hex: string;
+  rgb: string;
+  cmyk: string;
+  hsv: string;
+  pantone?: string;
+  role?: string;
+};
+
+const PRIMARY_COLORS: Swatch[] = [
+  { name: 'Blue 500', hex: '#003FC7', rgb: '0, 63, 199', cmyk: '100, 68, 0, 22', hsv: '221°, 100%, 78%', pantone: 'PMS 2728 C', role: 'Primary brand colour' },
+  { name: 'Blue 800', hex: '#03002C', rgb: '3, 0, 44',   cmyk: '93, 100, 0, 83', hsv: '244°, 100%, 17%', pantone: 'PMS 2767 C', role: 'Primary brand colour' },
 ];
 
-const ACCENT_COLORS = [
-  { name: 'Lavender',   hex: '#7C6BD1', role: 'Soft Transition orb mid-tone' },
-  { name: 'Turquoise',  hex: '#3DC0BD', role: 'Accent · data viz, highlights' },
-  { name: 'Yellow',     hex: '#FFD400', role: 'Energy accent · sparingly' },
-  { name: 'Orange',     hex: '#FF6B00', role: 'Warm accent · alerts, callouts' },
+// Secondary — 10% usage as an accent colour (percentage may be higher as a background shade).
+const SECONDARY_COLORS: Swatch[] = [
+  { name: 'Aqua',     hex: '#A1FBF9', rgb: '161, 251, 249', cmyk: '36, 0, 1, 2',  hsv: '179°, 36%, 98%',  pantone: 'PMS 317 C' },
+  { name: 'Lavender', hex: '#C2A3FF', rgb: '194, 163, 255', cmyk: '24, 36, 0, 0', hsv: '260°, 36%, 100%', pantone: 'PMS 264 C' },
 ];
 
-const NEUTRALS = [
-  { name: 'Alabaster',  hex: '#E5E0D5' },
-  { name: 'Light Gray', hex: '#F2F2F2' },
-  { name: 'Dark Gray',  hex: '#666666' },
-  { name: 'Blue White', hex: '#E0EAF5' },
+// Tertiary — CTAs, icons, hi-lights, colour pops.
+const TERTIARY_COLORS: Swatch[] = [
+  { name: 'Yellow', hex: '#FFEB66', rgb: '255, 235, 102', cmyk: '0, 8, 60, 0',  hsv: '52°, 60%, 100%',  pantone: 'PMS 121 C'  },
+  { name: 'Green',  hex: '#A6FA87', rgb: '166, 250, 135', cmyk: '34, 0, 46, 2', hsv: '104°, 46%, 98%',  pantone: 'PMS 358 C'  },
+  { name: 'Peach',  hex: '#FF9B70', rgb: '255, 155, 112', cmyk: '0, 39, 56, 0', hsv: '18°, 56%, 100%',  pantone: 'PMS 163 C'  },
+  { name: 'Pink',   hex: '#EC388A', rgb: '236, 56, 138',  cmyk: '0, 76, 42, 7', hsv: '333°, 76%, 93%',  pantone: 'PMS 2395 C' },
+  { name: 'Red',    hex: '#E53D2E', rgb: '229, 61, 46',   cmyk: '0, 73, 80, 10', hsv: '5°, 80%, 90%',   pantone: 'PMS 1788 C' },
+];
+
+const NEUTRALS: Swatch[] = [
+  { name: 'Dark Gray',  hex: '#666666', rgb: '102, 102, 102', cmyk: '0, 0, 0, 60', hsv: '0°, 0%, 40%'  },
+  { name: 'Light Gray', hex: '#F2F2F2', rgb: '242, 242, 242', cmyk: '0, 0, 0, 5',  hsv: '0°, 0%, 95%'  },
+  { name: 'Blue White', hex: '#E0E8F5', rgb: '224, 232, 245', cmyk: '10, 6, 0, 3', hsv: '217°, 9%, 96%' },
+];
+
+const APPROVED_FOR = [
+  'TransPerfect', 'GlobalLink', 'Life Sciences', 'Medical Device',
+  'Legal', 'Retail', 'Travel Financial', 'Gaming', 'Digital', 'Tech', 'Health',
 ];
 
 const COLOR_DO = [
-  'Lead with Digital Blue #003FC7 — it is the brand',
-  'Pair Digital Blue with Dark Blue or Alabaster for premium contrast',
-  'Use accents sparingly — one accent per composition',
+  'Lead with Blue 500 #003FC7 paired with Blue 800 #03002C — the primary system',
+  'Use secondary Aqua & Lavender at ~10% as accents (higher only as a background shade)',
+  'Reserve tertiary colours for CTAs, icons, hi-lights and colour pops',
   'Verify AA contrast on every text + surface pairing',
 ];
 const COLOR_DONT = [
-  'Tint or shade Digital Blue — use the exact hex',
-  'Stack multiple accent colours in the same composition',
-  'Place body copy on the bright centre of a Soft Transition orb',
-  'Introduce off-palette greens, reds or neons',
+  'Tint, shade or recolour any swatch — use the exact HEX/Pantone values',
+  'Stack multiple tertiary colours in the same composition',
+  'Let secondary/tertiary colours overpower the primary blues',
+  'Introduce off-palette hues (other greens, reds, neons, teals)',
 ];
 
 // ---------- Typography system ----------
