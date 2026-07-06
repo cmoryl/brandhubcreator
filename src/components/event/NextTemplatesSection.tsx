@@ -359,6 +359,33 @@ function TemplateSurface({
         }}
       />
 
+      {/* Circles + dots motif — always on, tinted with the sub-brand accent. */}
+      <OrbitDots accent={accent} />
+
+      {/* Optional transparent-PNG overlay (character/product cutout) positioned
+       *  on the right third using the rule-of-thirds grid, with a soft left-side
+       *  fade so the composition remains balanced against the copy. Story/tile
+       *  formats keep the overlay a little smaller so headline text stays clear. */}
+      {overlayImageUrl && (
+        <div
+          aria-hidden
+          className="absolute inset-y-0 right-0 pointer-events-none"
+          style={{
+            width: isStory || isTile ? '55%' : '42%',
+            backgroundImage: `url(${overlayImageUrl})`,
+            backgroundSize: 'contain',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'right center',
+            WebkitMaskImage:
+              'linear-gradient(to left, rgba(0,0,0,1) 55%, rgba(0,0,0,0.85) 78%, rgba(0,0,0,0) 100%)',
+            maskImage:
+              'linear-gradient(to left, rgba(0,0,0,1) 55%, rgba(0,0,0,0.85) 78%, rgba(0,0,0,0) 100%)',
+          }}
+        />
+      )}
+
+
+
 
       {/* -------------------- CENTERED HERO -------------------- */}
       {layout === 'centered-hero' && (
