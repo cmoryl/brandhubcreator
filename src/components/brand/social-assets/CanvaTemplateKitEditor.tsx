@@ -12,9 +12,9 @@
  * so it round-trips through existing update handlers.
  */
 
-import { useState, useEffect, type MouseEvent } from 'react';
+import { useState, useEffect, useRef, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { Plus, Trash2, ExternalLink, X, Save, Wand2, LayoutGrid, Loader2, Search, Plug, RefreshCw } from 'lucide-react';
+import { Plus, Trash2, ExternalLink, X, Save, Wand2, LayoutGrid, Loader2, Search, Plug, RefreshCw, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -88,6 +88,39 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
   const [syncing, setSyncing] = useState(false);
   const [connectingCanva, setConnectingCanva] = useState(false);
   const [canvaLaunchUrl, setCanvaLaunchUrl] = useState<string | null>(null);
+  const [uploadingIdx, setUploadingIdx] = useState<number | null>(null);
+  const fileInputRefs = useRef<Record<number, HTMLInputElement | null>>({});
+
+  const handleThumbnailUpload = async (idx: number, file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Image must be under 10MB');
+      return;
+    }
+    setUploadingIdx(idx);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { toast.error('You must be signed in'); return; }
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const path = `${user.id}/canva-kit/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage
+        .from('organization-assets')
+        .upload(path, file, { cacheControl: '3600', upsert: false, contentType: file.type });
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from('organization-assets').getPublicUrl(path);
+      updateItem(idx, { thumbnailUrl: `${urlData.publicUrl}?t=${Date.now()}` });
+      toast.success('Thumbnail uploaded');
+    } catch (err) {
+      console.error('[CanvaTemplateKitEditor] thumbnail upload failed:', err);
+      toast.error(err instanceof Error ? err.message : 'Upload failed');
+    } finally {
+      setUploadingIdx(null);
+    }
+  };
+
 
   const items = kit[activePlatform] || [];
 
@@ -424,14 +457,47 @@ export const CanvaTemplateKitEditor = ({ value, onChange, onClose, initialPlatfo
                 </div>
               </div>
               <div className="space-y-1">
-                <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Thumbnail URL (optional)</Label>
-                <Input
-                  value={item.thumbnailUrl || ''}
-                  onChange={(e) => updateItem(idx, { thumbnailUrl: e.target.value })}
-                  placeholder="https://..."
-                  className="h-8 text-sm font-mono"
-                />
+                <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Thumbnail (optional)</Label>
+                <div className="flex gap-2 items-start">
+                  <Input
+                    value={item.thumbnailUrl || ''}
+                    onChange={(e) => updateItem(idx, { thumbnailUrl: e.target.value })}
+                    placeholder="https://... or upload →"
+                    className="h-8 text-sm font-mono"
+                  />
+                  <input
+                    ref={(el) => { fileInputRefs.current[idx] = el; }}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleThumbnailUpload(idx, file);
+                      e.target.value = '';
+                    }}
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => fileInputRefs.current[idx]?.click()}
+                    disabled={uploadingIdx === idx}
+                    title="Upload thumbnail image"
+                    className="h-8 w-8 shrink-0"
+                  >
+                    {uploadingIdx === idx ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Upload className="h-3.5 w-3.5" />
+                    )}
+                  </Button>
+                </div>
+                {item.thumbnailUrl && (
+                  <div className="mt-2 h-20 w-32 rounded overflow-hidden border border-border bg-muted">
+                    <img src={item.thumbnailUrl} alt="Thumbnail preview" className="w-full h-full object-cover" />
+                  </div>
+                )}
               </div>
+
             </div>
           ))}
 
