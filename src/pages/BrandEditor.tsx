@@ -71,7 +71,7 @@ import { GlobalLinkUniverseSection } from '@/components/brand/GlobalLinkUniverse
 import { BrandUniverseOrbit } from '@/components/brand/BrandUniverseOrbit';
 import { BrandEventSignageSection } from '@/components/brand/BrandEventSignageSection';
 import { PresentationTemplatesSection } from '@/components/brand/PresentationTemplatesSection';
-import { ApprovedImagerySection } from '@/components/brand/approved-imagery/ApprovedImagerySection';
+// ApprovedImagerySection is now composed inside MasterImagerySection
 import { StudiosSection } from '@/components/brand/StudiosSection';
 const LeafletLocationsSection = lazy(() => import('@/components/brand/LeafletLocationsSection').then(m => ({ default: m.LeafletLocationsSection })));
 import { ExportPdfButton } from '@/components/brand/ExportPdfButton';
