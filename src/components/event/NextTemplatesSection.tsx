@@ -32,6 +32,68 @@ const NEXT_ACCENTS: Record<string, { accent: string; label: string }> = {
   'dataforce-next':    { accent: '#5CE1E6', label: 'DataForce NEXT' },
 };
 
+// ------- Per-variant default copy + optional character cutout URL -------
+const NEXT_VARIATION_DEFAULTS: Record<
+  string,
+  { title: string; body: string; cta: string; cutout?: string }
+> = {
+  'transperfect-next': {
+    title: 'Global Content, Localized Everywhere.',
+    body: 'The flagship TransPerfect NEXT conference — every language, every market, one platform.',
+    cta: 'Reserve Your Seat',
+  },
+  'globallink-next': {
+    title: 'The Future of Translation Management.',
+    body: 'GlobalLink NEXT unites AI, workflow, and human expertise in one connected suite.',
+    cta: 'See the Platform',
+  },
+  'digital-next': {
+    title: 'Digital Experiences, Reimagined.',
+    body: 'Personalized, multilingual, and always-on customer journeys at global scale.',
+    cta: 'Explore Digital NEXT',
+  },
+  'finance-next': {
+    title: 'Precision Language for Finance.',
+    body: 'Regulated, compliant, audit-ready translation for every financial disclosure.',
+    cta: 'Talk to Finance',
+  },
+  'games-next': {
+    title: 'Level Up Your Global Launch.',
+    body: 'End-to-end games localization, QA, and audio in every voice your players speak.',
+    cta: 'Ship in Every Language',
+  },
+  'legal-next': {
+    title: 'Legal-Grade Translation, at Speed.',
+    body: 'eDiscovery, litigation support, and certified translations trusted by AmLaw 100 firms.',
+    cta: 'Request a Demo',
+  },
+  'lifesci-next': {
+    title: 'Life Sciences Localization, Validated.',
+    body: 'Regulatory, clinical, and commercial content — approved processes for global submission.',
+    cta: 'See LifeSci Solutions',
+  },
+  'experience-next': {
+    title: 'Every Customer, Every Language, Every Channel.',
+    body: 'Real-time multilingual CX powered by AI and human quality.',
+    cta: 'Elevate Experience',
+  },
+  'learn-next': {
+    title: 'Global Learning that Actually Lands.',
+    body: 'eLearning localization, voiceover, and LMS integrations for the connected workforce.',
+    cta: 'Start Learning Global',
+  },
+  'media-next': {
+    title: 'Stories that Travel.',
+    body: 'Dubbing, subtitling, and media localization at broadcast quality — everywhere.',
+    cta: 'See the Reel',
+  },
+  'dataforce-next': {
+    title: 'Training Data. On-Brand. At Scale.',
+    body: 'AI-ready datasets, human annotation, and cultural QA from the DataForce network.',
+    cta: 'Power Your AI',
+  },
+};
+
 const NAVY = '#0A1638';
 const NAVY_DEEP = '#050B22';
 const PINK_CTA = '#EC388A';
