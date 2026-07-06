@@ -196,7 +196,20 @@ export const SubEventsSection = ({
                     {getRegionIcon(event.region)}
                   </div>
                 )}
-                
+
+                {/* Stacked color logo overlay */}
+                {stackedLogos[event.id] && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="bg-white/85 backdrop-blur-sm rounded-lg px-4 py-3 shadow-md">
+                      <img
+                        src={stackedLogos[event.id]!}
+                        alt={`${event.name} logo`}
+                        className="max-h-20 max-w-[70%] mx-auto object-contain"
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {/* Region badge - prominent positioning */}
                 {event.region && (
                   <Badge
