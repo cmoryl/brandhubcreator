@@ -689,7 +689,7 @@ export function NextTemplatesSection({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {Object.entries(NEXT_ACCENTS).map(([vSlug, vPreset], idx) => {
-            const variantLayouts: SurfaceLayout[] = ['centered-hero', 'left-stack', 'bottom-band', 'bold-frame'];
+            const variantLayouts: SurfaceLayout[] = ['hero-showcase', 'centered-hero', 'left-stack', 'bottom-band', 'bold-frame'];
             const variantLayout = variantLayouts[idx % variantLayouts.length];
             const defaults = NEXT_VARIATION_DEFAULTS[vSlug] || {
               title: content.title,
