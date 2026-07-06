@@ -14,7 +14,8 @@
 
 import { useState, useEffect, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { Plus, Trash2, ExternalLink, X, Save, Wand2, LayoutGrid, Loader2, Search, Plug, RefreshCw } from 'lucide-react';
+import { Plus, Trash2, ExternalLink, X, Save, Wand2, LayoutGrid, Loader2, Search, Plug, RefreshCw, Upload } from 'lucide-react';
+import { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
