@@ -361,7 +361,38 @@
     border-radius: 12px;
     padding: 20px 22px;
     margin-bottom: 20px;
+    --div-rgb: 0, 194, 168;
   }
+  .division-block#div-transperfect,
+  .division-block#div-globallink { --div-rgb: 19, 177, 243; }
+  .division-block#div-games { --div-rgb: 166, 250, 135; }
+  .division-block#div-finance { --div-rgb: 255, 155, 112; }
+  .division-block#div-legal { --div-rgb: 59, 190, 182; }
+  .division-block#div-lifesci { --div-rgb: 88, 237, 33; }
+  .division-block#div-experience { --div-rgb: 255, 87, 87; }
+  .division-block#div-learn { --div-rgb: 255, 235, 102; }
+  .division-block#div-media { --div-rgb: 236, 56, 138; }
+  .division-block#div-digital { --div-rgb: 194, 163, 255; }
+  .division-block#div-dataforce { --div-rgb: 92, 225, 230; }
+  th.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: color .2s ease;
+  }
+  th.sortable:hover {
+    color: rgba(var(--div-rgb), 1);
+  }
+  th.sortable .sort-arrow {
+    display: inline-block;
+    margin-left: 4px;
+    font-size: 10px;
+    color: var(--muted);
+    transition: color .2s ease;
+  }
+  th.sortable:hover .sort-arrow {
+    color: rgba(var(--div-rgb), 1);
+  }
+
   .division-block h3 {
     margin: 0 0 12px;
     font-size: 17px;
