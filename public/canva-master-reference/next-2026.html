@@ -651,15 +651,13 @@
     nav.toc strong { display: none; }
 
     nav.divbar {
-      position: sticky;
-      top: 0;
-      margin: 0 -12px 8px;
-      border-radius: 0 0 10px 10px;
-      padding: 6px 12px;
-      gap: 4px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin: 0 -4px 8px;
+      padding: 8px;
+      gap: 6px;
     }
-    nav.divbar .divbar-label { display: none; }
-    nav.divbar a { padding: 5px 10px; font-size: 12px; }
+    nav.divbar a { font-size: 10.5px; padding: 6px 4px; }
+    nav.divbar a::before { width: 18px; height: 18px; border-radius: 5px; }
 
     :target { scroll-margin-top: 64px; }
 
