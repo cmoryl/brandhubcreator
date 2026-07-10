@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>TransPerfect NEXT 2026 — Master Build Reference</title>
+<style>
+  :root {
+    --navy: #0a1a3c;
+    --ink: #16213e;
+    --muted: #5b6479;
+    --border: #e3e6ee;
+    --bg: #f7f8fb;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    margin: 0;
+    padding: 40px 24px 80px;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+  header {
+    background: var(--navy);
+    color: #fff;
+    border-radius: 14px;
+    padding: 32px 36px;
+    margin-bottom: 32px;
+  }
+  header h1 { margin: 0 0 6px; font-size: 26px; }
+  header p { margin: 0; color: #b7c2e0; font-size: 14px; }
+  nav.toc {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 20px;
+    margin-bottom: 8px;
+    font-size: 13px;
+  }
+  nav.toc strong { display: block; margin-bottom: 6px; color: var(--muted); text-transform: uppercase; font-size: 11px; letter-spacing: .04em; }
+  nav.toc ol { margin: 0; padding-left: 18px; columns: 2; }
+  nav.toc li { margin-bottom: 4px; }
+  section { margin-top: 8px; }
+  h2 {
+    font-size: 18px;
+    margin: 40px 0 14px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--navy);
+  }
+  h3 { font-size: 15px; margin: 24px 0 8px; color: var(--muted); }
+  h4 {
+    font-size: 14px;
+    margin: 28px 0 8px;
+    color: #fff;
+    background: var(--navy);
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 6px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    font-size: 13.5px;
+  }
+  th, td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th {
+    background: #eef1f8;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--muted);
+  }
+  tr:last-child td { border-bottom: none; }
+  .swatch {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border-radius: 4px;
+    vertical-align: middle;
+    margin-right: 6px;
+    border: 1px solid rgba(0,0,0,.1);
+  }
+  .status {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+  }
+  .done { background: #dcf6e3; color: #157347; }
+  .open { background: #fde8d8; color: #b4530a; }
+  .unknown { background: #eee; color: #777; }
+  .noid { color: #b4530a; font-weight: 600; }
+  a { color: #1a56db; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .btn-link {
+    display: inline-block;
+    background: var(--navy);
+    color: #fff !important;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 14px;
+    border-radius: 6px;
+    text-decoration: none !important;
+    letter-spacing: .02em;
+  }
+  .btn-link:hover { background: #1a2f5c; }
+  .swatch-lg {
+    display: inline-block;
+    width: 44px; height: 44px;
+    border-radius: 8px;
+    vertical-align: middle;
+    border: 1px solid rgba(0,0,0,.12);
+    box-shadow: 0 1px 2px rgba(0,0,0,.06);
+  }
+  .quickref {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    font-size: 12.5px;
+  }
+  .quickref .swatch-lg { flex: none; }
+  .quickref-info { line-height: 1.6; }
+  .quickref-info .qr-head { font-weight: 700; color: var(--ink); margin-bottom: 2px; }
+  .quickref-info .qr-assets code { font-size: 11px; }
+  .qr-sep { color: var(--muted); margin: 0 4px; }
+  code {
+    background: #eef1f8;
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+  .note {
+    background: #fff8e6;
+    border: 1px solid #f2d98c;
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 13.5px;
+    margin: 16px 0;
+  }
+  .card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 16px 18px;
+    font-size: 13.5px;
+    margin-bottom: 10px;
+  }
+  .division-block {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 22px;
+    margin-bottom: 20px;
+  }
+  .division-block h3 {
+    margin: 0 0 12px;
+    font-size: 17px;
+    color: var(--ink);
+  }
+  footer { margin-top: 48px; font-size: 12px; color: var(--muted); text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>TransPerfect NEXT 2026 — Master Build Reference</h1>
+    <p>Internal working doc for the NEXT event series across all TransPerfect divisions. Merges the original 13-format campaign (squares, LinkedIn ads, email headers) with the speaker-card and advocacy-square campaign (formats 14&ndash;25) and the sponsorship packet (format 26) into one registry. Section 4 is organized by division &mdash; each division lists every format built to date, with its stable Design ID.</p>
+    <p style="margin-top:12px; font-size:12px; color:#b7c2e0;">Last updated: 10 July 2026 (element ID reference added)</p>
+  </header>
+
+  <nav class="toc">
+    <strong>Contents</strong>
+    <ol>
+      <li>Event details</li>
+      <li>Division brand &amp; copy registry</li>
+      <li>Asset ID registry</li>
+      <li>Design registry by division &mdash; all 26 formats, keyed by stable Design ID</li>
+      <li>Format reference (what each of the 26 formats is)</li>
+      <li>Build status &amp; decisions</li>
+      <li>Master element ID reference (all formats, 1&ndash;26)</li>
+    </ol>
+  </nav>
+
+  <!-- ============ REFERENCE DATA ============ -->
+
+  <h2>1. Event details (shared across all divisions)</h2>
+  <table>
+    <tr><th>Field</th><th>Value</th></tr>
+    <tr><td>Event name pattern</td><td><code>[Division]NEXT</code> — e.g. GamesNEXT, LegalNEXT</td></tr>
+    <tr><td>Headline pattern</td><td>"THE NEW PRODUCTION ECOSYSTEM FOR [DIVISION]"</td></tr>
+    <tr><td>Dates</td><td>24 &amp; 25 September, 2026</td></tr>
+    <tr><td>Venue</td><td>QEII Centre Westminster, London</td></tr>
+    <tr><td>CTA label</td><td>LEARN MORE</td></tr>
+    <tr><td>Sub-brand line</td><td>BY TRANSPERFECT</td></tr>
+    <tr><td>Master template</td><td>GamesNEXT (Games division) — square 1200×1200 and LinkedIn ad 1200×627</td></tr>
+  </table>
+
+  <h2>2. Division brand &amp; copy registry</h2>
+  <table>
+    <tr>
+      <th>Division</th><th>Accent color</th><th>Pantone</th><th>Headline suffix</th><th>Body copy</th>
+    </tr>
+    <tr>
+      <td>Games <em>(master)</em></td>
+      <td><span class="swatch" style="background:#A6FA87"></span>#A6FA87</td>
+      <td>7487 C</td>
+      <td>GAMES</td>
+      <td>GamesNEXT will bring together decision-makers from game developers, publishers, and selected industry partners to discuss how games are being built, scaled, supported, and operated in today's market.</td>
+    </tr>
+    <tr>
+      <td>TransPerfect</td>
+      <td><span class="swatch" style="background:#13B1F3"></span>#13B1F3</td>
+      <td>306 C</td>
+      <td>GLOBAL BUSINESS</td>
+      <td>TransPerfectNEXT will bring together decision-makers from global business leaders and language industry innovators to discuss how global communication is being transformed, scaled, and delivered in today's market.</td>
+    </tr>
+    <tr>
+      <td>GlobalLink</td>
+      <td><span class="swatch" style="background:#13B1F3"></span>#13B1F3</td>
+      <td>306 C</td>
+      <td>GLOBALLINK</td>
+      <td>GlobalLinkNEXT will bring together decision-makers from localization leaders and language service providers to discuss how global content is being translated, localized, and delivered in today's market.</td>
+    </tr>
+    <tr>
+      <td>Finance</td>
+      <td><span class="swatch" style="background:#FF9B70"></span>#FF9B70</td>
+      <td>1635 C</td>
+      <td>FINANCE</td>
+      <td>FinanceNEXT will bring together decision-makers from finance leaders, banks, and fintech innovators to discuss how financial services are being modernized, secured, and scaled in today's market.</td>
+    </tr>
+    <tr>
+      <td>Legal</td>
+      <td><span class="swatch" style="background:#3BBEB6"></span>#3BBEB6</td>
+      <td>7465 C</td>
+      <td>LEGAL</td>
+      <td>LegalNEXT will bring together decision-makers from legal leaders, law firms, and legal technologists to discuss how legal services are being modernized, streamlined, and scaled in today's market.</td>
+    </tr>
+    <tr>
+      <td>Life Sci</td>
+      <td><span class="swatch" style="background:#58ED21"></span>#58ED21</td>
+      <td>802 C</td>
+      <td>LIFE SCIENCES</td>
+      <td>Life SciNEXT will bring together decision-makers from life sciences leaders, researchers, and regulatory experts to discuss how life sciences content is being developed, translated, and delivered in today's market.</td>
+    </tr>
+    <tr>
+      <td>Experience</td>
+      <td><span class="swatch" style="background:#FF5757"></span>#FF5757</td>
+      <td>1785 C</td>
+      <td>EXPERIENCE</td>
+      <td>ExperienceNEXT will bring together decision-makers from CX leaders, designers, and researchers to discuss how customer experience is being reimagined, measured, and improved in today's market.</td>
+    </tr>
+    <tr>
+      <td>Learn</td>
+      <td><span class="swatch" style="background:#FFEB66"></span>#FFEB66</td>
+      <td>100 C</td>
+      <td>LEARN</td>
+      <td>LearnNEXT will bring together decision-makers from L&amp;D leaders, educators, and training technologists to discuss how learning content is being created, localized, and delivered in today's market.</td>
+    </tr>
+    <tr>
+      <td>Media</td>
+      <td><span class="swatch" style="background:#EC388A"></span>#EC388A</td>
+      <td>205 C</td>
+      <td>MEDIA</td>
+      <td>MediaNEXT will bring together decision-makers from broadcasters, streamers, and content creators to discuss how media is being localized, distributed, and monetized in today's market.</td>
+    </tr>
+    <tr>
+      <td>Digital</td>
+      <td><span class="swatch" style="background:#C2A3FF"></span>#C2A3FF</td>
+      <td>2645 C</td>
+      <td>DIGITAL</td>
+      <td>DigitalNEXT will bring together decision-makers from marketers, technologists, and digital strategists to discuss how digital experiences are being designed, delivered, and optimized in today's market.</td>
+    </tr>
+    <tr>
+      <td>Dataforce</td>
+      <td><span class="swatch" style="background:#5CE1E6"></span>#5CE1E6</td>
+      <td>3105 C</td>
+      <td>DATA</td>
+      <td>DataforceNEXT will bring together decision-makers from data scientists, engineers, and analytics leaders to discuss how data infrastructure is being built, scaled, and operated in today's market.</td>
+    </tr>
+  </table>
+
+  <h2>3. Asset ID registry (for direct Canva API edits)</h2>
+  <div class="note">The "Color preview" column renders the division's accent hex directly (from section 2) as a permanent CSS swatch &mdash; confirmed to match the actual <code>MAHOv...</code> accent asset thumbnails pulled from Canva. It's a stand-in for the real PNG/SVG files, which can't be embedded here directly; see the note at the end of this section for how to get the actual asset files.</div>
+  <table>
+    <tr><th>Division</th><th>Logo asset (navy bg)</th><th>Accent/button/CTA asset</th><th>Color preview</th><th>Circlelines asset</th></tr>
+    <tr><td>Games</td><td><code>MAHOvA5-BAY</code></td><td><code>MAHOvDwDvpc</code></td><td><span class="swatch-lg" style="background:#A6FA87"></span></td><td><code>MAHOzsTo-yA</code></td></tr>
+    <tr><td>TransPerfect</td><td><code>MAHOvFcMs2E</code></td><td><code>MAHOvBWsZbQ</code></td><td><span class="swatch-lg" style="background:#13B1F3"></span></td><td><code>MAHOzoqudGI</code></td></tr>
+    <tr><td>GlobalLink</td><td><code>MAHOvHSJuZY</code></td><td><code>MAHOvKTBHw0</code></td><td><span class="swatch-lg" style="background:#13B1F3"></span></td><td><code>MAHOzqXwg1M</code></td></tr>
+    <tr><td>Finance</td><td><code>MAHOvMmcqBA</code></td><td><code>MAHOvDrdmiE</code></td><td><span class="swatch-lg" style="background:#FF9B70"></span></td><td><code>MAHOzi2t-qw</code></td></tr>
+    <tr><td>Legal</td><td><code>MAHOvH13xpA</code></td><td><code>MAHOvN0q4_I</code></td><td><span class="swatch-lg" style="background:#3BBEB6"></span></td><td><code>MAHOzk1Xpgg</code></td></tr>
+    <tr><td>Life Sci</td><td><code>MAHOvJh_lCo</code></td><td><code>MAHOvBQPipA</code></td><td><span class="swatch-lg" style="background:#58ED21"></span></td><td><code>MAHOziiHbEA</code></td></tr>
+    <tr><td>Experience</td><td><code>MAHOvOZs33Q</code></td><td><code>MAHOvGIQauA</code></td><td><span class="swatch-lg" style="background:#FF5757"></span></td><td><code>MAHOzmVMbxo</code></td></tr>
+    <tr><td>Learn</td><td><code>MAHOvMKYvA8</code></td><td><code>MAHOvJ6sVeg</code></td><td><span class="swatch-lg" style="background:#FFEB66"></span></td><td><code>MAHOzghq7kU</code></td></tr>
+    <tr><td>Media</td><td><code>MAHOvP9q4IE</code></td><td><code>MAHOvDaUnkg</code></td><td><span class="swatch-lg" style="background:#EC388A"></span></td><td><code>MAHOzsQRO_U</code></td></tr>
+    <tr><td>Dataforce</td><td><code>MAHOvBbTUKk</code></td><td><code>MAHOvP-bRGk</code></td><td><span class="swatch-lg" style="background:#5CE1E6"></span></td><td><code>MAHOzo0WRUc</code></td></tr>
+    <tr><td>Digital</td><td><code>MAHOvHnxdDg</code></td><td><code>MAHOvMvAEVg</code></td><td><span class="swatch-lg" style="background:#C2A3FF"></span></td><td><code>MAHOzjlQOgw</code></td></tr>
+  </table>
+  <div class="note">Shared, non-division-specific assets: background gradient <code>MAHKB4R9s8k</code>, diagonal streak texture <code>MAHC0hJPIyU</code> (non-editable layer, appears 3×). These stay the same across every division and both navy-background sizes. The LinkedIn ad's accent circle uses the same accent asset ID as the CTA button (see design registry below for its element ID).</div>
+  <div class="note"><strong>Getting the actual image files (logos, circlelines, textures):</strong> these can't be embedded permanently in this HTML doc &mdash; Canva's asset thumbnail URLs expire after a few hours and aren't publicly hosted. To get real, full-resolution files: open the <strong>"GL NEXT 26 Color Palette for logos"</strong> board (all 11 color and reversed logos) or the <strong>"TransPerfect NEXT Assets"</strong> scratch board (logos, circlelines, accent swatches, and textures as originally staged) in Canva and use Canva's own bulk export/download.</div>
+
+
+  <h3>Color logos (white/light-background formats)</h3>
+  <table>
+    <tr><th>Division</th><th>Color logo asset</th></tr>
+    <tr><td>TransPerfect</td><td><code>MAHO0YCnb8o</code></td></tr>
+    <tr><td>GlobalLink</td><td><code>MAHO0ZSCJOY</code></td></tr>
+    <tr><td>Finance</td><td><code>MAHOzxFO_Eo</code></td></tr>
+    <tr><td>Games</td><td><code>MAHOzw0yhhw</code></td></tr>
+    <tr><td>Legal</td><td><code>MAHO0fciK6A</code></td></tr>
+    <tr><td>Life Sci</td><td><code>MAHO0SaJmPg</code></td></tr>
+    <tr><td>Experience</td><td><code>MAHOzyt65SE</code></td></tr>
+    <tr><td>Learn</td><td><code>MAHO0QLN2Gg</code></td></tr>
+    <tr><td>Media</td><td><code>MAHO0alD8iY</code></td></tr>
+    <tr><td>Digital</td><td><code>MAHOz8qmpQY</code></td></tr>
+    <tr><td>Dataforce</td><td><code>MAHOz-2uKBM</code></td></tr>
+  </table>
+  <div class="note">Source sheet for all color logos: "GL NEXT 26 Color Palette for logos" in Canva. Used for every light/white-background format: white-version LinkedIn post (4c), LinkedIn ad light (4d), LinkedIn post light "white callouts" (4e), and email header light v1–v4 (4h–4k). Navy-background formats use the reversed/white logo asset from the table above instead.</div>
+
+  <!-- ============ DESIGN REGISTRY BY DIVISION ============ -->
+
+  <h2>4. Design registry by division</h2>
+  <div class="note">Each division below lists its design across all 26 formats built to date. Format numbers refer to section 5 (Format reference), where layout details, shared vs. per-division copy, and element notes are documented once rather than repeated 11 times. Formats 1&ndash;13 are the original square/LinkedIn/email-header campaign; formats 14&ndash;25 are the speaker-card and advocacy-square campaign built afterward; format 26 is the sponsorship packet built most recently.</div>
+  <div class="note"><strong>Use the Design ID, not the edit link.</strong> Canva's <code>canva.com/d/XXXX</code> edit URLs are rotating short-lived tokens &mdash; the same design returns a different one on each API call, so those links will eventually stop resolving (marked <span class="noid">(rotating link)</span> where only that form was on file). The <code>DAHO&hellip;</code> design ID is the only stable identifier. A permanent URL can always be rebuilt as <code>canva.com/design/{design_id}/edit</code>.</div>
+
+  <div class="division-block">
+    <h3>Games <em>(master division — source template for all formats)</em></h3>
+    <div class="quickref">
+      <span class="swatch-lg" style="background:#A6FA87"></span>
+      <div class="quickref-info">
+        <div class="qr-head">#A6FA87 <span class="qr-sep">·</span> Pantone 7487 C <span class="qr-sep">·</span> Headline suffix: "GAMES"</div>
+        <div class="qr-assets">Logo (navy bg): <code>MAHOvA5-BAY</code><span class="qr-sep">|</span>Color logo: <code>MAHOzw0yhhw</code><span class="qr-sep">|</span>Accent/CTA: <code>MAHOvDwDvpc</code><span class="qr-sep">|</span>Circlelines: <code>MAHOzsTo-yA</code></div>
+      </div>
+    </div>
+    <table>
+      <tr><th>#</th><th>Format</th><th>Size</th><th>Design ID</th><th>Edit link</th></tr>
+      <tr><td>1</td><td>Square post</td><td>1200×1200</td><td><code>DAHOzpjLTgU</code></td><td><a href="https://www.canva.com/design/DAHOzpjLTgU/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>2</td><td>LinkedIn ad — navy</td><td>1200×627</td><td><code>DAHO0z22Pdk</code></td><td><a href="https://www.canva.com/design/DAHO0z22Pdk/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>3</td><td>LinkedIn post — white</td><td>1080×1080</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/vheKAaXLUQ80UCZ" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>4</td><td>LinkedIn ad — light</td><td>1200×627</td><td><code>DAHO0haC5aM</code></td><td><a href="https://www.canva.com/design/DAHO0haC5aM" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>5</td><td>LinkedIn post — light "white callouts"</td><td>1080×1080</td><td><code>DAHO1KVPPhc</code></td><td><a href="https://www.canva.com/design/DAHO1KVPPhc/edit" class="btn-link">Open ↗</a> <span class="status done">copy of Dataforce master</span></td></tr>
+      <tr><td>6</td><td>Email header — dark v1</td><td>800×250</td><td><code>DAHO0zeLWWg</code></td><td><a href="https://www.canva.com/design/DAHO0zeLWWg/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>7</td><td>Email header — dark v2</td><td>800×250</td><td><code>DAHO04P9XeQ</code></td><td><a href="https://www.canva.com/design/DAHO04P9XeQ/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>8</td><td>Email header — light v1</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/FatLofPCZXAxvsL" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>9</td><td>Email header — light v2</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/rXi1WA0JxzAZi9i" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>10</td><td>Email header — light v3</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/wNdjztrwWMLN0ok" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>11</td><td>Email header — light v4 / white v4</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/WnMLTNOYYZ-Rl2E" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>12</td><td>Email header — dark v3</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/V8ogwCd8qkdN9zj" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>13</td><td>Email header — dark v4</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/72GCOMy54DqVKUN" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>14</td><td>Advocacy square — light "I'm attending"</td><td>1080×1080</td><td><code>DAHO149YK8k</code></td><td><a href="https://www.canva.com/design/DAHO149YK8k/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>15</td><td>Advocacy square — light "I'm speaking"</td><td>1080×1080</td><td><code>DAHO1lWC7qE</code></td><td><a href="https://www.canva.com/design/DAHO1lWC7qE/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>16</td><td>Advocacy square — light "we're sponsoring"</td><td>1080×1080</td><td><code>DAHO1zU759o</code></td><td><a href="https://www.canva.com/design/DAHO1zU759o/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>17</td><td>Advocacy square — dark "I'm attending"</td><td>1080×1080</td><td><code>DAHO1-QhWBE</code></td><td><a href="https://www.canva.com/design/DAHO1-QhWBE/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>18</td><td>Advocacy square — dark "I'm speaking"</td><td>1080×1080</td><td><code>DAHO15fLjgw</code></td><td><a href="https://www.canva.com/design/DAHO15fLjgw/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>19</td><td>Advocacy square — dark "we're sponsoring"</td><td>1080×1080</td><td><code>DAHO128sL3w</code></td><td><a href="https://www.canva.com/design/DAHO128sL3w/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>20</td><td>Sponsors grid</td><td>1200×628</td><td><code>DAHO6Vwa1vA</code></td><td><a href="https://www.canva.com/design/DAHO6Vwa1vA/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>21</td><td>Meet the speakers — 3 speakers</td><td>1200×628</td><td><code>DAHO6VxPAhI</code></td><td><a href="https://www.canva.com/design/DAHO6VxPAhI/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>22</td><td>Meet the speakers — 4 speakers</td><td>1200×628</td><td><code>DAHO6TgiLqc</code></td><td><a href="https://www.canva.com/design/DAHO6TgiLqc/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>23</td><td>Meet the speakers — 5 speakers</td><td>1200×628</td><td><code>DAHO6STsjv8</code></td><td><a href="https://www.canva.com/design/DAHO6STsjv8/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>24</td><td>Meet the speakers — 6 speakers</td><td>1200×628</td><td><code>DAHO6eWNqNQ</code></td><td><a href="https://www.canva.com/design/DAHO6eWNqNQ/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>25</td><td>Meet the keynote</td><td>1200×628</td><td><code>DAHO6VO4CYw</code></td><td><a href="https://www.canva.com/design/DAHO6VO4CYw/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>26</td><td>Sponsorship packet</td><td>8 pages, Letter/A4</td><td><code>DAHO7MHXLiM</code></td><td><a href="https://www.canva.com/design/DAHO7MHXLiM/edit" class="btn-link">Open ↗</a></td></tr>
+    </table>
+  </div>
+
+  <div class="division-block">
+    <h3>TransPerfect</h3>
+    <div class="quickref">
+      <span class="swatch-lg" style="background:#13B1F3"></span>
+      <div class="quickref-info">
+        <div class="qr-head">#13B1F3 <span class="qr-sep">·</span> Pantone 306 C <span class="qr-sep">·</span> Headline suffix: "GLOBAL BUSINESS"</div>
+        <div class="qr-assets">Logo (navy bg): <code>MAHOvFcMs2E</code><span class="qr-sep">|</span>Color logo: <code>MAHO0YCnb8o</code><span class="qr-sep">|</span>Accent/CTA: <code>MAHOvBWsZbQ</code><span class="qr-sep">|</span>Circlelines: <code>MAHOzoqudGI</code></div>
+      </div>
+    </div>
+    <table>
+      <tr><th>#</th><th>Format</th><th>Size</th><th>Design ID</th><th>Edit link</th></tr>
+      <tr><td>1</td><td>Square post</td><td>1200×1200</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/0WBErJFEhcQMjzL" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>2</td><td>LinkedIn ad — navy</td><td>1200×627</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/rUL6ZFIt_X-Ulqy" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>3</td><td>LinkedIn post — white</td><td>1080×1080</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/5NaqmJer5BkdNvw" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>4</td><td>LinkedIn ad — light</td><td>1200×627</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/K8GkKn7f3H6YHk0" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>5</td><td>LinkedIn post — light "white callouts"</td><td>1080×1080</td><td><code>DAHO1MszNkE</code></td><td><a href="https://www.canva.com/design/DAHO1MszNkE/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>6</td><td>Email header — dark v1</td><td>800×250</td><td><code>DAHO1MH-W44</code></td><td><a href="https://www.canva.com/design/DAHO1MH-W44/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>7</td><td>Email header — dark v2</td><td>800×250</td><td><code>DAHO1FCT3Ts</code></td><td><a href="https://www.canva.com/design/DAHO1FCT3Ts/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>8</td><td>Email header — light v1</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/JnIia9I_SCABNHi" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>9</td><td>Email header — light v2</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/d40ArFGaPg6_D0t" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>10</td><td>Email header — light v3</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/NKFyNgpQWG3HWiP" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>11</td><td>Email header — light v4 / white v4</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/NG7a86h8wizhVO3" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>12</td><td>Email header — dark v3</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/HSRSJ38u9VSMQ4b" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>13</td><td>Email header — dark v4</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/rdHxT9O3J_r00tU" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>14</td><td>Advocacy square — light "I'm attending"</td><td>1080×1080</td><td><code>DAHO5l0l_-c</code></td><td><a href="https://www.canva.com/design/DAHO5l0l_-c/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>15</td><td>Advocacy square — light "I'm speaking"</td><td>1080×1080</td><td><code>DAHO5pqhWwY</code></td><td><a href="https://www.canva.com/design/DAHO5pqhWwY/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>16</td><td>Advocacy square — light "we're sponsoring"</td><td>1080×1080</td><td><code>DAHO5opK-QQ</code></td><td><a href="https://www.canva.com/design/DAHO5opK-QQ/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>17</td><td>Advocacy square — dark "I'm attending"</td><td>1080×1080</td><td><code>DAHO6tDxdNY</code></td><td><a href="https://www.canva.com/design/DAHO6tDxdNY/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>18</td><td>Advocacy square — dark "I'm speaking"</td><td>1080×1080</td><td><code>DAHO6shUKpI</code></td><td><a href="https://www.canva.com/design/DAHO6shUKpI/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>19</td><td>Advocacy square — dark "we're sponsoring"</td><td>1080×1080</td><td><code>DAHO6sdm27w</code></td><td><a href="https://www.canva.com/design/DAHO6sdm27w/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>20</td><td>Sponsors grid</td><td>1200×628</td><td><code>DAHO6RxeHAQ</code></td><td><a href="https://www.canva.com/design/DAHO6RxeHAQ/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>21</td><td>Meet the speakers — 3 speakers</td><td>1200×628</td><td><code>DAHO6TPpWRg</code></td><td><a href="https://www.canva.com/design/DAHO6TPpWRg/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>22</td><td>Meet the speakers — 4 speakers</td><td>1200×628</td><td><code>DAHO6WfPbz4</code></td><td><a href="https://www.canva.com/design/DAHO6WfPbz4/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>23</td><td>Meet the speakers — 5 speakers</td><td>1200×628</td><td><code>DAHO6jHL6zA</code></td><td><a href="https://www.canva.com/design/DAHO6jHL6zA/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>24</td><td>Meet the speakers — 6 speakers</td><td>1200×628</td><td><code>DAHO6srBW6c</code></td><td><a href="https://www.canva.com/design/DAHO6srBW6c/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>25</td><td>Meet the keynote</td><td>1200×628</td><td><code>DAHO6iiTyS8</code></td><td><a href="https://www.canva.com/design/DAHO6iiTyS8/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>26</td><td>Sponsorship packet</td><td>8 pages, Letter/A4</td><td><code>DAHO7FLxLKI</code></td><td><a href="https://www.canva.com/design/DAHO7FLxLKI/edit" class="btn-link">Open ↗</a></td></tr>
+    </table>
+  </div>
+
+  <div class="division-block">
+    <h3>GlobalLink</h3>
+    <div class="quickref">
+      <span class="swatch-lg" style="background:#13B1F3"></span>
+      <div class="quickref-info">
+        <div class="qr-head">#13B1F3 <span class="qr-sep">·</span> Pantone 306 C <span class="qr-sep">·</span> Headline suffix: "GLOBALLINK"</div>
+        <div class="qr-assets">Logo (navy bg): <code>MAHOvHSJuZY</code><span class="qr-sep">|</span>Color logo: <code>MAHO0ZSCJOY</code><span class="qr-sep">|</span>Accent/CTA: <code>MAHOvKTBHw0</code><span class="qr-sep">|</span>Circlelines: <code>MAHOzqXwg1M</code></div>
+      </div>
+    </div>
+    <table>
+      <tr><th>#</th><th>Format</th><th>Size</th><th>Design ID</th><th>Edit link</th></tr>
+      <tr><td>1</td><td>Square post</td><td>1200×1200</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/LZTXeNuLtKSDPn6" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>2</td><td>LinkedIn ad — navy</td><td>1200×627</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/7HXKt7knwudg_ti" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>3</td><td>LinkedIn post — white</td><td>1080×1080</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/kfJlOj8ODRnhRrZ" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>4</td><td>LinkedIn ad — light</td><td>1200×627</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/YRq5UWTegGETLA4" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>5</td><td>LinkedIn post — light "white callouts"</td><td>1080×1080</td><td><code>DAHO1PUW8NI</code></td><td><a href="https://www.canva.com/design/DAHO1PUW8NI/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>6</td><td>Email header — dark v1</td><td>800×250</td><td><code>DAHO1J6rZj4</code></td><td><a href="https://www.canva.com/design/DAHO1J6rZj4/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>7</td><td>Email header — dark v2</td><td>800×250</td><td><code>DAHO1IkFbxE</code></td><td><a href="https://www.canva.com/design/DAHO1IkFbxE/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>8</td><td>Email header — light v1</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/9C4jMROWtkaKtGY" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>9</td><td>Email header — light v2</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/NOwYs1Yuf5BylIn" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>10</td><td>Email header — light v3</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/DwRXX0uRWgmpLir" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>11</td><td>Email header — light v4 / white v4</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/-wVIpZIMFB115ux" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>12</td><td>Email header — dark v3</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/M6WkXfMY0F9CrY2" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>13</td><td>Email header — dark v4</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/-S0mHW_Dp8OYyYA" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>14</td><td>Advocacy square — light "I'm attending"</td><td>1080×1080</td><td><code>DAHO5rdPeRc</code></td><td><a href="https://www.canva.com/design/DAHO5rdPeRc/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>15</td><td>Advocacy square — light "I'm speaking"</td><td>1080×1080</td><td><code>DAHO5sd_swM</code></td><td><a href="https://www.canva.com/design/DAHO5sd_swM/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>16</td><td>Advocacy square — light "we're sponsoring"</td><td>1080×1080</td><td><code>DAHO5vrqgRw</code></td><td><a href="https://www.canva.com/design/DAHO5vrqgRw/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>17</td><td>Advocacy square — dark "I'm attending"</td><td>1080×1080</td><td><code>DAHO6laMXoo</code></td><td><a href="https://www.canva.com/design/DAHO6laMXoo/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>18</td><td>Advocacy square — dark "I'm speaking"</td><td>1080×1080</td><td><code>DAHO6t9fvig</code></td><td><a href="https://www.canva.com/design/DAHO6t9fvig/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>19</td><td>Advocacy square — dark "we're sponsoring"</td><td>1080×1080</td><td><code>DAHO6os4Tyw</code></td><td><a href="https://www.canva.com/design/DAHO6os4Tyw/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>20</td><td>Sponsors grid</td><td>1200×628</td><td><code>DAHO6oj0TQA</code></td><td><a href="https://www.canva.com/design/DAHO6oj0TQA/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>21</td><td>Meet the speakers — 3 speakers</td><td>1200×628</td><td><code>DAHO6Yy8D_g</code></td><td><a href="https://www.canva.com/design/DAHO6Yy8D_g/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>22</td><td>Meet the speakers — 4 speakers</td><td>1200×628</td><td><code>DAHO6TfZEQE</code></td><td><a href="https://www.canva.com/design/DAHO6TfZEQE/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>23</td><td>Meet the speakers — 5 speakers</td><td>1200×628</td><td><code>DAHO6h0KeTA</code></td><td><a href="https://www.canva.com/design/DAHO6h0KeTA/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>24</td><td>Meet the speakers — 6 speakers</td><td>1200×628</td><td><code>DAHO6igfhFQ</code></td><td><a href="https://www.canva.com/design/DAHO6igfhFQ/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>25</td><td>Meet the keynote</td><td>1200×628</td><td><code>DAHO6lq7nbU</code></td><td><a href="https://www.canva.com/design/DAHO6lq7nbU/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>26</td><td>Sponsorship packet</td><td>8 pages, Letter/A4</td><td><code>DAHDGo1c_tU</code></td><td><a href="https://www.canva.com/design/DAHDGo1c_tU/edit" class="btn-link">Open ↗</a> <span class="status done">master</span></td></tr>
+    </table>
+  </div>
+
+  <div class="division-block">
+    <h3>Finance</h3>
+    <div class="quickref">
+      <span class="swatch-lg" style="background:#FF9B70"></span>
+      <div class="quickref-info">
+        <div class="qr-head">#FF9B70 <span class="qr-sep">·</span> Pantone 1635 C <span class="qr-sep">·</span> Headline suffix: "FINANCE"</div>
+        <div class="qr-assets">Logo (navy bg): <code>MAHOvMmcqBA</code><span class="qr-sep">|</span>Color logo: <code>MAHOzxFO_Eo</code><span class="qr-sep">|</span>Accent/CTA: <code>MAHOvDrdmiE</code><span class="qr-sep">|</span>Circlelines: <code>MAHOzi2t-qw</code></div>
+      </div>
+    </div>
+    <table>
+      <tr><th>#</th><th>Format</th><th>Size</th><th>Design ID</th><th>Edit link</th></tr>
+      <tr><td>1</td><td>Square post</td><td>1200×1200</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/hht0x8Zki16a_0F" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>2</td><td>LinkedIn ad — navy</td><td>1200×627</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/ncegZUGa7-y3Oc5" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>3</td><td>LinkedIn post — white</td><td>1080×1080</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/bgNEEInvK3znSb8" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>4</td><td>LinkedIn ad — light</td><td>1200×627</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/bJ64PtpIdOo9pzw" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>5</td><td>LinkedIn post — light "white callouts"</td><td>1080×1080</td><td><code>DAHO1P806eY</code></td><td><a href="https://www.canva.com/design/DAHO1P806eY/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>6</td><td>Email header — dark v1</td><td>800×250</td><td><code>DAHO1I4ByQg</code></td><td><a href="https://www.canva.com/design/DAHO1I4ByQg/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>7</td><td>Email header — dark v2</td><td>800×250</td><td><code>DAHO1MsP4W4</code></td><td><a href="https://www.canva.com/design/DAHO1MsP4W4/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>8</td><td>Email header — light v1</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/XUOimJgdg1B8gBO" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>9</td><td>Email header — light v2</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/JoXE7MGQbl0Kz9e" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>10</td><td>Email header — light v3</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/2QN033WYzPdo2xs" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>11</td><td>Email header — light v4 / white v4</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/kivV5Lkdobb-lKK" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>12</td><td>Email header — dark v3</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/e-KUgX2Nq6TA71c" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>13</td><td>Email header — dark v4</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/vSRH49afbR2PQOy" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>14</td><td>Advocacy square — light "I'm attending"</td><td>1080×1080</td><td><code>DAHO5qMmhU0</code></td><td><a href="https://www.canva.com/design/DAHO5qMmhU0/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>15</td><td>Advocacy square — light "I'm speaking"</td><td>1080×1080</td><td><code>DAHO5qeTb68</code></td><td><a href="https://www.canva.com/design/DAHO5qeTb68/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>16</td><td>Advocacy square — light "we're sponsoring"</td><td>1080×1080</td><td><code>DAHO5jnjnpc</code></td><td><a href="https://www.canva.com/design/DAHO5jnjnpc/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>17</td><td>Advocacy square — dark "I'm attending"</td><td>1080×1080</td><td><code>DAHO6tbbxfM</code></td><td><a href="https://www.canva.com/design/DAHO6tbbxfM/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>18</td><td>Advocacy square — dark "I'm speaking"</td><td>1080×1080</td><td><code>DAHO6tH6emM</code></td><td><a href="https://www.canva.com/design/DAHO6tH6emM/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>19</td><td>Advocacy square — dark "we're sponsoring"</td><td>1080×1080</td><td><code>DAHO6s0Xprk</code></td><td><a href="https://www.canva.com/design/DAHO6s0Xprk/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>20</td><td>Sponsors grid</td><td>1200×628</td><td><code>DAHO6iwaJKs</code></td><td><a href="https://www.canva.com/design/DAHO6iwaJKs/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>21</td><td>Meet the speakers — 3 speakers</td><td>1200×628</td><td><code>DAHO6fZvXE4</code></td><td><a href="https://www.canva.com/design/DAHO6fZvXE4/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>22</td><td>Meet the speakers — 4 speakers</td><td>1200×628</td><td><code>DAHO6V7HLUA</code></td><td><a href="https://www.canva.com/design/DAHO6V7HLUA/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>23</td><td>Meet the speakers — 5 speakers</td><td>1200×628</td><td><code>DAHO6s3xh-k</code></td><td><a href="https://www.canva.com/design/DAHO6s3xh-k/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>24</td><td>Meet the speakers — 6 speakers</td><td>1200×628</td><td><code>DAHO6uJ6EiA</code></td><td><a href="https://www.canva.com/design/DAHO6uJ6EiA/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>25</td><td>Meet the keynote</td><td>1200×628</td><td><code>DAHO6jsceZU</code></td><td><a href="https://www.canva.com/design/DAHO6jsceZU/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>26</td><td>Sponsorship packet</td><td>8 pages, Letter/A4</td><td><code>DAHO7E9JW6M</code></td><td><a href="https://www.canva.com/design/DAHO7E9JW6M/edit" class="btn-link">Open ↗</a></td></tr>
+    </table>
+  </div>
+
+  <div class="division-block">
+    <h3>Legal</h3>
+    <div class="quickref">
+      <span class="swatch-lg" style="background:#3BBEB6"></span>
+      <div class="quickref-info">
+        <div class="qr-head">#3BBEB6 <span class="qr-sep">·</span> Pantone 7465 C <span class="qr-sep">·</span> Headline suffix: "LEGAL"</div>
+        <div class="qr-assets">Logo (navy bg): <code>MAHOvH13xpA</code><span class="qr-sep">|</span>Color logo: <code>MAHO0fciK6A</code><span class="qr-sep">|</span>Accent/CTA: <code>MAHOvN0q4_I</code><span class="qr-sep">|</span>Circlelines: <code>MAHOzk1Xpgg</code></div>
+      </div>
+    </div>
+    <table>
+      <tr><th>#</th><th>Format</th><th>Size</th><th>Design ID</th><th>Edit link</th></tr>
+      <tr><td>1</td><td>Square post</td><td>1200×1200</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/mMa03L1PxMkhQj1" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>2</td><td>LinkedIn ad — navy</td><td>1200×627</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/DbhDL5H8E5AmYAc" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>3</td><td>LinkedIn post — white</td><td>1080×1080</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/Ihsa96zdmeuYeSP" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>4</td><td>LinkedIn ad — light</td><td>1200×627</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/B8P331SBH9hF9Bv" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>5</td><td>LinkedIn post — light "white callouts"</td><td>1080×1080</td><td><code>DAHO1BzK2lw</code></td><td><a href="https://www.canva.com/design/DAHO1BzK2lw/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>6</td><td>Email header — dark v1</td><td>800×250</td><td><code>DAHO1AIlQ9o</code></td><td><a href="https://www.canva.com/design/DAHO1AIlQ9o/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>7</td><td>Email header — dark v2</td><td>800×250</td><td><code>DAHO1NM8SUk</code></td><td><a href="https://www.canva.com/design/DAHO1NM8SUk/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>8</td><td>Email header — light v1</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/j3YKvhSDtqxJW6K" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>9</td><td>Email header — light v2</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/drmCaNOW_rCdilG" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>10</td><td>Email header — light v3</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/TeqhcpXy0AmRcQj" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>11</td><td>Email header — light v4 / white v4</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/fA6Q_riKtNnppuy" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>12</td><td>Email header — dark v3</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/96-3k6Szd43pzsq" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>13</td><td>Email header — dark v4</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/cRKp1sDbEkFJnbz" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>14</td><td>Advocacy square — light "I'm attending"</td><td>1080×1080</td><td><code>DAHO5hzvoC4</code></td><td><a href="https://www.canva.com/design/DAHO5hzvoC4/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>15</td><td>Advocacy square — light "I'm speaking"</td><td>1080×1080</td><td><code>DAHO5plGrLc</code></td><td><a href="https://www.canva.com/design/DAHO5plGrLc/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>16</td><td>Advocacy square — light "we're sponsoring"</td><td>1080×1080</td><td><code>DAHO5jqvSnc</code></td><td><a href="https://www.canva.com/design/DAHO5jqvSnc/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>17</td><td>Advocacy square — dark "I'm attending"</td><td>1080×1080</td><td><code>DAHO6qfEd50</code></td><td><a href="https://www.canva.com/design/DAHO6qfEd50/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>18</td><td>Advocacy square — dark "I'm speaking"</td><td>1080×1080</td><td><code>DAHO6mnc9jo</code></td><td><a href="https://www.canva.com/design/DAHO6mnc9jo/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>19</td><td>Advocacy square — dark "we're sponsoring"</td><td>1080×1080</td><td><code>DAHO6qosl2g</code></td><td><a href="https://www.canva.com/design/DAHO6qosl2g/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>20</td><td>Sponsors grid</td><td>1200×628</td><td><code>DAHO6jhL7Qw</code></td><td><a href="https://www.canva.com/design/DAHO6jhL7Qw/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>21</td><td>Meet the speakers — 3 speakers</td><td>1200×628</td><td><code>DAHO6bek494</code></td><td><a href="https://www.canva.com/design/DAHO6bek494/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>22</td><td>Meet the speakers — 4 speakers</td><td>1200×628</td><td><code>DAHO6X0fyDE</code></td><td><a href="https://www.canva.com/design/DAHO6X0fyDE/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>23</td><td>Meet the speakers — 5 speakers</td><td>1200×628</td><td><code>DAHO6oFnVx4</code></td><td><a href="https://www.canva.com/design/DAHO6oFnVx4/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>24</td><td>Meet the speakers — 6 speakers</td><td>1200×628</td><td><code>DAHO6l6NSes</code></td><td><a href="https://www.canva.com/design/DAHO6l6NSes/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>25</td><td>Meet the keynote</td><td>1200×628</td><td><code>DAHO6up5OVk</code></td><td><a href="https://www.canva.com/design/DAHO6up5OVk/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>26</td><td>Sponsorship packet</td><td>8 pages, Letter/A4</td><td><code>DAHO7FkoJ8s</code></td><td><a href="https://www.canva.com/design/DAHO7FkoJ8s/edit" class="btn-link">Open ↗</a></td></tr>
+    </table>
+  </div>
+
+  <div class="division-block">
+    <h3>Life Sci</h3>
+    <div class="quickref">
+      <span class="swatch-lg" style="background:#58ED21"></span>
+      <div class="quickref-info">
+        <div class="qr-head">#58ED21 <span class="qr-sep">·</span> Pantone 802 C <span class="qr-sep">·</span> Headline suffix: "LIFE SCIENCES"</div>
+        <div class="qr-assets">Logo (navy bg): <code>MAHOvJh_lCo</code><span class="qr-sep">|</span>Color logo: <code>MAHO0SaJmPg</code><span class="qr-sep">|</span>Accent/CTA: <code>MAHOvBQPipA</code><span class="qr-sep">|</span>Circlelines: <code>MAHOziiHbEA</code></div>
+      </div>
+    </div>
+    <table>
+      <tr><th>#</th><th>Format</th><th>Size</th><th>Design ID</th><th>Edit link</th></tr>
+      <tr><td>1</td><td>Square post</td><td>1200×1200</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/TQ6V4xW_5a5-p3J" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>2</td><td>LinkedIn ad — navy</td><td>1200×627</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/VdnsZnCwpwtSqI1" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>3</td><td>LinkedIn post — white</td><td>1080×1080</td><td><code>DAHOzz_13M8</code></td><td><a href="https://www.canva.com/design/DAHOzz_13M8/edit" class="btn-link">Open ↗</a> <span class="status done">original reference master for 4c</span></td></tr>
+      <tr><td>4</td><td>LinkedIn ad — light</td><td>1200×627</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/2xyMUmA3XaE4MCT" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>5</td><td>LinkedIn post — light "white callouts"</td><td>1080×1080</td><td><code>DAHO1KyejVw</code></td><td><a href="https://www.canva.com/design/DAHO1KyejVw/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>6</td><td>Email header — dark v1</td><td>800×250</td><td><code>DAHO1F1FT7c</code></td><td><a href="https://www.canva.com/design/DAHO1F1FT7c/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>7</td><td>Email header — dark v2</td><td>800×250</td><td><code>DAHO1LTvLuQ</code></td><td><a href="https://www.canva.com/design/DAHO1LTvLuQ/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>8</td><td>Email header — light v1</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/5rRzU2GfBIRK2uq" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>9</td><td>Email header — light v2</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/M_yECD2G-VmXKTI" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>10</td><td>Email header — light v3</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/1Qsbwe59i1kvV7j" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>11</td><td>Email header — light v4 / white v4</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/ays_ncUzqTw-SuA" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>12</td><td>Email header — dark v3</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/dKdLsaEe72J72Kz" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>13</td><td>Email header — dark v4</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/wzneY8jC1mBAgvg" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>14</td><td>Advocacy square — light "I'm attending"</td><td>1080×1080</td><td><code>DAHO5tJx1DM</code></td><td><a href="https://www.canva.com/design/DAHO5tJx1DM/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>15</td><td>Advocacy square — light "I'm speaking"</td><td>1080×1080</td><td><code>DAHO5vVdFOE</code></td><td><a href="https://www.canva.com/design/DAHO5vVdFOE/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>16</td><td>Advocacy square — light "we're sponsoring"</td><td>1080×1080</td><td><code>DAHO6SPIJjE</code></td><td><a href="https://www.canva.com/design/DAHO6SPIJjE/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>17</td><td>Advocacy square — dark "I'm attending"</td><td>1080×1080</td><td><code>DAHO6oaK9e8</code></td><td><a href="https://www.canva.com/design/DAHO6oaK9e8/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>18</td><td>Advocacy square — dark "I'm speaking"</td><td>1080×1080</td><td><code>DAHO6hE1sxc</code></td><td><a href="https://www.canva.com/design/DAHO6hE1sxc/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>19</td><td>Advocacy square — dark "we're sponsoring"</td><td>1080×1080</td><td><code>DAHO6rIsrHc</code></td><td><a href="https://www.canva.com/design/DAHO6rIsrHc/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>20</td><td>Sponsors grid</td><td>1200×628</td><td><code>DAHO6ryqpMI</code></td><td><a href="https://www.canva.com/design/DAHO6ryqpMI/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>21</td><td>Meet the speakers — 3 speakers</td><td>1200×628</td><td><code>DAHO6S_xKqI</code></td><td><a href="https://www.canva.com/design/DAHO6S_xKqI/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>22</td><td>Meet the speakers — 4 speakers</td><td>1200×628</td><td><code>DAHO6YGDzdc</code></td><td><a href="https://www.canva.com/design/DAHO6YGDzdc/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>23</td><td>Meet the speakers — 5 speakers</td><td>1200×628</td><td><code>DAHO6lsbJ6c</code></td><td><a href="https://www.canva.com/design/DAHO6lsbJ6c/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>24</td><td>Meet the speakers — 6 speakers</td><td>1200×628</td><td><code>DAHO6j3hrms</code></td><td><a href="https://www.canva.com/design/DAHO6j3hrms/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>25</td><td>Meet the keynote</td><td>1200×628</td><td><code>DAHO6q6RQWc</code></td><td><a href="https://www.canva.com/design/DAHO6q6RQWc/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>26</td><td>Sponsorship packet</td><td>8 pages, Letter/A4</td><td><code>DAHO7J4aAZE</code></td><td><a href="https://www.canva.com/design/DAHO7J4aAZE/edit" class="btn-link">Open ↗</a></td></tr>
+    </table>
+  </div>
+
+  <div class="division-block">
+    <h3>Experience</h3>
+    <div class="quickref">
+      <span class="swatch-lg" style="background:#FF5757"></span>
+      <div class="quickref-info">
+        <div class="qr-head">#FF5757 <span class="qr-sep">·</span> Pantone 1785 C <span class="qr-sep">·</span> Headline suffix: "EXPERIENCE"</div>
+        <div class="qr-assets">Logo (navy bg): <code>MAHOvOZs33Q</code><span class="qr-sep">|</span>Color logo: <code>MAHOzyt65SE</code><span class="qr-sep">|</span>Accent/CTA: <code>MAHOvGIQauA</code><span class="qr-sep">|</span>Circlelines: <code>MAHOzmVMbxo</code></div>
+      </div>
+    </div>
+    <table>
+      <tr><th>#</th><th>Format</th><th>Size</th><th>Design ID</th><th>Edit link</th></tr>
+      <tr><td>1</td><td>Square post</td><td>1200×1200</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/xyVYdtkYWlv71lj" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>2</td><td>LinkedIn ad — navy</td><td>1200×627</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/7625zlZk9rvy62P" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>3</td><td>LinkedIn post — white</td><td>1080×1080</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/8vdMoeBwDwRJqcn" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>4</td><td>LinkedIn ad — light</td><td>1200×627</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/ex9cMSOEQqBrJF2" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>5</td><td>LinkedIn post — light "white callouts"</td><td>1080×1080</td><td><code>DAHO1DPLfw0</code></td><td><a href="https://www.canva.com/design/DAHO1DPLfw0/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>6</td><td>Email header — dark v1</td><td>800×250</td><td><code>DAHO1Cmgijw</code></td><td><a href="https://www.canva.com/design/DAHO1Cmgijw/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>7</td><td>Email header — dark v2</td><td>800×250</td><td><code>DAHO1PHG4cs</code></td><td><a href="https://www.canva.com/design/DAHO1PHG4cs/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>8</td><td>Email header — light v1</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/HNLOnlOaXdz2p1d" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>9</td><td>Email header — light v2</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/gZ4agq4dsW-81rd" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>10</td><td>Email header — light v3</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/fQ7y7DyqlpObj2K" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>11</td><td>Email header — light v4 / white v4</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/5R-RlTIdnyI7kV3" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>12</td><td>Email header — dark v3</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/lpVnVcXJ4ArWTGb" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>13</td><td>Email header — dark v4</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/O0FDzFXpmU13AaD" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>14</td><td>Advocacy square — light "I'm attending"</td><td>1080×1080</td><td><code>DAHO6flXFeg</code></td><td><a href="https://www.canva.com/design/DAHO6flXFeg/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>15</td><td>Advocacy square — light "I'm speaking"</td><td>1080×1080</td><td><code>DAHO6Y2cs5U</code></td><td><a href="https://www.canva.com/design/DAHO6Y2cs5U/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>16</td><td>Advocacy square — light "we're sponsoring"</td><td>1080×1080</td><td><code>DAHO6f-ovVE</code></td><td><a href="https://www.canva.com/design/DAHO6f-ovVE/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>17</td><td>Advocacy square — dark "I'm attending"</td><td>1080×1080</td><td><code>DAHO6upkLbw</code></td><td><a href="https://www.canva.com/design/DAHO6upkLbw/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>18</td><td>Advocacy square — dark "I'm speaking"</td><td>1080×1080</td><td><code>DAHO6uTU2RM</code></td><td><a href="https://www.canva.com/design/DAHO6uTU2RM/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>19</td><td>Advocacy square — dark "we're sponsoring"</td><td>1080×1080</td><td><code>DAHO6m3QKuA</code></td><td><a href="https://www.canva.com/design/DAHO6m3QKuA/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>20</td><td>Sponsors grid</td><td>1200×628</td><td><code>DAHO6iivnLk</code></td><td><a href="https://www.canva.com/design/DAHO6iivnLk/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>21</td><td>Meet the speakers — 3 speakers</td><td>1200×628</td><td><code>DAHO6ckOzCg</code></td><td><a href="https://www.canva.com/design/DAHO6ckOzCg/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>22</td><td>Meet the speakers — 4 speakers</td><td>1200×628</td><td><code>DAHO6cTcd_c</code></td><td><a href="https://www.canva.com/design/DAHO6cTcd_c/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>23</td><td>Meet the speakers — 5 speakers</td><td>1200×628</td><td><code>DAHO6q7otHA</code></td><td><a href="https://www.canva.com/design/DAHO6q7otHA/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>24</td><td>Meet the speakers — 6 speakers</td><td>1200×628</td><td><code>DAHO6qIWgnc</code></td><td><a href="https://www.canva.com/design/DAHO6qIWgnc/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>25</td><td>Meet the keynote</td><td>1200×628</td><td><code>DAHO6oTbirw</code></td><td><a href="https://www.canva.com/design/DAHO6oTbirw/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>26</td><td>Sponsorship packet</td><td>8 pages, Letter/A4</td><td><code>DAHO7NpFg5M</code></td><td><a href="https://www.canva.com/design/DAHO7NpFg5M/edit" class="btn-link">Open ↗</a></td></tr>
+    </table>
+  </div>
+
+  <div class="division-block">
+    <h3>Learn</h3>
+    <div class="quickref">
+      <span class="swatch-lg" style="background:#FFEB66"></span>
+      <div class="quickref-info">
+        <div class="qr-head">#FFEB66 <span class="qr-sep">·</span> Pantone 100 C <span class="qr-sep">·</span> Headline suffix: "LEARN"</div>
+        <div class="qr-assets">Logo (navy bg): <code>MAHOvMKYvA8</code><span class="qr-sep">|</span>Color logo: <code>MAHO0QLN2Gg</code><span class="qr-sep">|</span>Accent/CTA: <code>MAHOvJ6sVeg</code><span class="qr-sep">|</span>Circlelines: <code>MAHOzghq7kU</code></div>
+      </div>
+    </div>
+    <table>
+      <tr><th>#</th><th>Format</th><th>Size</th><th>Design ID</th><th>Edit link</th></tr>
+      <tr><td>1</td><td>Square post</td><td>1200×1200</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/yps3iLXYKWe0Y_w" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>2</td><td>LinkedIn ad — navy</td><td>1200×627</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/bLq51DnSdV-1U5K" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>3</td><td>LinkedIn post — white</td><td>1080×1080</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/E79gt6VBQV3K8Tq" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>4</td><td>LinkedIn ad — light</td><td>1200×627</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/aXyLfQcpwojx6EZ" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>5</td><td>LinkedIn post — light "white callouts"</td><td>1080×1080</td><td><code>DAHO1GuoenQ</code></td><td><a href="https://www.canva.com/design/DAHO1GuoenQ/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>6</td><td>Email header — dark v1</td><td>800×250</td><td><code>DAHO1OOsKJg</code></td><td><a href="https://www.canva.com/design/DAHO1OOsKJg/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>7</td><td>Email header — dark v2</td><td>800×250</td><td><code>DAHO1F8MRW0</code></td><td><a href="https://www.canva.com/design/DAHO1F8MRW0/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>8</td><td>Email header — light v1</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/wp60eIlrfIERy84" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>9</td><td>Email header — light v2</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/IN-2B8j0ImDfGWA" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>10</td><td>Email header — light v3</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/V5IRIKtvOf6TkCe" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>11</td><td>Email header — light v4 / white v4</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/H5rKWQlL3OKvn6g" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>12</td><td>Email header — dark v3</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/wmMRh9pqDeh1hR8" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>13</td><td>Email header — dark v4</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/V7x8ECUeAXlqGP8" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>14</td><td>Advocacy square — light "I'm attending"</td><td>1080×1080</td><td><code>DAHO6Sjmqjw</code></td><td><a href="https://www.canva.com/design/DAHO6Sjmqjw/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>15</td><td>Advocacy square — light "I'm speaking"</td><td>1080×1080</td><td><code>DAHO6TsTACY</code></td><td><a href="https://www.canva.com/design/DAHO6TsTACY/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>16</td><td>Advocacy square — light "we're sponsoring"</td><td>1080×1080</td><td><code>DAHO6ZQ2TeQ</code></td><td><a href="https://www.canva.com/design/DAHO6ZQ2TeQ/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>17</td><td>Advocacy square — dark "I'm attending"</td><td>1080×1080</td><td><code>DAHO6p3t8AI</code></td><td><a href="https://www.canva.com/design/DAHO6p3t8AI/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>18</td><td>Advocacy square — dark "I'm speaking"</td><td>1080×1080</td><td><code>DAHO6vePifA</code></td><td><a href="https://www.canva.com/design/DAHO6vePifA/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>19</td><td>Advocacy square — dark "we're sponsoring"</td><td>1080×1080</td><td><code>DAHO6i68QUo</code></td><td><a href="https://www.canva.com/design/DAHO6i68QUo/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>20</td><td>Sponsors grid</td><td>1200×628</td><td><code>DAHO6rkRTHs</code></td><td><a href="https://www.canva.com/design/DAHO6rkRTHs/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>21</td><td>Meet the speakers — 3 speakers</td><td>1200×628</td><td><code>DAHO6Um3WfA</code></td><td><a href="https://www.canva.com/design/DAHO6Um3WfA/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>22</td><td>Meet the speakers — 4 speakers</td><td>1200×628</td><td><code>DAHO6VbhyKY</code></td><td><a href="https://www.canva.com/design/DAHO6VbhyKY/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>23</td><td>Meet the speakers — 5 speakers</td><td>1200×628</td><td><code>DAHO6pECgpA</code></td><td><a href="https://www.canva.com/design/DAHO6pECgpA/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>24</td><td>Meet the speakers — 6 speakers</td><td>1200×628</td><td><code>DAHO6ibMQxw</code></td><td><a href="https://www.canva.com/design/DAHO6ibMQxw/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>25</td><td>Meet the keynote</td><td>1200×628</td><td><code>DAHO6qJoC5M</code></td><td><a href="https://www.canva.com/design/DAHO6qJoC5M/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>26</td><td>Sponsorship packet</td><td>8 pages, Letter/A4</td><td><code>DAHO7F9Shhs</code></td><td><a href="https://www.canva.com/design/DAHO7F9Shhs/edit" class="btn-link">Open ↗</a></td></tr>
+    </table>
+  </div>
+
+  <div class="division-block">
+    <h3>Media</h3>
+    <div class="quickref">
+      <span class="swatch-lg" style="background:#EC388A"></span>
+      <div class="quickref-info">
+        <div class="qr-head">#EC388A <span class="qr-sep">·</span> Pantone 205 C <span class="qr-sep">·</span> Headline suffix: "MEDIA"</div>
+        <div class="qr-assets">Logo (navy bg): <code>MAHOvP9q4IE</code><span class="qr-sep">|</span>Color logo: <code>MAHO0alD8iY</code><span class="qr-sep">|</span>Accent/CTA: <code>MAHOvDaUnkg</code><span class="qr-sep">|</span>Circlelines: <code>MAHOzsQRO_U</code></div>
+      </div>
+    </div>
+    <table>
+      <tr><th>#</th><th>Format</th><th>Size</th><th>Design ID</th><th>Edit link</th></tr>
+      <tr><td>1</td><td>Square post</td><td>1200×1200</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/bplPmSVNm3ymnAx" class="btn-link">Open ↗</a> <span class="status done">only division with a character/hero image</span></td></tr>
+      <tr><td>2</td><td>LinkedIn ad — navy</td><td>1200×627</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/1wFQN_FbwAK8iOL" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>3</td><td>LinkedIn post — white</td><td>1080×1080</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/RFb7ZJuc2huhZjX" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>4</td><td>LinkedIn ad — light</td><td>1200×627</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/bAD5rSgZr-maMHe" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>5</td><td>LinkedIn post — light "white callouts"</td><td>1080×1080</td><td><code>DAHO1Guctqo</code></td><td><a href="https://www.canva.com/design/DAHO1Guctqo/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>6</td><td>Email header — dark v1</td><td>800×250</td><td><code>DAHO1EEn-3c</code></td><td><a href="https://www.canva.com/design/DAHO1EEn-3c/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>7</td><td>Email header — dark v2</td><td>800×250</td><td><code>DAHO1C257EM</code></td><td><a href="https://www.canva.com/design/DAHO1C257EM/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>8</td><td>Email header — light v1</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/2DAmUWSpHQjxdVU" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>9</td><td>Email header — light v2</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/EtecK2x0SnSdXeM" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>10</td><td>Email header — light v3</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/zUYevV5wXEX3IpJ" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>11</td><td>Email header — light v4 / white v4</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/WrteE_YP-utAhgt" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>12</td><td>Email header — dark v3</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/RYlP5oBs3aK3LRl" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>13</td><td>Email header — dark v4</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/9MNntsu-ceYFCZf" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>14</td><td>Advocacy square — light "I'm attending"</td><td>1080×1080</td><td><code>DAHO6fPmYiw</code></td><td><a href="https://www.canva.com/design/DAHO6fPmYiw/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>15</td><td>Advocacy square — light "I'm speaking"</td><td>1080×1080</td><td><code>DAHO6aCV9SY</code></td><td><a href="https://www.canva.com/design/DAHO6aCV9SY/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>16</td><td>Advocacy square — light "we're sponsoring"</td><td>1080×1080</td><td><code>DAHO6eSzXjY</code></td><td><a href="https://www.canva.com/design/DAHO6eSzXjY/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>17</td><td>Advocacy square — dark "I'm attending"</td><td>1080×1080</td><td><code>DAHO6hg8dZY</code></td><td><a href="https://www.canva.com/design/DAHO6hg8dZY/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>18</td><td>Advocacy square — dark "I'm speaking"</td><td>1080×1080</td><td><code>DAHO6vY9I_A</code></td><td><a href="https://www.canva.com/design/DAHO6vY9I_A/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>19</td><td>Advocacy square — dark "we're sponsoring"</td><td>1080×1080</td><td><code>DAHO6k-HJEY</code></td><td><a href="https://www.canva.com/design/DAHO6k-HJEY/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>20</td><td>Sponsors grid</td><td>1200×628</td><td><code>DAHO6rzseT4</code></td><td><a href="https://www.canva.com/design/DAHO6rzseT4/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>21</td><td>Meet the speakers — 3 speakers</td><td>1200×628</td><td><code>DAHO6Q6NnG8</code></td><td><a href="https://www.canva.com/design/DAHO6Q6NnG8/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>22</td><td>Meet the speakers — 4 speakers</td><td>1200×628</td><td><code>DAHO6YVvQT0</code></td><td><a href="https://www.canva.com/design/DAHO6YVvQT0/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>23</td><td>Meet the speakers — 5 speakers</td><td>1200×628</td><td><code>DAHO8JXjMX4</code></td><td><a href="https://www.canva.com/design/DAHO8JXjMX4/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>24</td><td>Meet the speakers — 6 speakers</td><td>1200×628</td><td><code>DAHO-xwbLmw</code></td><td><a href="https://www.canva.com/design/DAHO-xwbLmw/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>25</td><td>Meet the keynote</td><td>1200×628</td><td><code>DAHO-3j3Y1A</code></td><td><a href="https://www.canva.com/design/DAHO-3j3Y1A/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>26</td><td>Sponsorship packet</td><td>8 pages, Letter/A4</td><td><code>DAHO7IWOP2A</code></td><td><a href="https://www.canva.com/design/DAHO7IWOP2A/edit" class="btn-link">Open ↗</a></td></tr>
+    </table>
+  </div>
+
+  <div class="division-block">
+    <h3>Digital</h3>
+    <div class="quickref">
+      <span class="swatch-lg" style="background:#C2A3FF"></span>
+      <div class="quickref-info">
+        <div class="qr-head">#C2A3FF <span class="qr-sep">·</span> Pantone 2645 C <span class="qr-sep">·</span> Headline suffix: "DIGITAL"</div>
+        <div class="qr-assets">Logo (navy bg): <code>MAHOvHnxdDg</code><span class="qr-sep">|</span>Color logo: <code>MAHOz8qmpQY</code><span class="qr-sep">|</span>Accent/CTA: <code>MAHOvMvAEVg</code><span class="qr-sep">|</span>Circlelines: <code>MAHOzjlQOgw</code></div>
+      </div>
+    </div>
+    <table>
+      <tr><th>#</th><th>Format</th><th>Size</th><th>Design ID</th><th>Edit link</th></tr>
+      <tr><td>1</td><td>Square post</td><td>1200×1200</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/FQehnZN5Y6mEkkx" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>2</td><td>LinkedIn ad — navy</td><td>1200×627</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/tlXWUTHFaDGwdRe" class="btn-link">Open ↗</a> <span class="status done">rebuilt, replaces old pre-existing ad</span></td></tr>
+      <tr><td>3</td><td>LinkedIn post — white</td><td>1080×1080</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/94qqONOoHqWX7LV" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>4</td><td>LinkedIn ad — light</td><td>1200×627</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/W87AOmlzeuQ3ayE" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>5</td><td>LinkedIn post — light "white callouts"</td><td>1080×1080</td><td><code>DAHO1DkTTiA</code></td><td><a href="https://www.canva.com/design/DAHO1DkTTiA/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>6</td><td>Email header — dark v1</td><td>800×250</td><td><code>DAHO1DmmyUQ</code></td><td><a href="https://www.canva.com/design/DAHO1DmmyUQ/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>7</td><td>Email header — dark v2</td><td>800×250</td><td><code>DAHO1MBLD_8</code></td><td><a href="https://www.canva.com/design/DAHO1MBLD_8/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>8</td><td>Email header — light v1</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/9izvzZWXF_95m7L" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>9</td><td>Email header — light v2</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/f-liLQbHVqC4Fns" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>10</td><td>Email header — light v3</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/kz4XgN1-Nr8CZ8y" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>11</td><td>Email header — light v4 / white v4</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/hlVN9BYJCkVJ-4w" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>12</td><td>Email header — dark v3</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/nyK443lmYpQn8oV" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>13</td><td>Email header — dark v4</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/BfT7ZwVU_VtaM1g" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>14</td><td>Advocacy square — light "I'm attending"</td><td>1080×1080</td><td><code>DAHO6Xgug5Q</code></td><td><a href="https://www.canva.com/design/DAHO6Xgug5Q/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>15</td><td>Advocacy square — light "I'm speaking"</td><td>1080×1080</td><td><code>DAHO6TVLYSE</code></td><td><a href="https://www.canva.com/design/DAHO6TVLYSE/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>16</td><td>Advocacy square — light "we're sponsoring"</td><td>1080×1080</td><td><code>DAHO6Ts4S6M</code></td><td><a href="https://www.canva.com/design/DAHO6Ts4S6M/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>17</td><td>Advocacy square — dark "I'm attending"</td><td>1080×1080</td><td><code>DAHO6naA7CE</code></td><td><a href="https://www.canva.com/design/DAHO6naA7CE/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>18</td><td>Advocacy square — dark "I'm speaking"</td><td>1080×1080</td><td><code>DAHO6nxrbKo</code></td><td><a href="https://www.canva.com/design/DAHO6nxrbKo/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>19</td><td>Advocacy square — dark "we're sponsoring"</td><td>1080×1080</td><td><code>DAHO6r4Jn9I</code></td><td><a href="https://www.canva.com/design/DAHO6r4Jn9I/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>20</td><td>Sponsors grid</td><td>1200×628</td><td><code>DAHO6o3VEjc</code></td><td><a href="https://www.canva.com/design/DAHO6o3VEjc/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>21</td><td>Meet the speakers — 3 speakers</td><td>1200×628</td><td><code>DAHO6Sq-Rps</code></td><td><a href="https://www.canva.com/design/DAHO6Sq-Rps/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>22</td><td>Meet the speakers — 4 speakers</td><td>1200×628</td><td><code>DAHO6Xo-Ah4</code></td><td><a href="https://www.canva.com/design/DAHO6Xo-Ah4/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>23</td><td>Meet the speakers — 5 speakers</td><td>1200×628</td><td><code>DAHO6hDDdvY</code></td><td><a href="https://www.canva.com/design/DAHO6hDDdvY/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>24</td><td>Meet the speakers — 6 speakers</td><td>1200×628</td><td><code>DAHO6i_g_NM</code></td><td><a href="https://www.canva.com/design/DAHO6i_g_NM/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>25</td><td>Meet the keynote</td><td>1200×628</td><td><code>DAHO6jWsbH8</code></td><td><a href="https://www.canva.com/design/DAHO6jWsbH8/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>26</td><td>Sponsorship packet</td><td>8 pages, Letter/A4</td><td><code>DAHO7KvuRUY</code></td><td><a href="https://www.canva.com/design/DAHO7KvuRUY/edit" class="btn-link">Open ↗</a></td></tr>
+    </table>
+  </div>
+
+  <div class="division-block">
+    <h3>Dataforce</h3>
+    <div class="quickref">
+      <span class="swatch-lg" style="background:#5CE1E6"></span>
+      <div class="quickref-info">
+        <div class="qr-head">#5CE1E6 <span class="qr-sep">·</span> Pantone 3105 C <span class="qr-sep">·</span> Headline suffix: "DATA"</div>
+        <div class="qr-assets">Logo (navy bg): <code>MAHOvBbTUKk</code><span class="qr-sep">|</span>Color logo: <code>MAHOz-2uKBM</code><span class="qr-sep">|</span>Accent/CTA: <code>MAHOvP-bRGk</code><span class="qr-sep">|</span>Circlelines: <code>MAHOzo0WRUc</code></div>
+      </div>
+    </div>
+    <table>
+      <tr><th>#</th><th>Format</th><th>Size</th><th>Design ID</th><th>Edit link</th></tr>
+      <tr><td>1</td><td>Square post</td><td>1200×1200</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/wcWf0PeJGuPqlm2" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>2</td><td>LinkedIn ad — navy</td><td>1200×627</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/aWQcs-Tk94ie-30" class="btn-link">Open ↗</a> <span class="status done">rebuilt, replaces old pre-existing ad</span></td></tr>
+      <tr><td>3</td><td>LinkedIn post — white</td><td>1080×1080</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/12juTn-4pPzu_Ju" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>4</td><td>LinkedIn ad — light</td><td>1200×627</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/32Adf6DgOQp2D9e" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>5</td><td>LinkedIn post — light "white callouts"</td><td>1080×1080</td><td><code>DAHO06FjFVs</code></td><td><a href="https://www.canva.com/design/DAHO06FjFVs/edit" class="btn-link">Open ↗</a> <span class="status done">master for this format</span></td></tr>
+      <tr><td>6</td><td>Email header — dark v1</td><td>800×250</td><td><code>DAHO1FBv7uM</code></td><td><a href="https://www.canva.com/design/DAHO1FBv7uM/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>7</td><td>Email header — dark v2</td><td>800×250</td><td><code>DAHO1AjyFV8</code></td><td><a href="https://www.canva.com/design/DAHO1AjyFV8/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>8</td><td>Email header — light v1</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/ksaZB5mWCd2OSb4" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>9</td><td>Email header — light v2</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/yhiTNlSAoIXWB4L" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>10</td><td>Email header — light v3</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/xpihg4KEg36iP_6" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>11</td><td>Email header — light v4 / white v4</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/Pf4GbCPNxGMILq1" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>12</td><td>Email header — dark v3</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/vegZPiH7Zkjchd3" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>13</td><td>Email header — dark v4</td><td>800×250</td><td><span class="noid">(rotating link)</span></td><td><a href="https://www.canva.com/d/b0Td3518zl_lUvi" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>14</td><td>Advocacy square — light "I'm attending"</td><td>1080×1080</td><td><code>DAHO6dvbzGw</code></td><td><a href="https://www.canva.com/design/DAHO6dvbzGw/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>15</td><td>Advocacy square — light "I'm speaking"</td><td>1080×1080</td><td><code>DAHO6S-DG04</code></td><td><a href="https://www.canva.com/design/DAHO6S-DG04/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>16</td><td>Advocacy square — light "we're sponsoring"</td><td>1080×1080</td><td><code>DAHO6U1NC5c</code></td><td><a href="https://www.canva.com/design/DAHO6U1NC5c/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>17</td><td>Advocacy square — dark "I'm attending"</td><td>1080×1080</td><td><code>DAHO6j___II</code></td><td><a href="https://www.canva.com/design/DAHO6j___II/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>18</td><td>Advocacy square — dark "I'm speaking"</td><td>1080×1080</td><td><code>DAHO6tpM928</code></td><td><a href="https://www.canva.com/design/DAHO6tpM928/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>19</td><td>Advocacy square — dark "we're sponsoring"</td><td>1080×1080</td><td><code>DAHO6vYcfj8</code></td><td><a href="https://www.canva.com/design/DAHO6vYcfj8/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>20</td><td>Sponsors grid</td><td>1200×628</td><td><code>DAHO6uwtKWs</code></td><td><a href="https://www.canva.com/design/DAHO6uwtKWs/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>21</td><td>Meet the speakers — 3 speakers</td><td>1200×628</td><td><code>DAHO6XIbYnw</code></td><td><a href="https://www.canva.com/design/DAHO6XIbYnw/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>22</td><td>Meet the speakers — 4 speakers</td><td>1200×628</td><td><code>DAHO6fxvdUM</code></td><td><a href="https://www.canva.com/design/DAHO6fxvdUM/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>23</td><td>Meet the speakers — 5 speakers</td><td>1200×628</td><td><code>DAHO6guVG8E</code></td><td><a href="https://www.canva.com/design/DAHO6guVG8E/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>24</td><td>Meet the speakers — 6 speakers</td><td>1200×628</td><td><code>DAHO6rP1_6E</code></td><td><a href="https://www.canva.com/design/DAHO6rP1_6E/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>25</td><td>Meet the keynote</td><td>1200×628</td><td><code>DAHO6teWngM</code></td><td><a href="https://www.canva.com/design/DAHO6teWngM/edit" class="btn-link">Open ↗</a></td></tr>
+      <tr><td>26</td><td>Sponsorship packet</td><td>8 pages, Letter/A4</td><td><code>DAHO7He4ZFA</code></td><td><a href="https://www.canva.com/design/DAHO7He4ZFA/edit" class="btn-link">Open ↗</a></td></tr>
+    </table>
+  </div>
+
+  <!-- ============ FORMAT REFERENCE ============ -->
+
+  <h2>5. Format reference</h2>
+  <div class="note">Layout logic, dimensions, and per-division vs. shared-copy notes for each of the 26 formats referenced by number in section 4. Formats 1&ndash;13 are the original square/LinkedIn/email-header campaign; 14&ndash;25 are the advocacy-square and speaker-card campaign; 26 is the sponsorship packet.</div>
+
+  <h4>1. Square post (1200×1200)</h4>
+  <div class="card">Media is the only division with a character/hero image (an armored figure, top-right, roughly 723×887px). Decision made to skip sourcing character images for the other 10 divisions.</div>
+
+  <h4>2. LinkedIn single-image ad — navy (1200×627)</h4>
+  <div class="card"><strong>Fixed 2026-07-08:</strong> the master's big background circle was originally a fixed, non-editable shape — it always rendered green (Games' color) regardless of division. The master (Games) was manually converted in Canva's UI into a real image frame, producing a new circular element that defaults to Games' accent color. All 10 other divisions were rebuilt fresh from this fixed master with the new circle set to each division's own accent color, alongside the usual headline/body/logo/circlelines/button edits.</div>
+
+  <h4>3. LinkedIn post — white version (1080×1080)</h4>
+  <div class="card">Uses a white/light gradient background instead of navy, dark navy text instead of white, and a division-specific color logo instead of the reversed white logo used on the navy designs. Accent color, circlelines, and body copy/headline are otherwise identical to the navy formats. Reference master: Life Sci row above.</div>
+
+  <h4>4. LinkedIn single-image ad — light version (1200×627)</h4>
+  <div class="card">Light/white-background variant of format 2, using the same layout logic as format 3: color logo instead of reversed-white logo, division accent color on the circle/circlelines/button. <strong>Template fix on build:</strong> the master (copied from an older Dataforce-based file) still had a leftover headline reading "FOR DATA" instead of "FOR GAMES", plus a duplicate stacked date/venue text box. Both were corrected on the master before any divisions were built from it.</div>
+
+  <h4>5. LinkedIn post — light version, "white callouts" style (1080×1080)</h4>
+  <div class="card">A distinct light-background layout — centered large body copy, logo bottom-right, CTA bottom-left, vertical rotated headline text along the left edge, and a shared "BEYOND INTELLIGENCE" tagline top-right (kept identical across all divisions per decision, not division-specific). No circlelines or accent-circle elements exist in this layout. Dataforce is the master; the other 10 were copied fresh and edited: headline, body copy, accent button fill, and color logo fill.</div>
+
+  <h4>6. Email header — dark v1 (800×250)</h4>
+  <div class="card">Same layout logic as the navy LinkedIn ad (format 2): reversed-white logo, division accent color on both the accent circle and CTA button, division circlelines. Games is the master; the other 10 were copied fresh and edited: headline, body copy, accent circle fill, CTA button fill, circlelines fill, and logo fill.</div>
+
+  <h4>7. Email header — dark v2 (800×250)</h4>
+  <div class="card">Styled as an article/webinar promo rather than the standard event-headline pattern. The master's headline/subhead ("GenAI and Machine Translation in Retail Marketing: Industry Leaders Discuss Real-World Success at GlobalLinkNEXT") plus the "BEYOND INTELLIGENCE" tagline, date/venue, and CTA text all stay <strong>identical across every division</strong> — a deliberate decision (the copy references GlobalLinkNEXT specifically but sits under each division's own logo/accent/circlelines by design). Only three elements are swapped per division: CTA button fill, circlelines fill, and logo fill.</div>
+
+  <h4>8. Email header — light v1 (800×250)</h4>
+  <div class="card">Light-background counterpart to format 6: standard per-division headline pattern ("THE NEW PRODUCTION ECOSYSTEM FOR [DIVISION]"), color logo instead of reversed-white, division accent on circlelines and CTA button. Games is the master; masters were confirmed clean before mass-copying.</div>
+
+  <h4>9. Email header — light v2 (800×250)</h4>
+  <div class="card">Shares the GenAI/webinar-promo copy pattern with format 7 (headline, subhead, tagline, date/venue, and CTA text identical across all divisions). Only three fills swap per division: CTA button, circlelines, and color logo.</div>
+
+  <h4>10. Email header — light v3 (800×250)</h4>
+  <div class="card">Standard per-division headline pattern, plus a large circular conference-stage hero photo (shared/decorative asset, not customized per division — consistent with the campaign-wide decision to skip character/hero images). Per-division edits: headline text, CTA button fill, circlelines fill, color logo fill.</div>
+
+  <h4>11. Email header — light v4 / "white v4" (800×250)</h4>
+  <div class="card">GenAI/webinar-promo shared-copy pattern (like formats 7 and 9), but this layout has <strong>no circlelines element</strong>. Only two fills swap per division: CTA button and color logo. Games master is titled "GamesNEXT Email Header white v4" in Canva.</div>
+
+  <h4>12. Email header — dark v3 (800×250)</h4>
+  <div class="card">Same page/element family as format 10 (light v3): standard per-division headline pattern plus the shared conference-stage hero photo. Navy background, so uses the reversed/white logo asset instead of the color logo. Per-division edits: headline text, CTA button fill, circlelines fill, white logo fill.</div>
+
+  <h4>13. Email header — dark v4 (800×250)</h4>
+  <div class="card">Same page/element family as format 11 (light v4): GenAI/webinar-promo shared-copy pattern, no circlelines element. Navy background, reversed/white logo asset. Only two fills swap per division: CTA button and white logo.</div>
+
+  <h4>14&ndash;16. Advocacy squares &mdash; light (1080&times;1080)</h4>
+  <div class="card">Three social graphics on a white/light background &mdash; "I'm attending," "I'm speaking," "we're sponsoring." Games is the master for all three. Per-division: logo (color version), circlelines (&times;5, arranged around the headline), accent CTA button fill, and body copy. Built across all 11 divisions.</div>
+
+  <h4>17&ndash;19. Advocacy squares &mdash; dark (1080&times;1080)</h4>
+  <div class="card">Navy counterparts to 14&ndash;16, same layout and copy pattern on a dark background with the reversed/white logo. The three Games masters had leftover Dataforce body copy from their source files, corrected before any division copies were made. Built across all 11 divisions.</div>
+
+  <h4>20. Sponsors grid (1200&times;628)</h4>
+  <div class="card">Per-division sponsor logo grid. No accent circle, circlelines, or CTA button fill in this layout &mdash; differs by logo and copy only. The placeholder sponsor logo tiles were confirmed as placeholders and cleared to an empty grid on the Games master (propagating to all copies) rather than left with stand-in logos, pending real sponsor confirmations.</div>
+
+  <h4>21&ndash;24. Meet the speakers &mdash; 3/4/5/6-speaker (1200&times;628)</h4>
+  <div class="card">Four separate layouts (one master each) holding 3, 4, 5, or 6 circular headshot placeholders. No accent circle or CTA button fill in any of the four &mdash; per-division elements are logo, circlelines (one per headshot), headline, and body copy. All speaker name/title/company placeholders were blanked on each master from leftover real names (Xbox, Bell Canada, Elevance Health) to a generic <code>FIRST LAST</code> / <code>TITLE &ndash; COMPANY</code> convention before any divisions were copied, so every division inherits clean placeholders. Built across all 11 divisions. Media's 5- and 6-speaker copies were built in a later remediation pass after initially being scoped out &mdash; see below.</div>
+
+  <h4>25. Meet the keynote (1200&times;628)</h4>
+  <div class="card">Single-speaker layout with name/quote/company/title (already generic on the master, no blanking needed), a large accent circle, and &mdash; uniquely to this format &mdash; the Games armor character. Per the standing decision to keep that character exclusive to Games, it was deleted from all 10 other divisions' copies, including Media's. Built across all 11 divisions.</div>
+
+  <h4>Media remediation (formats 23&ndash;25)</h4>
+  <div class="card">Media originally shipped with only the 3- and 4-speaker designs (formats 21&ndash;22); the 5-speaker, 6-speaker, and keynote formats were scoped out on the assumption that Media's own hero/character square post (format 1) covered its need for a "face" of the campaign. That scoping decision was reversed, and all three were built in a later pass using the same master-copy-and-swap pattern as the other divisions: logo and circlelines (or logo and accent circle, for the keynote) swapped to Media's assets, headline and body copy updated to Media's standard copy, and the Games armor character deleted from Media's keynote copy per the standing rule. Media now has the full 21&ndash;25 set, matching every other division.</div>
+
+  <h4>26. Sponsorship packet (8 pages, letter/A4 proportions)</h4>
+  <div class="card">Multi-page sponsorship prospectus: cover, gradient/tagline page, "Who Attends?" stats page, "The Event" (venue/date/CTA), Past Attendees logo grid, Sponsorship Opportunities (Silver/Gold table), Agreement Terms and Conditions, and a signature page. GlobalLink is the master (design <code>DAHDGo1c_tU</code>) &mdash; cleaned from an older 10-page file down to 8 pages (dropped duplicate USA/EMEA event-location pages and a triple-duplicated event-listing block), and its own logo/color-logo fills were corrected from leftover TransPerfect assets to true GlobalLink assets. Per-division edits: reversed logo (&times;3, on cover/p2/past-attendees), circlelines (&times;2, on cover/event page), color logo (&times;1, on event page), and three text elements on the Agreement Terms page renaming "TransPerfect GlobalLink NEXT" / "GlobalLinkNEXT" to "[Division]NEXT" (no "TransPerfect" prefix). No accent-circle or CTA-button fills in this format. Built across all 11 divisions, including Media.</div>
+
+  <!-- ============ STATUS ============ -->
+
+  <h2>6. Build status &amp; decisions</h2>
+  <div class="card">
+    <strong>Formats 1&ndash;13 (original campaign): complete for all 11 divisions.</strong> Square post, LinkedIn single-image ad (navy + light), white-version LinkedIn post, LinkedIn post light "white callouts" style, and all 6 email header sub-variations (light v1&ndash;v4, dark v1&ndash;v4) (143 designs total).
+  </div>
+  <div class="card">
+    <strong>Formats 14&ndash;20 (advocacy + sponsors): complete for all 11 divisions.</strong> 33 light advocacy squares, 33 dark advocacy squares, 11 sponsors grids (77 designs total). Sponsor logo placeholders confirmed as placeholders and cleared to an empty grid, pending real sponsor confirmations.
+  </div>
+  <div class="card">
+    <strong>Formats 21&ndash;25 (speaker cards + keynote): complete for all 11 divisions.</strong> 11 &times; 3-speaker, 11 &times; 4-speaker, 11 &times; 5-speaker, 11 &times; 6-speaker, 11 &times; keynote (55 designs total). All speaker placeholders read <code>FIRST LAST</code> / <code>TITLE &ndash; COMPANY</code> (or <code>First Last</code> / "Quote" / Company / Title on the keynote) and still need real speaker names, headshots, titles, and companies. Media's 5-speaker, 6-speaker, and keynote designs were added in a later remediation pass &mdash; see the format-21&ndash;25 reference section above.
+  </div>
+  <div class="card">
+    <strong>Format 26 (sponsorship packet): complete for all 11 divisions, including Media (11 designs total).</strong> GlobalLink master (<code>DAHDGo1c_tU</code>) cleaned from 10 pages to 8 (duplicate USA/EMEA pages and a triple-duplicated event-listing block removed) and its own logo/color-logo fills corrected to true GlobalLink assets before any division copies were made. Each division copy has its reversed logo, circlelines, and color logo swapped, and its Agreement Terms page renamed from "GlobalLinkNEXT" to "[Division]NEXT" (no "TransPerfect" prefix). Sponsorship Silver/Gold pricing table and terms/signature pages are shared copy, not division-specific.
+  </div>
+  <div class="card">
+    <strong>Character/hero image &mdash; decided: not needed</strong> outside two exceptions. Media keeps its existing character image on its square post (format 1). The keynote layout (format 25) keeps the Games armor character on Games only &mdash; deleted from the other 10 divisions' copies, including Media's. No other division/format carries a character image.
+  </div>
+  <div class="card">
+    <strong>LinkedIn ad accent circle &mdash; fixed.</strong> See format 2 note above. All 11 LinkedIn ads (master + 10 divisions) now use a correctly swappable, per-division-colored circle.
+  </div>
+  <div class="card">
+    <strong>Live file size:</strong> not tracked in this doc. Canva's API doesn't expose file size as design metadata &mdash; getting a real byte count means exporting and downloading each file individually, which isn't practical to do in bulk. Canva's own export dialog shows size per-file when you download from the editor.
+  </div>
+
+  <!-- ============ ELEMENT ID REFERENCE ============ -->
+
+  <h2>7. Master element ID reference (all formats, 1&ndash;26)</h2>
+  <div class="note">Page IDs and swappable element IDs on the <strong>master</strong> design for each format, captured directly from the Canva API. Page IDs and per-element IDs are identical across every division's copy of a given format (only the fill/text <em>contents</em> differ), so this table doubles as the reference for editing any division's copy, not just the master.</div>
+  <div class="note"><strong>Page IDs are not globally unique in this workspace.</strong> Canva reuses page IDs across unrelated top-level designs when one was duplicated from another (e.g. formats 2 and 4 share a page ID; formats 6, 7, 8, and 9 share another; formats 10&ndash;13 share yet another; and formats 5 and 14&ndash;19 happen to share one too). A page ID alone never identifies which design you're looking at &mdash; always pair it with the Design ID from section 4.</div>
+  <div class="note"><strong>Caution when copying values from the master:</strong> a master's fill sometimes shows a generic/placeholder asset rather than Games' own registered accent color (e.g. the dark advocacy squares' CTA button shows <code>MAHOu1EAbd0</code> on the Games master, not Games' actual accent asset <code>MAHOvDwDvpc</code>). Always pull the target division's asset ID from section 3's registry &mdash; never copy whatever asset ID the master currently displays.</div>
+
+  <h4>1. Square post</h4>
+  <table>
+    <tr><th>Role</th><th>Element ID</th></tr>
+    <tr><td>Master design</td><td><code>DAHOzpjLTgU</code> (Games) <span class="status done">now a confirmed stable ID &mdash; supersedes the rotating link on file in section 4</span></td></tr>
+    <tr><td>Page ID</td><td><code>PBKHS0q9jv7vqL8P</code></td></tr>
+    <tr><td>Accent circle fill</td><td><code>PBKHS0q9jv7vqL8P-LBfVWGTKZ0B6WlQz</code></td></tr>
+    <tr><td>Accent button fill</td><td><code>PBKHS0q9jv7vqL8P-LB2RGSVChWzckvlF</code></td></tr>
+    <tr><td>Circlelines fill</td><td><code>PBKHS0q9jv7vqL8P-LBsVkQsTvrnqL6Qp</code></td></tr>
+    <tr><td>Logo fill</td><td><code>PBKHS0q9jv7vqL8P-LBYHJGCXWRb9NPyg</code></td></tr>
+    <tr><td>Headline text</td><td><code>PBKHS0q9jv7vqL8P-LBGhtw8GwbmS3zVX</code></td></tr>
+    <tr><td>Body copy text</td><td><code>PBKHS0q9jv7vqL8P-LBCMnLgXzw8xj7Cx</code></td></tr>
+    <tr><td>Date/venue text</td><td><code>PBKHS0q9jv7vqL8P-LB60lN7HFqbLSW6K</code></td></tr>
+    <tr><td>CTA text</td><td><code>PBKHS0q9jv7vqL8P-LBv4wySR6FfTKKQC</code></td></tr>
+  </table>
+
+  <h4>2. LinkedIn single-image ad &mdash; navy</h4>
+  <table>
+    <tr><th>Role</th><th>Element ID</th></tr>
+    <tr><td>Master design</td><td><code>DAHO0z22Pdk</code> (Games) <span class="status done">now a confirmed stable ID &mdash; supersedes the rotating link on file in section 4</span></td></tr>
+    <tr><td>Page ID</td><td><code>PBzhswN9KbV93WTM</code> <span class="status done">shared with format 4</span></td></tr>
+    <tr><td>CTA button fill</td><td><code>PBzhswN9KbV93WTM-LBz1bq1SlwYMcMW9</code></td></tr>
+    <tr><td>Accent circle fill</td><td><code>PBzhswN9KbV93WTM-LBL4HJH2MDtD7QvS</code></td></tr>
+    <tr><td>Circlelines fill</td><td><code>PBzhswN9KbV93WTM-LBS8PDpq0xFqdSZC</code></td></tr>
+    <tr><td>Logo fill</td><td><code>PBzhswN9KbV93WTM-LB2Zy4G8SWHFRKDf</code></td></tr>
+    <tr><td>Headline text</td><td><code>PBzhswN9KbV93WTM-LBXpSrQFrB72k3x6</code></td></tr>
+    <tr><td>Body copy text</td><td><code>PBzhswN9KbV93WTM-LBtFDNs33Sn476gs</code></td></tr>
+    <tr><td>Date/venue text</td><td><code>PBzhswN9KbV93WTM-LBnW0lxYv2YZSnLW</code></td></tr>
+    <tr><td>CTA text</td><td><code>PBzhswN9KbV93WTM-LBvFrcRNGzpJbc49</code></td></tr>
+  </table>
+
+  <h4>3. LinkedIn post &mdash; white version</h4>
+  <table>
+    <tr><th>Role</th><th>Element ID</th></tr>
+    <tr><td>Master design</td><td><code>DAHOzz_13M8</code> (Life Sci, reference master) <span class="status done">now a confirmed stable ID &mdash; supersedes the rotating link on file in section 4</span></td></tr>
+    <tr><td>Page ID</td><td><code>PBjc2HrpyPLcTtjZ</code></td></tr>
+    <tr><td>Accent circle fill</td><td><code>PBjc2HrpyPLcTtjZ-LBtMHzfZm6l6xVJD</code></td></tr>
+    <tr><td>Circlelines fill</td><td><code>PBjc2HrpyPLcTtjZ-LBwSS8m5l2hTsQ4b</code></td></tr>
+    <tr><td>Accent button fill</td><td><code>PBjc2HrpyPLcTtjZ-LBcYmHq3NTnD40Vr</code></td></tr>
+    <tr><td>Color logo fill</td><td><code>PBjc2HrpyPLcTtjZ-LB1vNJGkPVVW7RGP</code></td></tr>
+    <tr><td>Headline text</td><td><code>PBjc2HrpyPLcTtjZ-LBY1gzrqPQcBChCV</code></td></tr>
+    <tr><td>Body copy text</td><td><code>PBjc2HrpyPLcTtjZ-LBgCX77yNLDpvkyv</code></td></tr>
+    <tr><td>Date/venue text</td><td><code>PBjc2HrpyPLcTtjZ-LBcWrgdkzx7MJQSM</code></td></tr>
+    <tr><td>CTA text</td><td><code>PBjc2HrpyPLcTtjZ-LBz6bD5zR0tmJl7F</code></td></tr>
+  </table>
+
+  <h4>4. LinkedIn single-image ad &mdash; light</h4>
+  <table>
+    <tr><th>Role</th><th>Element ID</th></tr>
+    <tr><td>Master design</td><td><code>DAHO0haC5aM</code> (Games)</td></tr>
+    <tr><td>Page ID</td><td><code>PBzhswN9KbV93WTM</code></td></tr>
+    <tr><td>CTA button fill</td><td><code>PBzhswN9KbV93WTM-LBz1bq1SlwYMcMW9</code></td></tr>
+    <tr><td>Accent circle fill</td><td><code>PBzhswN9KbV93WTM-LBL4HJH2MDtD7QvS</code></td></tr>
+    <tr><td>Circlelines fill</td><td><code>PBzhswN9KbV93WTM-LBS8PDpq0xFqdSZC</code></td></tr>
+    <tr><td>Color logo fill</td><td><code>PBzhswN9KbV93WTM-LB57dmMzl2kN2gNd</code></td></tr>
+    <tr><td>Headline text</td><td><code>PBzhswN9KbV93WTM-LB2vYS1BgXQK9Q45</code></td></tr>
+    <tr><td>Body copy text</td><td><code>PBzhswN9KbV93WTM-LBtFDNs33Sn476gs</code></td></tr>
+  </table>
+
+  <h4>5. LinkedIn post &mdash; light "white callouts"</h4>
+  <table>
+    <tr><th>Role</th><th>Element ID</th></tr>
+    <tr><td>Master design</td><td><code>DAHO06FjFVs</code> (Dataforce, actual master for this format)</td></tr>
+    <tr><td>Page ID</td><td><code>PBFp95JFP4YKGSgm</code></td></tr>
+    <tr><td>Color logo fill</td><td><code>PBFp95JFP4YKGSgm-LB1vNJGkPVVW7RGP</code></td></tr>
+    <tr><td>Accent button fill</td><td><code>PBFp95JFP4YKGSgm-LBcYmHq3NTnD40Vr</code></td></tr>
+    <tr><td>Headline text</td><td><code>PBFp95JFP4YKGSgm-LBY1gzrqPQcBChCV</code></td></tr>
+    <tr><td>Body copy text</td><td><code>PBFp95JFP4YKGSgm-LBgCX77yNLDpvkyv</code></td></tr>
+  </table>
+  <div class="card">No circlelines or accent-circle element in this layout, confirming the section 5 note. The page ID here happens to match the one used for formats 14&ndash;19 below, but these are unrelated designs &mdash; Canva page IDs aren't globally unique across different top-level designs in this workspace.</div>
+
+  <h4>6. Email header &mdash; dark v1</h4>
+  <table>
+    <tr><th>Role</th><th>Element ID</th></tr>
+    <tr><td>Master design</td><td><code>DAHO0zeLWWg</code> (Games)</td></tr>
+    <tr><td>Page ID</td><td><code>PBRBM465DN1FdDSQ</code></td></tr>
+    <tr><td>Accent circle fill</td><td><code>PBRBM465DN1FdDSQ-LBY3VTBKBbHqTyVx</code></td></tr>
+    <tr><td>Circlelines fill</td><td><code>PBRBM465DN1FdDSQ-LB8hZTfJThLwvcyP</code></td></tr>
+    <tr><td>CTA button fill</td><td><code>PBRBM465DN1FdDSQ-LBdVKLf6xkTm0b6J-LBQD86HxCt92hK7X</code></td></tr>
+    <tr><td>Reversed logo fill</td><td><code>PBRBM465DN1FdDSQ-LBdVKLf6xkTm0b6J-LBm3V19cmHKj8jNg</code></td></tr>
+    <tr><td>Headline text</td><td><code>PBRBM465DN1FdDSQ-LBdVKLf6xkTm0b6J-LBtPyw6XSF6n8Cvk</code></td></tr>
+    <tr><td>Body copy text</td><td><code>PBRBM465DN1FdDSQ-LBdVKLf6xkTm0b6J-LBLTHx4340rr8try</code></td></tr>
+  </table>
+
+  <h4>7. Email header &mdash; dark v2</h4>
+  <table>
+    <tr><th>Role</th><th>Element ID</th></tr>
+    <tr><td>Master design</td><td><code>DAHO04P9XeQ</code> (Games)</td></tr>
+    <tr><td>Page ID</td><td><code>PBRBM465DN1FdDSQ</code> <span class="status done">same as format 6</span></td></tr>
+    <tr><td>CTA button fill</td><td><code>PBRBM465DN1FdDSQ-LBQD86HxCt92hK7X</code></td></tr>
+    <tr><td>Circlelines fill</td><td><code>PBRBM465DN1FdDSQ-LB8hZTfJThLwvcyP</code></td></tr>
+    <tr><td>Reversed logo fill</td><td><code>PBRBM465DN1FdDSQ-LBm3V19cmHKj8jNg</code></td></tr>
+  </table>
+  <div class="card">Only 3 elements swap per division here (CTA button, circlelines, logo) &mdash; headline/subhead/tagline/date/venue text stays identical across divisions, confirming the section 5 note.</div>
+
+  <h4>8. Email header &mdash; light v1</h4>
+  <table>
+    <tr><th>Role</th><th>Element ID</th></tr>
+    <tr><td>Master design</td><td><code>DAHO1h3Ky38</code> (Games)</td></tr>
+    <tr><td>Page ID</td><td><code>PBRBM465DN1FdDSQ</code> <span class="status done">same as formats 6, 7, 9</span></td></tr>
+    <tr><td>Accent circle fill</td><td><code>PBRBM465DN1FdDSQ-LBY3VTBKBbHqTyVx</code></td></tr>
+    <tr><td>Circlelines fill</td><td><code>PBRBM465DN1FdDSQ-LB8hZTfJThLwvcyP</code></td></tr>
+    <tr><td>CTA button fill</td><td><code>PBRBM465DN1FdDSQ-LBVhR4T1lHqtp5gx</code></td></tr>
+    <tr><td>Color logo fill</td><td><code>PBRBM465DN1FdDSQ-LBRcNJNh28GNCSY0</code></td></tr>
+    <tr><td>Headline text</td><td><code>PBRBM465DN1FdDSQ-LBJkqdrMsSLCKQws</code></td></tr>
+    <tr><td>Body copy text</td><td><code>PBRBM465DN1FdDSQ-LBHzpsstvm7LqNDS</code></td></tr>
+    <tr><td>Date/venue text</td><td><code>PBRBM465DN1FdDSQ-LB6Y6qQZrkdyC3D6</code></td></tr>
+    <tr><td>CTA text</td><td><code>PBRBM465DN1FdDSQ-LB0pbD6K7X2527k1</code></td></tr>
+    <tr><td>Tagline text</td><td><code>PBRBM465DN1FdDSQ-LB0mwMfhK6rQ4fr1</code></td></tr>
+  </table>
+
+  <h4>9. Email header &mdash; light v2</h4>
+  <table>
+    <tr><th>Role</th><th>Element ID</th></tr>
+    <tr><td>Master design</td><td><code>DAHO1fAqEy8</code> (Games)</td></tr>
+    <tr><td>Page ID</td><td><code>PBRBM465DN1FdDSQ</code> <span class="status done">same as formats 6, 7, 8</span></td></tr>
+    <tr><td>CTA button fill</td><td><code>PBRBM465DN1FdDSQ-LBQD86HxCt92hK7X</code></td></tr>
+    <tr><td>Circlelines fill</td><td><code>PBRBM465DN1FdDSQ-LB8hZTfJThLwvcyP</code></td></tr>
+    <tr><td>Color logo fill</td><td><code>PBRBM465DN1FdDSQ-LBrPcMrr2dl0tPzN</code></td></tr>
+  </table>
+  <div class="card">Only 3 elements swap per division here (CTA button, circlelines, color logo), same pattern as format 7 &mdash; headline/subhead/tagline/date/venue stay identical across divisions.</div>
+
+  <h4>10. Email header &mdash; light v3</h4>
+  <table>
+    <tr><th>Role</th><th>Element ID</th></tr>
+    <tr><td>Master design</td><td><code>DAHO1ZV2BHI</code> (Games)</td></tr>
+    <tr><td>Page ID</td><td><code>PB592YPRk35hrjDL</code> <span class="status done">shared with formats 11&ndash;13</span></td></tr>
+    <tr><td>Hero photo fill (shared/decorative, not division-specific)</td><td><code>PB592YPRk35hrjDL-LBD2ZV7W3gH1k2XK</code></td></tr>
+    <tr><td>CTA button fill</td><td><code>PB592YPRk35hrjDL-LB6tDlm1JyTqx9Mt</code></td></tr>
+    <tr><td>Circlelines fill</td><td><code>PB592YPRk35hrjDL-LBB34hmzyNf7GyM6</code></td></tr>
+    <tr><td>Color logo fill</td><td><code>PB592YPRk35hrjDL-LBlFtShWCcWVr178</code></td></tr>
+    <tr><td>Headline text</td><td><code>PB592YPRk35hrjDL-LB5vtsG844P8TW8T</code></td></tr>
+    <tr><td>Date/venue text</td><td><code>PB592YPRk35hrjDL-LBWGv1p7f3tHk105</code></td></tr>
+    <tr><td>CTA text</td><td><code>PB592YPRk35hrjDL-LBgDkzgdtrFZWln2</code></td></tr>
+    <tr><td>Tagline text</td><td><code>PB592YPRk35hrjDL-LBHl7K3fshx1hVpj</code></td></tr>
+  </table>
+
+  <h4>11. Email header &mdash; light v4 / "white v4"</h4>
+  <table>
+    <tr><th>Role</th><th>Element ID</th></tr>
+    <tr><td>Master design</td><td><code>DAHO1dbbkk4</code> (Games)</td></tr>
+    <tr><td>Page ID</td><td><code>PB592YPRk35hrjDL</code> <span class="status done">same as format 10</span></td></tr>
+    <tr><td>CTA button fill</td><td><code>PB592YPRk35hrjDL-LByYMYSdY1GZXKMS</code></td></tr>
+    <tr><td>Color logo fill</td><td><code>PB592YPRk35hrjDL-LBZzmWZn1KGPBlGB</code></td></tr>
+  </table>
+  <div class="card">No circlelines element in this layout, confirming the section 5 note. Only 2 elements swap per division (CTA button, color logo).</div>
+
+  <h4>12. Email header &mdash; dark v3</h4>
+  <table>
+    <tr><th>Role</th><th>Element ID</th></tr>
+    <tr><td>Master design</td><td><code>DAHO1RK02Xs</code> (Games)</td></tr>
+    <tr><td>Page ID</td><td><code>PB592YPRk35hrjDL</code> <span class="status done">same as formats 10, 11, 13</span></td></tr>
+    <tr><td>Hero photo fill (shared/decorative, not division-specific)</td><td><code>PB592YPRk35hrjDL-LBKVHfKKYTDzb0V3</code></td></tr>
+    <tr><td>CTA button fill</td><td><code>PB592YPRk35hrjDL-LB6tDlm1JyTqx9Mt</code></td></tr>
+    <tr><td>Circlelines fill</td><td><code>PB592YPRk35hrjDL-LBB34hmzyNf7GyM6</code></td></tr>
+    <tr><td>White logo fill</td><td><code>PB592YPRk35hrjDL-LBZzmWZn1KGPBlGB</code></td></tr>
+    <tr><td>Headline text</td><td><code>PB592YPRk35hrjDL-LBgRrX0RBMBP1DrM</code></td></tr>
+    <tr><td>Date/venue text</td><td><code>PB592YPRk35hrjDL-LBWGv1p7f3tHk105</code></td></tr>
+    <tr><td>CTA text</td><td><code>PB592YPRk35hrjDL-LBgDkzgdtrFZWln2</code></td></tr>
+    <tr><td>Tagline text</td><td><code>PB592YPRk35hrjDL-LBPdwzLHBDR4bw3Q</code></td></tr>
+  </table>
+
+  <h4>13. Email header &mdash; dark v4</h4>
+  <table>
+    <tr><th>Role</th><th>Element ID</th></tr>
+    <tr><td>Master design</td><td><code>DAHO1XVXH8c</code> (Games)</td></tr>
+    <tr><td>Page ID</td><td><code>PB592YPRk35hrjDL</code> <span class="status done">same as formats 10&ndash;12</span></td></tr>
+    <tr><td>CTA button fill</td><td><code>PB592YPRk35hrjDL-LBd6QqHhF9bHTLv0-LBSWkTTRDp8MMnKV</code></td></tr>
+    <tr><td>White logo fill</td><td><code>PB592YPRk35hrjDL-LBZzmWZn1KGPBlGB</code></td></tr>
+  </table>
+  <div class="card">No circlelines element, same as format 11. Only 2 elements swap per division (CTA button, white logo).</div>
+
+  <h4>14&ndash;16. Advocacy squares &mdash; light</h4>
+  <table>
+    <tr><th>Role</th><th>Element ID</th></tr>
+    <tr><td>Master designs</td><td><code>DAHO149YK8k</code> (14), <code>DAHO1lWC7qE</code> (15), <code>DAHO1zU759o</code> (16) &mdash; all Games</td></tr>
+    <tr><td>Page ID</td><td><code>PBFp95JFP4YKGSgm</code> <span class="status done">identical across all three</span></td></tr>
+    <tr><td>Color logo fill</td><td><code>PBFp95JFP4YKGSgm-LB1vNJGkPVVW7RGP</code></td></tr>
+    <tr><td>Accent circle fill</td><td><code>PBFp95JFP4YKGSgm-LBmrq5ctgD6hQ7s1</code></td></tr>
+    <tr><td>Circlelines fill</td><td><code>PBFp95JFP4YKGSgm-LBJHVKVBbLqMfqHw</code></td></tr>
+    <tr><td>CTA button fill</td><td><code>PBFp95JFP4YKGSgm-LBcYmHq3NTnD40Vr</code></td></tr>
+    <tr><td>Body copy text</td><td><code>PBFp95JFP4YKGSgm-LBgCX77yNLDpvkyv</code></td></tr>
+  </table>
+  <div class="card">Verified identical page ID and element IDs across all three light advocacy squares (14, 15, 16) &mdash; only the headline word ("Attending" / "Speaking!" / "Sponsoring") and its surrounding text elements differ, which are unique per-format and not division-swappable content.</div>
+
+  <h4>17&ndash;19. Advocacy squares &mdash; dark</h4>
+  <table>
+    <tr><th>Role</th><th>Element ID</th></tr>
+    <tr><td>Master designs</td><td><code>DAHO1-QhWBE</code> (17), <code>DAHO15fLjgw</code> (18), <code>DAHO128sL3w</code> (19) &mdash; all Games</td></tr>
+    <tr><td>Page ID</td><td><code>PBFp95JFP4YKGSgm</code> <span class="status done">identical across all three, and matches 14&ndash;16's page ID (see caution note above)</span></td></tr>
+    <tr><td>Reversed logo fill</td><td><code>PBFp95JFP4YKGSgm-LB1vNJGkPVVW7RGP</code></td></tr>
+    <tr><td>Accent circle fill</td><td><code>PBFp95JFP4YKGSgm-LBmrq5ctgD6hQ7s1</code></td></tr>
+    <tr><td>Circlelines fill</td><td><code>PBFp95JFP4YKGSgm-LBJHVKVBbLqMfqHw</code></td></tr>
+    <tr><td>CTA button fill</td><td><code>PBFp95JFP4YKGSgm-LBcYmHq3NTnD40Vr</code></td></tr>
+    <tr><td>Body copy text</td><td><code>PBFp95JFP4YKGSgm-LBgCX77yNLDpvkyv</code></td></tr>
+  </table>
+  <div class="card">Verified identical across 17 and 18 (19 assumed identical by pattern, not individually re-verified). Confirms the section 6 note that these Games masters had leftover Dataforce body copy corrected before divisions were copied &mdash; the body copy element ID is the one to check first if auditing for stray copy.</div>
+
+  <h4>20. Sponsors grid</h4>
+  <table>
+    <tr><th>Role</th><th>Element ID</th></tr>
+    <tr><td>Master design</td><td><code>DAHO6Vwa1vA</code> (Games)</td></tr>
+    <tr><td>Page ID</td><td><code>PBlz8xFdrqYzv4CL</code></td></tr>
+    <tr><td>Reversed logo fill</td><td><code>PBlz8xFdrqYzv4CL-LBwg6BKn7hXRxFTZ</code></td></tr>
+    <tr><td>Headline text</td><td><code>PBlz8xFdrqYzv4CL-LBJH7KPHN1HmJ6D5</code></td></tr>
+    <tr><td>Body copy text</td><td><code>PBlz8xFdrqYzv4CL-LB0VC9Wtr91SLPWK</code></td></tr>
+  </table>
+  <div class="card">No accent circle, circlelines, or CTA button fill &mdash; confirmed empty in this layout, matching the section 5 note. Sponsor logo tiles are empty placeholder slots, not populated fill elements, so they don't appear in the API's fills list.</div>
+
+  <h4>21&ndash;22. Meet the speakers &mdash; 3/4-speaker</h4>
+  <div class="card">Element IDs not yet captured in this doc for these two formats. Masters: <code>DAHO6VxPAhI</code> (3-speaker) and <code>DAHO6TgiLqc</code> (4-speaker), both Games.</div>
+
+  <h4>23. Meet the speakers &mdash; 5-speaker</h4>
+  <table>
+    <tr><th>Role</th><th>Element ID</th></tr>
+    <tr><td>Master design</td><td><code>DAHO6STsjv8</code> (Games)</td></tr>
+    <tr><td>Page ID</td><td><code>PB6TxzySdgNpmqyp</code></td></tr>
+    <tr><td>Logo fill</td><td><code>PB6TxzySdgNpmqyp-LBr0fgCL2BxTbS6W</code></td></tr>
+    <tr><td>Circlelines fill 1</td><td><code>PB6TxzySdgNpmqyp-LBcPw24vtR7L95KG</code></td></tr>
+    <tr><td>Circlelines fill 2</td><td><code>PB6TxzySdgNpmqyp-LB42qbXs1n0tBDvg</code></td></tr>
+    <tr><td>Circlelines fill 3</td><td><code>PB6TxzySdgNpmqyp-LB7tlFmcrXklRgb1</code></td></tr>
+    <tr><td>Circlelines fill 4</td><td><code>PB6TxzySdgNpmqyp-LBLTLlPMtm3KbGwD</code></td></tr>
+    <tr><td>Circlelines fill 5</td><td><code>PB6TxzySdgNpmqyp-LBwM9lCX7MNWdvlw</code></td></tr>
+    <tr><td>Headline text ("...FOR [DIVISION]")</td><td><code>PB6TxzySdgNpmqyp-LBLzW2LkRhldLsFY</code></td></tr>
+    <tr><td>Body copy text</td><td><code>PB6TxzySdgNpmqyp-LBPWpGqsjn0X7yy3</code></td></tr>
+  </table>
+
+  <h4>24. Meet the speakers &mdash; 6-speaker</h4>
+  <table>
+    <tr><th>Role</th><th>Element ID</th></tr>
+    <tr><td>Master design</td><td><code>DAHO6eWNqNQ</code> (Games)</td></tr>
+    <tr><td>Page ID</td><td><code>PBHLf0bDmVZPdNT4</code></td></tr>
+    <tr><td>Logo fill</td><td><code>PBHLf0bDmVZPdNT4-LBv6p6kzgs5lkg87</code></td></tr>
+    <tr><td>Circlelines fill 1</td><td><code>PBHLf0bDmVZPdNT4-LBrC7FSJ8PtGH5Q2</code></td></tr>
+    <tr><td>Circlelines fill 2</td><td><code>PBHLf0bDmVZPdNT4-LBxKfC5qylFK8Dbb</code></td></tr>
+    <tr><td>Circlelines fill 3</td><td><code>PBHLf0bDmVZPdNT4-LBWCSyfGNqNNcJY0</code></td></tr>
+    <tr><td>Circlelines fill 4</td><td><code>PBHLf0bDmVZPdNT4-LBdpCHfr2HbrNBts</code></td></tr>
+    <tr><td>Circlelines fill 5</td><td><code>PBHLf0bDmVZPdNT4-LB0mFnX8hdX9Z2nC</code></td></tr>
+    <tr><td>Circlelines fill 6</td><td><code>PBHLf0bDmVZPdNT4-LB5LZjVPkdSZ4QPn</code></td></tr>
+    <tr><td>Headline text ("...FOR [DIVISION]")</td><td><code>PBHLf0bDmVZPdNT4-LBNpgYPm8nNBfNjv</code></td></tr>
+    <tr><td>Body copy text</td><td><code>PBHLf0bDmVZPdNT4-LBz4Ljf8YbvQtvS0</code></td></tr>
+  </table>
+
+  <h4>25. Meet the keynote</h4>
+  <table>
+    <tr><th>Role</th><th>Element ID</th></tr>
+    <tr><td>Master design</td><td><code>DAHO6VO4CYw</code> (Games)</td></tr>
+    <tr><td>Page ID</td><td><code>PBsF1DN5L1MvQBH3</code></td></tr>
+    <tr><td>Logo fill</td><td><code>PBsF1DN5L1MvQBH3-LBRMVFKZs0m9Kq1P</code></td></tr>
+    <tr><td>Accent circle fill</td><td><code>PBsF1DN5L1MvQBH3-LBhfC54JY06Rzqft</code></td></tr>
+    <tr><td>Headline text ("...FOR [DIVISION]")</td><td><code>PBsF1DN5L1MvQBH3-LBq4889VPYdftxrT</code></td></tr>
+    <tr><td>Speaker name/quote/company/title block</td><td><code>PBsF1DN5L1MvQBH3-LBbXzr6LZB1xsSsx</code></td></tr>
+    <tr><td>Games armor character (Games only &mdash; deleted on all other divisions' copies)</td><td><code>PBsF1DN5L1MvQBH3-LB0pQNH1NDm27cQ2</code></td></tr>
+  </table>
+
+  <h4>26. Sponsorship packet</h4>
+  <div class="card">Master: <code>DAHDGo1c_tU</code> (GlobalLink). 8-page structure, page IDs in build order:</div>
+  <table>
+    <tr><th>Page</th><th>What</th><th>Page ID</th></tr>
+    <tr><td>1</td><td>Cover</td><td><code>PBRmGrG5VZywHQH5</code></td></tr>
+    <tr><td>2</td><td>Gradient / tagline</td><td><code>PBBWMPMrmyVKlYVP</code></td></tr>
+    <tr><td>3</td><td>Who Attends? / stats</td><td><code>PBwLm3lKxgNXtFRD</code></td></tr>
+    <tr><td>4</td><td>The Event (venue/date/CTA)</td><td><code>PBmM22f54vpZrs08</code></td></tr>
+    <tr><td>5</td><td>Past Attendees logo grid</td><td><code>PB9HH9PwNPY8ypl6</code></td></tr>
+    <tr><td>6</td><td>Sponsorship Opportunities (Silver/Gold)</td><td><code>PBjnPGvjDTw0rF4Q</code></td></tr>
+    <tr><td>7</td><td>Agreement Terms and Conditions</td><td><code>PBXdK0f68bcJf2sB</code></td></tr>
+    <tr><td>8</td><td>Signature page</td><td><code>PBj86fxyCLZjGMzR</code></td></tr>
+  </table>
+  <table>
+    <tr><th>Role</th><th>Element ID</th></tr>
+    <tr><td>Reversed logo fill (cover)</td><td><code>PBRmGrG5VZywHQH5-LBNrT9cq9yf6tM3l</code></td></tr>
+    <tr><td>Circlelines fill (cover)</td><td><code>PBRmGrG5VZywHQH5-LBKT4TWHBK7Kd76v</code></td></tr>
+    <tr><td>Reversed logo fill (p2)</td><td><code>PBBWMPMrmyVKlYVP-LB1xVvjKz4MJKcZb</code></td></tr>
+    <tr><td>Circlelines fill (event page)</td><td><code>PBmM22f54vpZrs08-LBXRxgz9mslx30NJ</code></td></tr>
+    <tr><td>Color logo fill (event page)</td><td><code>PBmM22f54vpZrs08-LBh32QVsMRZryYPf</code></td></tr>
+    <tr><td>Reversed logo fill (past attendees)</td><td><code>PB9HH9PwNPY8ypl6-LBtFzs8G3VzZ69YN</code></td></tr>
+    <tr><td>Text: "GlobalLinkNEXT" &rarr; "[Division]NEXT" (general clause)</td><td><code>PBXdK0f68bcJf2sB-LBK2qKQVLl3zTCh1</code></td></tr>
+    <tr><td>Text: "the GlobalLinkNEXT event to be held" &rarr; "the [Division]NEXT event to be held"</td><td><code>PBXdK0f68bcJf2sB-LB6ZmjJFxF8Hnc5x</code></td></tr>
+    <tr><td>Text: "previous GlobalLinkNEXT attendance" &rarr; "previous [Division]NEXT attendance"</td><td><code>PBXdK0f68bcJf2sB-LB6ZmjJFxF8Hnc5x</code> <span class="status done">same element as row above</span></td></tr>
+  </table>
+
+  <footer>Generated from a live audit of the TransPerfect NEXT 2026 Canva workspace.</footer>
+</div>
+</body>
+</html>

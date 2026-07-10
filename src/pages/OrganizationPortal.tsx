@@ -6,7 +6,7 @@
 
 import { useState, useEffect, lazy, Suspense, useMemo, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Globe, Lock, Building2, ArrowLeft, Search, Package, Calendar, Plus, Shield, Settings, LogOut, User, LayoutDashboard, Users, HelpCircle, Bot, Droplets, LayoutGrid, ImageIcon, Sparkles, Crown } from 'lucide-react';
+import { Globe, Lock, Building2, ArrowLeft, Search, Package, Calendar, Plus, Shield, Settings, LogOut, User, LayoutDashboard, Users, HelpCircle, Bot, Droplets, LayoutGrid, ImageIcon, Sparkles, Crown, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -368,6 +368,10 @@ const OrganizationPortal = () => {
                         <DropdownMenuItem onClick={() => navigate('/brand-canva-audits')} className="gap-2 cursor-pointer">
                           <LayoutGrid className="h-4 w-4" />
                           Canva Audits Hub
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate('/canva-master-reference')} className="gap-2 cursor-pointer">
+                          <FileText className="h-4 w-4" />
+                          Canva Master Reference
                         </DropdownMenuItem>
                       </>
                     )}
