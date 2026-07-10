@@ -26,15 +26,53 @@
     line-height: 1.5;
   }
   .wrap { max-width: 1080px; margin: 0 auto; }
-  header {
-    background: var(--navy);
-    color: #fff;
-    border-radius: 14px;
-    padding: 32px 36px;
-    margin-bottom: 32px;
+  .hero-banner {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 24px;
+    background-image: url('/canva-master-reference/next-hero-banner.png');
+    background-size: cover;
+    background-position: center;
+    box-shadow:
+      0 30px 60px -30px rgba(6, 12, 40, .55),
+      0 8px 24px -8px rgba(6, 12, 40, .35);
   }
-  header h1 { margin: 0 0 6px; font-size: 26px; }
-  header p { margin: 0; color: #b7c2e0; font-size: 14px; }
+  .hero-banner::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(6,12,40,.05) 0%, rgba(6,12,40,.15) 60%, rgba(6,12,40,.35) 100%);
+    pointer-events: none;
+  }
+  .hero-banner-inner {
+    position: relative;
+    z-index: 1;
+    padding: 40px 40px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  header.glass-hero {
+    background: rgba(10, 18, 44, .38);
+    -webkit-backdrop-filter: blur(28px) saturate(160%);
+    backdrop-filter: blur(28px) saturate(160%);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 20px;
+    padding: 32px 36px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.25) inset,
+      0 20px 40px -20px rgba(0,0,0,.5);
+  }
+  header.glass-hero h1 { margin: 0 0 10px; font-size: 26px; letter-spacing: -0.01em; }
+  header.glass-hero p { margin: 0; color: rgba(255,255,255,.82); font-size: 14px; }
+  header.glass-hero p.hero-updated { margin-top: 12px; font-size: 12px; color: rgba(255,255,255,.6); }
+  @media (max-width: 720px) {
+    .hero-banner-inner { padding: 20px 16px 18px; }
+    header.glass-hero { padding: 22px 20px; border-radius: 16px; }
+  }
+
   nav.toc {
     background: rgba(255,255,255,.55);
     -webkit-backdrop-filter: blur(22px) saturate(180%);
@@ -604,39 +642,44 @@
 <body>
 <div class="wrap">
 
-  <header>
-    <h1>TransPerfect NEXT 2026 — Master Build Reference</h1>
-    <p>Internal working doc for the NEXT event series across all TransPerfect divisions. Format 1 is the sponsorship packet; format 2 is the PowerPoint template (coming soon); formats 3&ndash;16 are the original squares/LinkedIn ads/email headers campaign (with format 8 the dark-callouts LinkedIn post inserted next to its light counterpart at format 7); formats 17&ndash;28 are the speaker-card and advocacy-square campaign. Section 3 is organized by division &mdash; each division lists every format built to date with its edit link.</p>
-    <p style="margin-top:12px; font-size:12px; color:#b7c2e0;">Last updated: 10 July 2026 (element ID reference added)</p>
-  </header>
+  <section class="hero-banner">
+    <div class="hero-banner-inner">
+      <header class="glass-hero">
+        <h1>TransPerfect NEXT 2026 — Master Build Reference</h1>
+        <p>Internal working doc for the NEXT event series across all TransPerfect divisions. Format 1 is the sponsorship packet; format 2 is the PowerPoint template (coming soon); formats 3&ndash;16 are the original squares/LinkedIn ads/email headers campaign (with format 8 the dark-callouts LinkedIn post inserted next to its light counterpart at format 7); formats 17&ndash;28 are the speaker-card and advocacy-square campaign. Section 3 is organized by division &mdash; each division lists every format built to date with its edit link.</p>
+        <p class="hero-updated">Last updated: 10 July 2026 (element ID reference added)</p>
+      </header>
 
-  <nav class="divbar" aria-label="Divisions">
-    <span class="divbar-label">Divisions</span>
-    <a href="#div-transperfect" target="_self">TransPerfect</a>
-    <a href="#div-games" target="_self">Games</a>
-    <a href="#div-globallink" target="_self">GlobalLink</a>
-    <a href="#div-finance" target="_self">Finance</a>
-    <a href="#div-legal" target="_self">Legal</a>
-    <a href="#div-lifesci" target="_self">Life Sci</a>
-    <a href="#div-experience" target="_self">Experience</a>
-    <a href="#div-learn" target="_self">Learn</a>
-    <a href="#div-media" target="_self">Media</a>
-    <a href="#div-digital" target="_self">Digital</a>
-    <a href="#div-dataforce" target="_self">Dataforce</a>
-  </nav>
+      <nav class="divbar" aria-label="Divisions">
+        <span class="divbar-label">Divisions</span>
+        <a href="#div-transperfect" target="_self">TransPerfect</a>
+        <a href="#div-games" target="_self">Games</a>
+        <a href="#div-globallink" target="_self">GlobalLink</a>
+        <a href="#div-finance" target="_self">Finance</a>
+        <a href="#div-legal" target="_self">Legal</a>
+        <a href="#div-lifesci" target="_self">Life Sci</a>
+        <a href="#div-experience" target="_self">Experience</a>
+        <a href="#div-learn" target="_self">Learn</a>
+        <a href="#div-media" target="_self">Media</a>
+        <a href="#div-digital" target="_self">Digital</a>
+        <a href="#div-dataforce" target="_self">Dataforce</a>
+      </nav>
 
-  <nav class="toc">
-    <strong>Contents</strong>
-    <ol>
-      <li><a href="#sec-1" target="_self">Event details</a></li>
-      <li><a href="#sec-2" target="_self">Division brand &amp; copy registry</a></li>
-      <li><a href="#sec-3" target="_self">Design registry by division &mdash; all 28 formats</a></li>
-      <li><a href="#sec-4" target="_self">Format reference (what each of the 28 formats is)</a></li>
-      <li><a href="#sec-5" target="_self">Asset ID registry (for direct Canva API edits)</a></li>
-      <li><a href="#sec-6" target="_self">Build status &amp; decisions</a></li>
-      <li><a href="#sec-7" target="_self">Element ID reference (all formats, 1&ndash;28)</a></li>
-    </ol>
-  </nav>
+      <nav class="toc">
+        <strong>Contents</strong>
+        <ol>
+          <li><a href="#sec-1" target="_self">Event details</a></li>
+          <li><a href="#sec-2" target="_self">Division brand &amp; copy registry</a></li>
+          <li><a href="#sec-3" target="_self">Design registry by division &mdash; all 28 formats</a></li>
+          <li><a href="#sec-4" target="_self">Format reference (what each of the 28 formats is)</a></li>
+          <li><a href="#sec-5" target="_self">Asset ID registry (for direct Canva API edits)</a></li>
+          <li><a href="#sec-6" target="_self">Build status &amp; decisions</a></li>
+          <li><a href="#sec-7" target="_self">Element ID reference (all formats, 1&ndash;28)</a></li>
+        </ol>
+      </nav>
+    </div>
+  </section>
+
 
 
   <!-- ============ REFERENCE DATA ============ -->
