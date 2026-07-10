@@ -1683,33 +1683,47 @@
 <script>
 (function() {
   function parseSize(text) {
-    const m = text.trim().match(/(\d+)\s*[×x]\s*(\d+)/);
+    const t = text.trim();
+    // Pixel dimensions e.g. "1200×1200" or "800x250"
+    const m = t.match(/(\d+)\s*[×x]\s*(\d+)/);
     if (m) {
       const w = parseInt(m[1], 10);
       const h = parseInt(m[2], 10);
       return { w, h, area: w * h, special: false };
     }
-    return { w: 0, h: 0, area: 0, special: true };
+    // Multi-page Letter/A4 documents: nominal 8.5"x11" at 300dpi = 2550x3300
+    const pages = t.match(/(\d+)\s*pages?/i);
+    if (pages && /letter|a4/i.test(t)) {
+      const n = parseInt(pages[1], 10);
+      const w = 2550, h = 3300;
+      return { w, h, area: w * h * n, special: false, label: 'multi-page' };
+    }
+    // "Coming soon" or anything else with no known size — treat as unknown (largest, so it sorts to the end asc / start desc predictably)
+    return { w: 0, h: 0, area: Number.POSITIVE_INFINITY, special: true };
   }
 
   function sortRows(rows, mode, indexMap) {
     const copy = rows.slice();
+    if (mode === 'none') {
+      copy.sort((a, b) => indexMap.get(a) - indexMap.get(b));
+      return copy;
+    }
     copy.sort((a, b) => {
       const aCell = a.cells[2] ? a.cells[2].textContent : '';
       const bCell = b.cells[2] ? b.cells[2].textContent : '';
       const pa = parseSize(aCell);
       const pb = parseSize(bCell);
-      // Keep non-pixel-size rows (e.g., the sponsorship packet) pinned at the top
-      if (pa.special || pb.special) {
-        if (pa.special && pb.special) return indexMap.get(a) - indexMap.get(b);
-        return pa.special ? -1 : 1;
-      }
-      if (mode === 'none') return indexMap.get(a) - indexMap.get(b);
+      // Unknown-size rows go to the very end regardless of direction
+      if (pa.special && !pb.special) return 1;
+      if (!pa.special && pb.special) return -1;
+      if (pa.special && pb.special) return indexMap.get(a) - indexMap.get(b);
       const diff = pa.area - pb.area;
+      if (diff === 0) return indexMap.get(a) - indexMap.get(b);
       return mode === 'asc' ? diff : -diff;
     });
     return copy;
   }
+
 
   document.querySelectorAll('.division-block table').forEach(table => {
     const allRows = Array.from(table.querySelectorAll('tr'));
