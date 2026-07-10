@@ -1729,12 +1729,40 @@
   const imgEl = document.getElementById('logoModalImg');
   const titleEl = document.getElementById('logoModalTitle');
   const directBtn = document.getElementById('logoModalDirect');
+  const dropboxBtn = document.getElementById('logoModalDropbox');
+  const hintEl = document.getElementById('logoModalHint');
   const closeBtn = modal.querySelector('.logo-modal-close');
+
+  // Per-division Dropbox subfolder URLs (each contains that division's full logo set)
+  const SHARED_DROPBOX = 'https://www.dropbox.com/scl/fo/34fnuuaavzogym4ghdfah/AD2j6gHeEEAj-Z260jfOWps?rlkey=36fqno2jixjjgb4l3wslrwpb8&dl=0';
+  const DIVISION_DROPBOX = {
+    'transperfect': 'https://www.dropbox.com/scl/fo/34fnuuaavzogym4ghdfah/AJkWA9u3botBWe3azU-TDQ8/TransPerfect?rlkey=36fqno2jixjjgb4l3wslrwpb8&dl=0',
+    'games':        'https://www.dropbox.com/scl/fo/34fnuuaavzogym4ghdfah/ADXmUnC5NZOJI8tKXUbjAQo/Games?rlkey=36fqno2jixjjgb4l3wslrwpb8&dl=0',
+    'globallink':   'https://www.dropbox.com/scl/fo/34fnuuaavzogym4ghdfah/ADCL86nTeqcEgAfn-IddN1M/GlobalLink?rlkey=36fqno2jixjjgb4l3wslrwpb8&dl=0',
+    'finance':      'https://www.dropbox.com/scl/fo/34fnuuaavzogym4ghdfah/AGYMYwfZuWt5WCBjzKAK2Fc/Finance?rlkey=36fqno2jixjjgb4l3wslrwpb8&dl=0',
+    'legal':        'https://www.dropbox.com/scl/fo/34fnuuaavzogym4ghdfah/AHThgmVynFAkUzd503o09C8/Legal?rlkey=36fqno2jixjjgb4l3wslrwpb8&dl=0',
+    'life sci':     'https://www.dropbox.com/scl/fo/34fnuuaavzogym4ghdfah/APwrK-EU57yn509zH-e75ZY/Life%20Sci?rlkey=36fqno2jixjjgb4l3wslrwpb8&dl=0',
+    'experience':   'https://www.dropbox.com/scl/fo/34fnuuaavzogym4ghdfah/AFSHRHizs0isMaVGtAuvy-4/Experience?rlkey=36fqno2jixjjgb4l3wslrwpb8&dl=0',
+    'learn':        'https://www.dropbox.com/scl/fo/34fnuuaavzogym4ghdfah/AGVWomkvmK6BZAnduB1YR10/Learn?rlkey=36fqno2jixjjgb4l3wslrwpb8&dl=0',
+    'media':        'https://www.dropbox.com/scl/fo/34fnuuaavzogym4ghdfah/AG8i5TKGMz1Ulkq-C_7TwCM/Media?rlkey=36fqno2jixjjgb4l3wslrwpb8&dl=0',
+    'digital':      'https://www.dropbox.com/scl/fo/34fnuuaavzogym4ghdfah/AJwu-KkgvgkMV5ShJpgglcM/Digital?rlkey=36fqno2jixjjgb4l3wslrwpb8&dl=0',
+    'dataforce':    'https://www.dropbox.com/scl/fo/34fnuuaavzogym4ghdfah/AGJhwGq1RWNQNDQgx7B2M1c/Dataforce?rlkey=36fqno2jixjjgb4l3wslrwpb8&dl=0'
+  };
+
+  function detectDivision(alt, src) {
+    const hay = ((alt || '') + ' ' + (src || '')).toLowerCase();
+    // Order matters: "life sci" and "globallink" must be checked before generic tokens
+    const order = ['life sci','globallink','transperfect','dataforce','experience','digital','finance','games','legal','learn','media'];
+    for (const key of order) {
+      const needle = key.replace(' ', '');
+      if (hay.replace(/[^a-z]/g,'').includes(needle)) return key;
+    }
+    return null;
+  }
 
   // Attach zoom behavior to every inline division logo in the registry table (section 2)
   const registry = document.getElementById('sec-2');
   if (registry) {
-    // Find the first table that follows the section 2 heading
     let node = registry.nextElementSibling;
     while (node && node.tagName !== 'TABLE') node = node.nextElementSibling;
     if (node) {
@@ -1744,10 +1772,23 @@
         img.setAttribute('role', 'button');
         img.setAttribute('title', 'Click to enlarge & download variations');
         const open = () => {
+          const division = detectDivision(img.alt, img.src);
+          const label = division
+            ? division.replace(/\b\w/g, c => c.toUpperCase())
+            : (img.alt || 'Logo').replace(/color logo/i, '').trim();
           imgEl.src = img.src;
           imgEl.alt = img.alt || 'Division logo';
-          titleEl.textContent = (img.alt || 'Logo').replace(/color logo/i, '').trim() || 'Logo preview';
+          titleEl.textContent = label + ' logo';
           directBtn.href = img.src;
+          if (division && DIVISION_DROPBOX[division]) {
+            dropboxBtn.href = DIVISION_DROPBOX[division];
+            dropboxBtn.textContent = '⬇ Download ' + label + ' logo set (Dropbox)';
+            hintEl.textContent = 'Opens the ' + label + ' subfolder in the shared NEXT 2026 logo Dropbox.';
+          } else {
+            dropboxBtn.href = SHARED_DROPBOX;
+            dropboxBtn.textContent = '⬇ Download logo variations (Dropbox)';
+            hintEl.textContent = 'Opens the shared NEXT 2026 logo Dropbox folder.';
+          }
           modal.classList.add('open');
           document.body.style.overflow = 'hidden';
         };
