@@ -657,7 +657,7 @@ const App = () => (
                       }
                     />
                     <Route
-                      path="logohub/audit"
+                      path="logohub/full-audit"
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <PublicLogoHubFullAudit />
