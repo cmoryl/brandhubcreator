@@ -495,15 +495,16 @@
   }
   .coming-soon {
     display: inline-block;
-    padding: 3px 10px;
+    padding: 4px 12px;
     border-radius: 999px;
     font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
+    font-weight: 700;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    background: rgba(255, 235, 102, 0.14);
-    color: #FFEB66;
-    border: 1px solid rgba(255, 235, 102, 0.35);
+    background: linear-gradient(135deg, #FF3B3B, #C81E1E);
+    color: #ffffff;
+    border: 1px solid rgba(255, 87, 87, 0.9);
+    box-shadow: 0 0 0 1px rgba(255,87,87,0.25), 0 4px 14px rgba(255,59,59,0.35);
   }
   footer { margin-top: 48px; font-size: 12px; color: var(--muted); text-align: center; }
 
@@ -573,7 +574,7 @@
 
   <header>
     <h1>TransPerfect NEXT 2026 — Master Build Reference</h1>
-    <p>Internal working doc for the NEXT event series across all TransPerfect divisions. Merges the original 13-format campaign (squares, LinkedIn ads, email headers) with the speaker-card and advocacy-square campaign (formats 14&ndash;25), the sponsorship packet (format 26), and the PowerPoint template (format 27, coming soon) into one registry. Section 3 is organized by division &mdash; each division lists every format built to date with its edit link.</p>
+    <p>Internal working doc for the NEXT event series across all TransPerfect divisions. Format 1 is the sponsorship packet; format 2 is the PowerPoint template (coming soon); formats 3&ndash;15 are the original squares/LinkedIn ads/email headers campaign; formats 16&ndash;27 are the speaker-card and advocacy-square campaign. Section 3 is organized by division &mdash; each division lists every format built to date with its edit link.</p>
     <p style="margin-top:12px; font-size:12px; color:#b7c2e0;">Last updated: 10 July 2026 (element ID reference added)</p>
   </header>
 
@@ -597,7 +598,7 @@
     <ol>
       <li><a href="#sec-1" target="_self">Event details</a></li>
       <li><a href="#sec-2" target="_self">Division brand &amp; copy registry</a></li>
-      <li><a href="#sec-3" target="_self">Design registry by division &mdash; all 26 formats</a></li>
+      <li><a href="#sec-3" target="_self">Design registry by division &mdash; all 27 formats</a></li>
       <li><a href="#sec-4" target="_self">Format reference (what each of the 27 formats is)</a></li>
       <li><a href="#sec-5" target="_self">Asset ID registry (for direct Canva API edits)</a></li>
       <li><a href="#sec-6" target="_self">Build status &amp; decisions</a></li>
@@ -753,7 +754,7 @@
   <!-- ============ DESIGN REGISTRY BY DIVISION ============ -->
 
   <h2 id="sec-3">3. Design registry by division</h2>
-  <div class="note">Each division below lists its design across all 27 formats. Format numbers refer to section 4 (Format reference), where layout details, shared vs. per-division copy, and element notes are documented once rather than repeated 11 times. Formats 1&ndash;13 are the original square/LinkedIn/email-header campaign; formats 14&ndash;25 are the speaker-card and advocacy-square campaign built afterward; format 26 is the sponsorship packet; format 27 is the PowerPoint template (coming soon).</div>
+  <div class="note">Each division below lists its design across all 27 formats. Format numbers refer to section 4 (Format reference), where layout details, shared vs. per-division copy, and element notes are documented once rather than repeated 11 times. Format 1 is the sponsorship packet; format 2 is the PowerPoint template (coming soon); formats 3&ndash;15 are the original square/LinkedIn/email-header campaign; formats 16&ndash;27 are the speaker-card and advocacy-square campaign.</div>
 
 
   <div class="division-block" id="div-transperfect">
@@ -1210,7 +1211,7 @@
   <!-- ============ FORMAT REFERENCE ============ -->
 
   <h2 id="sec-4">4. Format reference</h2>
-  <div class="note">Layout logic, dimensions, and per-division vs. shared-copy notes for each of the 26 formats referenced by number in section 4. Formats 1&ndash;13 are the original square/LinkedIn/email-header campaign; 14&ndash;25 are the advocacy-square and speaker-card campaign; 26 is the sponsorship packet.</div>
+  <div class="note">Layout logic, dimensions, and per-division vs. shared-copy notes for each of the 27 formats referenced by number in section 4. Format 1 is the sponsorship packet; format 2 is the PowerPoint template (coming soon); formats 3&ndash;15 are the original square/LinkedIn/email-header campaign; formats 16&ndash;27 are the advocacy-square and speaker-card campaign.</div>
 
   <h4>3. Square post (1200×1200)</h4>
   <div class="card">Media is the only division with a character/hero image (an armored figure, top-right, roughly 723×887px). Decision made to skip sourcing character images for the other 10 divisions.</div>
@@ -1266,8 +1267,8 @@
   <h4>27. Meet the keynote (1200&times;628)</h4>
   <div class="card">Single-speaker layout with name/quote/company/title (already generic on the source template, no blanking needed), a large accent circle, and &mdash; uniquely to this format &mdash; the Games armor character. Per the standing decision to keep that character exclusive to Games, it was deleted from all 10 other divisions' copies, including Media's. Built across all 11 divisions.</div>
 
-  <h4>Media remediation (formats 23&ndash;25)</h4>
-  <div class="card">Media originally shipped with only the 3- and 4-speaker designs (formats 21&ndash;22); the 5-speaker, 6-speaker, and keynote formats were scoped out on the assumption that Media's own hero/character square post (format 1) covered its need for a "face" of the campaign. That scoping decision was reversed, and all three were built in a later pass using the same template-copy-and-swap pattern as the other divisions: logo and circlelines (or logo and accent circle, for the keynote) swapped to Media's assets, headline and body copy updated to Media's standard copy, and the Games armor character deleted from Media's keynote copy per the standing rule. Media now has the full 21&ndash;25 set, matching every other division.</div>
+  <h4>Media remediation (formats 25&ndash;27)</h4>
+  <div class="card">Media originally shipped with only the 3- and 4-speaker designs (formats 23&ndash;24); the 5-speaker, 6-speaker, and keynote formats were scoped out on the assumption that Media's own hero/character square post (format 3) covered its need for a "face" of the campaign. That scoping decision was reversed, and all three were built in a later pass using the same template-copy-and-swap pattern as the other divisions: logo and circlelines (or logo and accent circle, for the keynote) swapped to Media's assets, headline and body copy updated to Media's standard copy, and the Games armor character deleted from Media's keynote copy per the standing rule. Media now has the full 23&ndash;27 set, matching every other division.</div>
 
   <h4>1. Sponsorship packet (8 pages, letter/A4 proportions)</h4>
   <div class="card">Multi-page sponsorship prospectus: cover, gradient/tagline page, "Who Attends?" stats page, "The Event" (venue/date/CTA), Past Attendees logo grid, Sponsorship Opportunities (Silver/Gold table), Agreement Terms and Conditions, and a signature page. GlobalLink is the source template (design <code>DAHDGo1c_tU</code>) &mdash; cleaned from an older 10-page file down to 8 pages (dropped duplicate USA/EMEA event-location pages and a triple-duplicated event-listing block), and its own logo/color-logo fills were corrected from leftover TransPerfect assets to true GlobalLink assets. Per-division edits: reversed logo (&times;3, on cover/p2/past-attendees), circlelines (&times;2, on cover/event page), color logo (&times;1, on event page), and three text elements on the Agreement Terms page renaming "TransPerfect GlobalLink NEXT" / "GlobalLinkNEXT" to "[Division]NEXT" (no "TransPerfect" prefix). No accent-circle or CTA-button fills in this format. Built across all 11 divisions, including Media.</div>
@@ -1318,16 +1319,16 @@
 
   <h2 id="sec-6">6. Build status &amp; decisions</h2>
   <div class="card">
-    <strong>Formats 1&ndash;13 (original campaign): complete for all 11 divisions.</strong> Square post, LinkedIn single-image ad (navy + light), white-version LinkedIn post, LinkedIn post light "white callouts" style, and all 6 email header sub-variations (light v1&ndash;v4, dark v1&ndash;v4) (143 designs total).
+    <strong>Formats 3&ndash;15 (original campaign): complete for all 11 divisions.</strong> Square post, LinkedIn single-image ad (navy + light), white-version LinkedIn post, LinkedIn post light "white callouts" style, and all 6 email header sub-variations (light v1&ndash;v4, dark v1&ndash;v4) (143 designs total).
   </div>
   <div class="card">
-    <strong>Formats 14&ndash;20 (advocacy + sponsors): complete for all 11 divisions.</strong> 33 light advocacy squares, 33 dark advocacy squares, 11 sponsors grids (77 designs total). Sponsor logo placeholders confirmed as placeholders and cleared to an empty grid, pending real sponsor confirmations.
+    <strong>Formats 16&ndash;22 (advocacy + sponsors): complete for all 11 divisions.</strong> 33 light advocacy squares, 33 dark advocacy squares, 11 sponsors grids (77 designs total). Sponsor logo placeholders confirmed as placeholders and cleared to an empty grid, pending real sponsor confirmations.
   </div>
   <div class="card">
-    <strong>Formats 21&ndash;25 (speaker cards + keynote): complete for all 11 divisions.</strong> 11 &times; 3-speaker, 11 &times; 4-speaker, 11 &times; 5-speaker, 11 &times; 6-speaker, 11 &times; keynote (55 designs total). All speaker placeholders read <code>FIRST LAST</code> / <code>TITLE &ndash; COMPANY</code> (or <code>First Last</code> / "Quote" / Company / Title on the keynote) and still need real speaker names, headshots, titles, and companies. Media's 5-speaker, 6-speaker, and keynote designs were added in a later remediation pass &mdash; see the format-21&ndash;25 reference section above.
+    <strong>Formats 23&ndash;27 (speaker cards + keynote): complete for all 11 divisions.</strong> 11 &times; 3-speaker, 11 &times; 4-speaker, 11 &times; 5-speaker, 11 &times; 6-speaker, 11 &times; keynote (55 designs total). All speaker placeholders read <code>FIRST LAST</code> / <code>TITLE &ndash; COMPANY</code> (or <code>First Last</code> / "Quote" / Company / Title on the keynote) and still need real speaker names, headshots, titles, and companies. Media's 5-speaker, 6-speaker, and keynote designs were added in a later remediation pass &mdash; see the format-25&ndash;27 reference section above.
   </div>
   <div class="card">
-    <strong>Format 26 (sponsorship packet): complete for all 11 divisions, including Media (11 designs total).</strong> GlobalLink source template (<code>DAHDGo1c_tU</code>) cleaned from 10 pages to 8 (duplicate USA/EMEA pages and a triple-duplicated event-listing block removed) and its own logo/color-logo fills corrected to true GlobalLink assets before any division copies were made. Each division copy has its reversed logo, circlelines, and color logo swapped, and its Agreement Terms page renamed from "GlobalLinkNEXT" to "[Division]NEXT" (no "TransPerfect" prefix). Sponsorship Silver/Gold pricing table and terms/signature pages are shared copy, not division-specific.
+    <strong>Format 1 (sponsorship packet): complete for all 11 divisions, including Media (11 designs total).</strong> GlobalLink source template (<code>DAHDGo1c_tU</code>) cleaned from 10 pages to 8 (duplicate USA/EMEA pages and a triple-duplicated event-listing block removed) and its own logo/color-logo fills corrected to true GlobalLink assets before any division copies were made. Each division copy has its reversed logo, circlelines, and color logo swapped, and its Agreement Terms page renamed from "GlobalLinkNEXT" to "[Division]NEXT" (no "TransPerfect" prefix). Sponsorship Silver/Gold pricing table and terms/signature pages are shared copy, not division-specific.
   </div>
   <div class="card">
     <strong>Character/hero image &mdash; decided: not needed</strong> outside two exceptions. Media keeps its existing character image on its square post (format 1). The keynote layout (format 25) keeps the Games armor character on Games only &mdash; deleted from the other 10 divisions' copies, including Media's. No other division/format carries a character image.
@@ -1414,7 +1415,7 @@
     <tr><td>Headline text</td><td><code>PBFp95JFP4YKGSgm-LBY1gzrqPQcBChCV</code></td></tr>
     <tr><td>Body copy text</td><td><code>PBFp95JFP4YKGSgm-LBgCX77yNLDpvkyv</code></td></tr>
   </table>
-  <div class="card">No circlelines or accent-circle element in this layout, confirming the section 5 note. The page ID here happens to match the one used for formats 14&ndash;19 below, but these are unrelated designs &mdash; Canva page IDs aren't globally unique across different top-level designs in this workspace.</div>
+  <div class="card">No circlelines or accent-circle element in this layout, confirming the section 5 note. The page ID here happens to match the one used for formats 16&ndash;21 below, but these are unrelated designs &mdash; Canva page IDs aren't globally unique across different top-level designs in this workspace.</div>
 
   <h4>8. Email header &mdash; dark v1</h4>
   <table>
