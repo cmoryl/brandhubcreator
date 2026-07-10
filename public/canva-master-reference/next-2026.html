@@ -2160,5 +2160,64 @@
 })();
 </script>
 
+<script>
+  // Sticky divbar shadow state via sentinel
+  (function () {
+    const bar = document.querySelector('nav.divbar');
+    const sentinel = document.querySelector('.divbar-sentinel');
+    if (!bar || !sentinel || !('IntersectionObserver' in window)) return;
+    const io = new IntersectionObserver(
+      ([entry]) => bar.classList.toggle('is-stuck', !entry.isIntersecting),
+      { threshold: [0], rootMargin: '0px 0px 0px 0px' }
+    );
+    io.observe(sentinel);
+  })();
+
+  // Active-division highlight in the divbar as user scrolls through divisions
+  (function () {
+    const links = Array.from(document.querySelectorAll('nav.divbar a[href^="#div-"]'));
+    if (!links.length || !('IntersectionObserver' in window)) return;
+    const map = new Map();
+    links.forEach((a) => {
+      const id = a.getAttribute('href').slice(1);
+      const target = document.getElementById(id);
+      if (target) map.set(target, a);
+    });
+    let current = null;
+    const io = new IntersectionObserver(
+      (entries) => {
+        // Pick the entry closest to the top of the viewport that is intersecting
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (!visible.length) return;
+        const link = map.get(visible[0].target);
+        if (link && link !== current) {
+          links.forEach((l) => l.classList.remove('is-active'));
+          link.classList.add('is-active');
+          current = link;
+        }
+      },
+      { rootMargin: '-30% 0px -60% 0px', threshold: 0 }
+    );
+    map.forEach((_, target) => io.observe(target));
+  })();
+
+  // Smooth-scroll for divbar + toc anchors so the sticky bar doesn't clip section tops
+  (function () {
+    const anchors = document.querySelectorAll('nav.divbar a[href^="#"], nav.toc a[href^="#"]');
+    anchors.forEach((a) => {
+      a.addEventListener('click', (e) => {
+        const id = a.getAttribute('href').slice(1);
+        const el = document.getElementById(id);
+        if (!el) return;
+        e.preventDefault();
+        const y = el.getBoundingClientRect().top + window.scrollY - 88;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+        history.replaceState(null, '', '#' + id);
+      });
+    });
+  })();
+</script>
 </body>
 </html>
