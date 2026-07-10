@@ -1973,6 +1973,39 @@
   }
 
 
+  // Group rows by format family (Email header, LinkedIn ad, LinkedIn post, Advocacy, Speakers, etc.)
+  // so all versions of the same family sit together. Pinned rows (Sponsorship packet, PPT) stay first.
+  function familyKey(formatText) {
+    const t = (formatText || '').trim();
+    // Split on em-dash / en-dash / hyphen with spaces to isolate the base family name
+    const base = t.split(/\s+[—–-]\s+/)[0].trim().toLowerCase();
+    return base;
+  }
+  function variantKey(formatText) {
+    // Secondary sort within a family: keep original text order but bias light-before-dark for consistency
+    const t = (formatText || '').toLowerCase();
+    // Give a small weight so "light" versions list before "dark" versions inside a family
+    if (/\blight\b|\bwhite\b/.test(t)) return '1_' + t;
+    if (/\bdark\b|\bnavy\b/.test(t)) return '2_' + t;
+    return '0_' + t;
+  }
+  function groupedOrder(rows, indexMap) {
+    const copy = rows.slice();
+    copy.sort((a, b) => {
+      const ai = indexMap.get(a), bi = indexMap.get(b);
+      // Pin the first two rows (sponsorship packet, PowerPoint template) at the top in original order
+      if (ai < 2 || bi < 2) return ai - bi;
+      const af = familyKey(a.cells[1]?.textContent);
+      const bf = familyKey(b.cells[1]?.textContent);
+      if (af !== bf) return af.localeCompare(bf);
+      const av = variantKey(a.cells[1]?.textContent);
+      const bv = variantKey(b.cells[1]?.textContent);
+      if (av !== bv) return av.localeCompare(bv);
+      return ai - bi;
+    });
+    return copy;
+  }
+
   document.querySelectorAll('.division-block table').forEach(table => {
     const allRows = Array.from(table.querySelectorAll('tr'));
     if (allRows.length < 2) return;
@@ -1988,8 +2021,8 @@
 
     let state = 'none';
 
-    // On load, place the sponsorship packet and any other non-size row at the top
-    sortRows(dataRows, 'none', rowIndex).forEach(row => table.appendChild(row));
+    // Default view: grouped by format family so versions stay together
+    groupedOrder(dataRows, rowIndex).forEach(row => table.appendChild(row));
 
     sizeTh.addEventListener('click', () => {
       const arrow = sizeTh.querySelector('.sort-arrow');
