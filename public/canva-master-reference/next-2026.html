@@ -621,25 +621,20 @@
     header h1 { font-size: 20px; line-height: 1.25; }
     header p { font-size: 13px; }
 
-    nav.toc { padding: 12px 12px; border-radius: 14px; }
-    nav.toc ol { grid-template-columns: 1fr; gap: 6px; }
-    nav.toc a { padding: 10px 12px; font-size: 13px; }
+    nav.toc { padding: 6px 10px; border-radius: 10px; }
+    nav.toc a { padding: 5px 10px; font-size: 12px; }
+    nav.toc strong { display: none; }
 
     nav.divbar {
       position: sticky;
       top: 0;
-      margin: 0 -12px 12px;
-      border-radius: 0 0 14px 14px;
-      padding: 10px 12px;
-      gap: 6px;
-      flex-wrap: nowrap;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
+      margin: 0 -12px 8px;
+      border-radius: 0 0 10px 10px;
+      padding: 6px 12px;
+      gap: 4px;
     }
-    nav.divbar::-webkit-scrollbar { display: none; }
     nav.divbar .divbar-label { display: none; }
-    nav.divbar a { flex: 0 0 auto; white-space: nowrap; padding: 8px 12px; font-size: 12px; }
+    nav.divbar a { padding: 5px 10px; font-size: 12px; }
 
     :target { scroll-margin-top: 64px; }
 
