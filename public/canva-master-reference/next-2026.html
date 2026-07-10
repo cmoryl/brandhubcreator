@@ -690,9 +690,51 @@
     .stat-card { padding: 12px 12px; }
     .stat-card .stat-num { font-size: 22px; }
 
-    /* Tables: allow horizontal scroll instead of squishing */
+    /* Non-division tables (event details, brand registry): allow horizontal scroll */
     table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap; font-size: 12.5px; border-radius: 8px; }
     th, td { padding: 8px 10px; }
+
+    /* Tables inside division-blocks: stack as cards on mobile so all columns are visible without horizontal scroll */
+    .division-block table,
+    .division-block table tbody { display: block; width: 100%; }
+    .division-block table { border: 0; background: transparent; border-radius: 0; overflow: visible; }
+    .division-block table tr {
+      display: grid;
+      grid-template-columns: 28px 1fr auto;
+      grid-template-areas:
+        "num  fmt  open"
+        ".    size size"
+        ".    ex   ex";
+      column-gap: 10px;
+      row-gap: 4px;
+      align-items: baseline;
+      padding: 12px 12px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 8px;
+      white-space: normal;
+    }
+    /* Hide the header row on mobile — labels are implied by layout */
+    .division-block table tr:first-child { display: none; }
+    .division-block table td {
+      display: block;
+      padding: 0;
+      border: 0;
+      font-size: 13px;
+      line-height: 1.4;
+      min-width: 0;
+      word-break: break-word;
+    }
+    .division-block table td:nth-child(1) { grid-area: num; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .division-block table td:nth-child(2) { grid-area: fmt; font-weight: 600; color: var(--navy); }
+    .division-block table td:nth-child(3) { grid-area: size; color: var(--muted); font-size: 12px; }
+    .division-block table td:nth-child(3):empty,
+    .division-block table td:nth-child(3):not(:empty)::before { content: "Size · "; color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; margin-right: 4px; }
+    .division-block table td:nth-child(4) { grid-area: ex; }
+    .division-block table td:nth-child(4)::before { content: "Example · "; color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; margin-right: 4px; }
+    .division-block table td:nth-child(5) { grid-area: open; justify-self: end; }
+    .division-block table td .btn-link { font-size: 12px; padding: 5px 10px; }
 
     .division-block { padding: 16px 14px; border-radius: 10px; }
     .division-block h3 { font-size: 15px; gap: 10px; }
