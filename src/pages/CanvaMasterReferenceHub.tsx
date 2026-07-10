@@ -68,7 +68,7 @@ export default function CanvaMasterReferenceHub() {
               </div>
               <p className="mt-4 text-sm text-muted-foreground">{r.description}</p>
               <div className="mt-5 flex gap-2">
-              <div className="mt-5 flex gap-2">
+
                 <Link
                   to={r.href}
                   className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
