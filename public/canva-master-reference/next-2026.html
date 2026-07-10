@@ -1537,18 +1537,21 @@
     return { w: 0, h: 0, area: 0, special: true };
   }
 
-  function sortRows(rows, dir) {
+  function sortRows(rows, mode, indexMap) {
     const copy = rows.slice();
     copy.sort((a, b) => {
       const aCell = a.cells[2] ? a.cells[2].textContent : '';
       const bCell = b.cells[2] ? b.cells[2].textContent : '';
       const pa = parseSize(aCell);
       const pb = parseSize(bCell);
-      if (pa.special && pb.special) return 0;
-      if (pa.special) return 1;
-      if (pb.special) return -1;
+      // Keep non-pixel-size rows (e.g., the sponsorship packet) pinned at the top
+      if (pa.special || pb.special) {
+        if (pa.special && pb.special) return indexMap.get(a) - indexMap.get(b);
+        return pa.special ? -1 : 1;
+      }
+      if (mode === 'none') return indexMap.get(a) - indexMap.get(b);
       const diff = pa.area - pb.area;
-      return dir === 'asc' ? diff : -diff;
+      return mode === 'asc' ? diff : -diff;
     });
     return copy;
   }
@@ -1558,6 +1561,7 @@
     if (allRows.length < 2) return;
     const headerRow = allRows[0];
     const dataRows = allRows.slice(1);
+    const rowIndex = new Map(dataRows.map((r, i) => [r, i]));
     const sizeTh = headerRow.cells[2];
     if (!sizeTh) return;
 
@@ -1567,21 +1571,22 @@
 
     let state = 'none';
 
+    // On load, place the sponsorship packet and any other non-size row at the top
+    sortRows(dataRows, 'none', rowIndex).forEach(row => table.appendChild(row));
+
     sizeTh.addEventListener('click', () => {
       const arrow = sizeTh.querySelector('.sort-arrow');
       if (state === 'none') {
         state = 'asc';
-        sortRows(dataRows, 'asc').forEach(row => table.appendChild(row));
         arrow.textContent = '▲';
       } else if (state === 'asc') {
         state = 'desc';
-        sortRows(dataRows, 'desc').forEach(row => table.appendChild(row));
         arrow.textContent = '▼';
       } else {
         state = 'none';
-        dataRows.forEach(row => table.appendChild(row));
         arrow.textContent = '⇅';
       }
+      sortRows(dataRows, state, rowIndex).forEach(row => table.appendChild(row));
     });
   });
 })();
