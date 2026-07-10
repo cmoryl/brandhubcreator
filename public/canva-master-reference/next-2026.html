@@ -141,72 +141,97 @@
     position: sticky;
     top: 8px;
     z-index: 30;
-    background: rgba(255,255,255,.9);
+    background: rgba(255,255,255,.92);
     -webkit-backdrop-filter: blur(10px) saturate(140%);
     backdrop-filter: blur(10px) saturate(140%);
     border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 6px 10px;
-    margin-bottom: 8px;
-    display: flex;
-    flex-wrap: nowrap;
-    align-items: center;
-    gap: 2px;
-    overflow-x: auto;
-    scrollbar-width: none;
+    border-radius: 12px;
+    padding: 10px;
+    margin-bottom: 10px;
+    display: grid;
+    grid-template-columns: repeat(11, minmax(0, 1fr));
+    gap: 8px;
+    align-items: stretch;
     box-shadow: 0 1px 2px rgba(10,18,44,.04);
     transition: box-shadow .25s ease, border-color .25s ease;
   }
-  nav.divbar::-webkit-scrollbar { display: none; }
   nav.divbar.is-stuck {
-    box-shadow: 0 8px 20px -14px rgba(10,18,44,.25);
+    box-shadow: 0 10px 24px -16px rgba(10,18,44,.3);
     border-color: #d5d9e5;
   }
-  nav.divbar .divbar-label {
-    color: var(--muted);
-    font-size: 9.5px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .14em;
-    margin-right: 6px;
-    padding-left: 4px;
-    flex: 0 0 auto;
-  }
+  nav.divbar .divbar-label { display: none; }
   nav.divbar a {
     position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    aspect-ratio: 1 / 1;
+    padding: 8px 6px;
     color: var(--ink);
-    background: transparent;
-    padding: 5px 10px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 500;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.15;
+    text-align: center;
     text-decoration: none;
-    border: 0;
-    white-space: nowrap;
-    flex: 0 0 auto;
-    transition: color .2s ease, background .2s ease;
+    white-space: normal;
+    overflow: hidden;
+    transition: transform .2s ease, box-shadow .25s ease, border-color .2s ease, color .2s ease, background .2s ease;
     --div-rgb: 90, 100, 120;
+  }
+  nav.divbar a::before {
+    content: '';
+    display: block;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: rgb(var(--div-rgb));
+    box-shadow: 0 4px 10px -4px rgba(var(--div-rgb), .55), inset 0 0 0 1px rgba(255,255,255,.35);
+    transition: transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s ease;
+  }
+  nav.divbar a::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 3px;
+    background: rgb(var(--div-rgb));
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform .25s cubic-bezier(.2,.8,.2,1);
   }
   nav.divbar a[href="#div-transperfect"],
   nav.divbar a[href="#div-globallink"] { --div-rgb: 19, 177, 243; }
   nav.divbar a[href="#div-games"] { --div-rgb: 76, 175, 80; }
   nav.divbar a[href="#div-finance"] { --div-rgb: 232, 120, 70; }
   nav.divbar a[href="#div-legal"] { --div-rgb: 59, 160, 155; }
-  nav.divbar a[href="#div-lifesci"] { --div-rgb: 76, 175, 80; }
+  nav.divbar a[href="#div-lifesci"] { --div-rgb: 130, 200, 60; }
   nav.divbar a[href="#div-experience"] { --div-rgb: 220, 70, 70; }
-  nav.divbar a[href="#div-learn"] { --div-rgb: 200, 160, 40; }
+  nav.divbar a[href="#div-learn"] { --div-rgb: 210, 165, 40; }
   nav.divbar a[href="#div-media"] { --div-rgb: 220, 60, 130; }
   nav.divbar a[href="#div-digital"] { --div-rgb: 150, 120, 220; }
   nav.divbar a[href="#div-dataforce"] { --div-rgb: 60, 180, 190; }
   nav.divbar a:hover {
     color: rgb(var(--div-rgb));
-    background: rgba(var(--div-rgb), .09);
+    border-color: rgba(var(--div-rgb), .5);
+    background: rgba(var(--div-rgb), .06);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px -10px rgba(var(--div-rgb), .5);
     text-decoration: none;
   }
+  nav.divbar a:hover::before { transform: scale(1.1) rotate(-6deg); }
   nav.divbar a.is-active {
     color: rgb(var(--div-rgb));
-    background: rgba(var(--div-rgb), .12);
-    font-weight: 600;
+    border-color: rgb(var(--div-rgb));
+    background: rgba(var(--div-rgb), .08);
+    box-shadow: 0 6px 16px -8px rgba(var(--div-rgb), .55);
+  }
+  nav.divbar a.is-active::after { transform: scaleX(1); }
+  @media (max-width: 900px) {
+    nav.divbar { grid-template-columns: repeat(6, minmax(0, 1fr)); }
   }
 
   /* Contents nav — slim single-line row under divisions */
