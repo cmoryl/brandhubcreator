@@ -26,11 +26,37 @@
     line-height: 1.5;
   }
   .wrap { max-width: 1080px; margin: 0 auto; }
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes heroFadeUp {
+      from { opacity: 0; transform: translateY(14px); filter: blur(6px); }
+      to   { opacity: 1; transform: translateY(0);    filter: blur(0); }
+    }
+    @keyframes auroraDrift {
+      0%   { transform: translate3d(-8%, -4%, 0) rotate(0deg);   opacity: .55; }
+      50%  { transform: translate3d(6%, 3%, 0)   rotate(180deg); opacity: .8;  }
+      100% { transform: translate3d(-8%, -4%, 0) rotate(360deg); opacity: .55; }
+    }
+    @keyframes shineSweep {
+      0%   { transform: translateX(-120%) skewX(-14deg); opacity: 0; }
+      12%  { opacity: .55; }
+      45%  { transform: translateX(220%) skewX(-14deg);  opacity: 0; }
+      100% { transform: translateX(220%) skewX(-14deg);  opacity: 0; }
+    }
+    @keyframes tocReveal {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes activePulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(var(--div-rgb), .0); }
+      50%      { box-shadow: 0 0 0 4px rgba(var(--div-rgb), .18); }
+    }
+  }
+
   .hero-banner {
     position: relative;
     border-radius: 22px;
     overflow: hidden;
-    margin-bottom: 28px;
+    margin-bottom: 20px;
     background-image: url('/canva-master-reference/next-hero-banner.png');
     background-size: cover;
     background-position: center;
@@ -39,6 +65,33 @@
       0 1px 0 rgba(255,255,255,.35) inset,
       0 0 0 1px rgba(255,255,255,.05) inset,
       0 40px 80px -40px rgba(6, 12, 40, .5);
+    isolation: isolate;
+  }
+  /* Ambient animated aurora over banner */
+  .hero-aurora {
+    position: absolute;
+    inset: -20%;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(38% 42% at 22% 30%, rgba(120, 180, 255, .35), transparent 60%),
+      radial-gradient(30% 34% at 78% 68%, rgba(236, 72, 153, .28), transparent 60%),
+      radial-gradient(26% 30% at 60% 20%, rgba(90, 220, 255, .22), transparent 60%);
+    filter: blur(30px);
+    mix-blend-mode: screen;
+    animation: auroraDrift 22s ease-in-out infinite;
+  }
+  /* Diagonal shine sweep on banner edges */
+  .hero-banner::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0; left: 0;
+    width: 40%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.14), transparent);
+    transform: translateX(-120%) skewX(-14deg);
+    pointer-events: none;
+    z-index: 2;
+    animation: shineSweep 9s ease-in-out 1.2s infinite;
   }
   .hero-banner-inner {
     position: relative;
@@ -59,34 +112,70 @@
     box-shadow:
       0 1px 0 rgba(255,255,255,.25) inset,
       0 0 0 1px rgba(255,255,255,.04) inset;
+    opacity: 0;
+    animation: heroFadeUp .9s cubic-bezier(.2,.8,.2,1) .05s both;
+  }
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10.5px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,.72);
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.14);
+    margin-bottom: 14px;
+    font-weight: 500;
+  }
+  .hero-eyebrow::before {
+    content: '';
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #6ee7b7;
+    box-shadow: 0 0 8px rgba(110, 231, 183, .8);
   }
   header.glass-hero h1 {
     margin: 0 0 12px;
-    font-size: 28px;
+    font-size: 30px;
     font-weight: 600;
-    letter-spacing: -0.015em;
-    line-height: 1.15;
+    letter-spacing: -0.02em;
+    line-height: 1.12;
+    background: linear-gradient(180deg, #ffffff 0%, rgba(230,240,255,.85) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
   header.glass-hero p {
     margin: 0;
     color: rgba(255,255,255,.78);
     font-size: 14px;
-    line-height: 1.55;
-    max-width: 68ch;
+    line-height: 1.6;
+    max-width: 72ch;
     font-weight: 400;
   }
   header.glass-hero p.hero-updated {
-    margin-top: 14px;
+    margin-top: 16px;
     font-size: 11px;
     color: rgba(255,255,255,.5);
-    letter-spacing: .04em;
+    letter-spacing: .05em;
     text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  header.glass-hero p.hero-updated::before {
+    content: '';
+    width: 5px; height: 5px; border-radius: 50%;
+    background: rgba(255,255,255,.4);
   }
   @media (max-width: 720px) {
     .hero-banner-inner { padding: 22px 18px 20px; gap: 14px; }
     header.glass-hero { padding: 24px 22px; border-radius: 16px; }
     header.glass-hero h1 { font-size: 22px; }
   }
+
 
 
   nav.toc {
