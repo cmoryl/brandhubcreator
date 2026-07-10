@@ -145,6 +145,7 @@
     padding-left: 4px;
   }
   nav.divbar a {
+    position: relative;
     color: var(--ink);
     background: linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,.6));
     -webkit-backdrop-filter: blur(12px) saturate(180%);
@@ -159,23 +160,56 @@
       0 1px 0 rgba(255,255,255,.95) inset,
       0 1px 3px rgba(10,26,60,.08);
     transition: all .2s cubic-bezier(.2,.8,.2,1);
+    --div-rgb: 0, 194, 168;
+  }
+  nav.divbar a[href="#div-transperfect"],
+  nav.divbar a[href="#div-globallink"] { --div-rgb: 19, 177, 243; }
+  nav.divbar a[href="#div-games"] { --div-rgb: 166, 250, 135; }
+  nav.divbar a[href="#div-finance"] { --div-rgb: 255, 155, 112; }
+  nav.divbar a[href="#div-legal"] { --div-rgb: 59, 190, 182; }
+  nav.divbar a[href="#div-lifesci"] { --div-rgb: 88, 237, 33; }
+  nav.divbar a[href="#div-experience"] { --div-rgb: 255, 87, 87; }
+  nav.divbar a[href="#div-learn"] { --div-rgb: 255, 235, 102; }
+  nav.divbar a[href="#div-media"] { --div-rgb: 236, 56, 138; }
+  nav.divbar a[href="#div-digital"] { --div-rgb: 194, 163, 255; }
+  nav.divbar a[href="#div-dataforce"] { --div-rgb: 92, 225, 230; }
+  nav.divbar a::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 999px;
+    border: 1.5px solid rgba(var(--div-rgb), .65);
+    opacity: 0;
+    transform: scale(0.92);
+    transition: all .2s cubic-bezier(.2,.8,.2,1);
+    pointer-events: none;
+    z-index: -1;
   }
   nav.divbar a:hover {
-    color: var(--accent-deep);
-    background: linear-gradient(180deg, rgba(255,255,255,1), rgba(0, 194, 168, .12));
-    border-color: rgba(0, 194, 168, .55);
+    color: rgba(var(--div-rgb), 1);
+    background: linear-gradient(180deg, rgba(255,255,255,1), rgba(var(--div-rgb), .12));
+    border-color: rgba(var(--div-rgb), .55);
     text-decoration: none;
     transform: translateY(-1px);
     box-shadow:
-      0 0 0 3px var(--accent-glow),
       0 1px 0 rgba(255,255,255,1) inset,
-      0 6px 18px -6px rgba(0, 194, 168, .38);
+      0 6px 18px -6px rgba(var(--div-rgb), .38);
+  }
+  nav.divbar a:hover::before {
+    opacity: 1;
+    transform: scale(1.08);
+    animation: auraPulse 1.6s ease-in-out infinite;
   }
   nav.divbar a:active {
     transform: translateY(0);
-    background: rgba(0, 194, 168, .14);
-    box-shadow: 0 1px 2px rgba(0, 194, 168, .18) inset;
+    background: rgba(var(--div-rgb), .14);
+    box-shadow: 0 1px 2px rgba(var(--div-rgb), .18) inset;
   }
+  @keyframes auraPulse {
+    0%, 100% { opacity: 0.7; transform: scale(1.02); }
+    50% { opacity: 1; transform: scale(1.08); }
+  }
+
   .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
