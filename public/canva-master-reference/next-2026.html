@@ -1672,5 +1672,71 @@
 })();
 </script>
 
+<!-- ============ LOGO ZOOM + DROPBOX DOWNLOAD MODAL ============ -->
+<div class="logo-modal" id="logoModal" role="dialog" aria-modal="true" aria-labelledby="logoModalTitle">
+  <div class="logo-modal-inner">
+    <button class="logo-modal-close" type="button" aria-label="Close">×</button>
+    <h4 class="logo-modal-title" id="logoModalTitle">Logo preview</h4>
+    <img class="logo-modal-img" id="logoModalImg" alt="">
+    <div class="logo-modal-actions">
+      <a class="logo-modal-btn" id="logoModalDropbox"
+         href="https://www.dropbox.com/scl/fo/34fnuuaavzogym4ghdfah/AD2j6gHeEEAj-Z260jfOWps?rlkey=36fqno2jixjjgb4l3wslrwpb8&dl=0"
+         target="_blank" rel="noopener">
+        ⬇ Download logo variations (Dropbox)
+      </a>
+      <a class="logo-modal-btn secondary" id="logoModalDirect" href="#" download>
+        Download this file
+      </a>
+    </div>
+    <p class="logo-modal-hint">All color, mono, stacked &amp; horizontal variations live in the shared Dropbox folder.</p>
+  </div>
+</div>
+<script>
+(function(){
+  const modal = document.getElementById('logoModal');
+  if (!modal) return;
+  const imgEl = document.getElementById('logoModalImg');
+  const titleEl = document.getElementById('logoModalTitle');
+  const directBtn = document.getElementById('logoModalDirect');
+  const closeBtn = modal.querySelector('.logo-modal-close');
+
+  // Attach zoom behavior to every inline division logo in the registry table (section 2)
+  const registry = document.getElementById('sec-2');
+  if (registry) {
+    // Find the first table that follows the section 2 heading
+    let node = registry.nextElementSibling;
+    while (node && node.tagName !== 'TABLE') node = node.nextElementSibling;
+    if (node) {
+      node.querySelectorAll('img.div-logo-inline').forEach(img => {
+        img.classList.add('clickable');
+        img.setAttribute('tabindex', '0');
+        img.setAttribute('role', 'button');
+        img.setAttribute('title', 'Click to enlarge & download variations');
+        const open = () => {
+          imgEl.src = img.src;
+          imgEl.alt = img.alt || 'Division logo';
+          titleEl.textContent = (img.alt || 'Logo').replace(/color logo/i, '').trim() || 'Logo preview';
+          directBtn.href = img.src;
+          modal.classList.add('open');
+          document.body.style.overflow = 'hidden';
+        };
+        img.addEventListener('click', open);
+        img.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
+        });
+      });
+    }
+  }
+
+  const close = () => {
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+  };
+  closeBtn.addEventListener('click', close);
+  modal.addEventListener('click', e => { if (e.target === modal) close(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && modal.classList.contains('open')) close(); });
+})();
+</script>
+
 </body>
 </html>
