@@ -39,9 +39,110 @@
     margin-bottom: 8px;
     font-size: 13px;
   }
-  nav.toc strong { display: block; margin-bottom: 6px; color: var(--muted); text-transform: uppercase; font-size: 11px; letter-spacing: .04em; }
-  nav.toc ol { margin: 0; padding-left: 18px; columns: 2; }
-  nav.toc li { margin-bottom: 4px; }
+  nav.toc strong { display: block; margin-bottom: 8px; color: var(--muted); text-transform: uppercase; font-size: 11px; letter-spacing: .04em; }
+  nav.toc ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: toc;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 6px;
+  }
+  nav.toc li { counter-increment: toc; margin: 0; }
+  nav.toc a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #f7f8fb;
+    color: var(--ink);
+    font-weight: 500;
+    text-decoration: none;
+    transition: all .15s ease;
+  }
+  nav.toc a::before {
+    content: counter(toc);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 6px;
+    background: var(--navy);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  nav.toc a:hover { background: #eef1f8; border-color: #c9d1e4; text-decoration: none; transform: translateY(-1px); }
+  nav.toc a:active { transform: translateY(0); background: #e3e8f4; }
+  nav.divbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--navy);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 2px 10px rgba(10,26,60,.15);
+  }
+  nav.divbar .divbar-label {
+    color: #b7c2e0;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-right: 6px;
+  }
+  nav.divbar a {
+    color: #fff;
+    background: rgba(255,255,255,.08);
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: all .15s ease;
+  }
+  nav.divbar a:hover { background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.3); text-decoration: none; }
+  nav.divbar a:active { background: rgba(255,255,255,.28); }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    margin: 14px 0 8px;
+  }
+  .stat-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .stat-card .stat-num {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--navy);
+    line-height: 1;
+  }
+  .stat-card .stat-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--muted);
+    margin-top: 6px;
+    font-weight: 600;
+  }
+  .stat-card .stat-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  html { scroll-behavior: smooth; }
+  :target { scroll-margin-top: 70px; }
   section { margin-top: 8px; }
   h2 {
     font-size: 18px;
@@ -198,22 +299,37 @@
     <p style="margin-top:12px; font-size:12px; color:#b7c2e0;">Last updated: 10 July 2026 (element ID reference added)</p>
   </header>
 
+  <nav class="divbar" aria-label="Divisions">
+    <span class="divbar-label">Divisions</span>
+    <a href="#div-games">Games</a>
+    <a href="#div-transperfect">TransPerfect</a>
+    <a href="#div-globallink">GlobalLink</a>
+    <a href="#div-finance">Finance</a>
+    <a href="#div-legal">Legal</a>
+    <a href="#div-lifesci">Life Sci</a>
+    <a href="#div-experience">Experience</a>
+    <a href="#div-learn">Learn</a>
+    <a href="#div-media">Media</a>
+    <a href="#div-digital">Digital</a>
+    <a href="#div-dataforce">Dataforce</a>
+  </nav>
+
   <nav class="toc">
     <strong>Contents</strong>
     <ol>
-      <li>Event details</li>
-      <li>Division brand &amp; copy registry</li>
-      <li>Asset ID registry</li>
-      <li>Design registry by division &mdash; all 26 formats, keyed by stable Design ID</li>
-      <li>Format reference (what each of the 26 formats is)</li>
-      <li>Build status &amp; decisions</li>
-      <li>Master element ID reference (all formats, 1&ndash;26)</li>
+      <li><a href="#sec-1">Event details</a></li>
+      <li><a href="#sec-2">Division brand &amp; copy registry</a></li>
+      <li><a href="#sec-3">Design registry by division &mdash; all 26 formats</a></li>
+      <li><a href="#sec-4">Format reference (what each of the 26 formats is)</a></li>
+      <li><a href="#sec-5">Asset ID registry (for direct Canva API edits)</a></li>
+      <li><a href="#sec-6">Build status &amp; decisions</a></li>
+      <li><a href="#sec-7">Master element ID reference (all formats, 1&ndash;26)</a></li>
     </ol>
   </nav>
 
   <!-- ============ REFERENCE DATA ============ -->
 
-  <h2>1. Event details (shared across all divisions)</h2>
+  <h2 id="sec-1">1. Event details (shared across all divisions)</h2>
   <table>
     <tr><th>Field</th><th>Value</th></tr>
     <tr><td>Event name pattern</td><td><code>[Division]NEXT</code> — e.g. GamesNEXT, LegalNEXT</td></tr>
@@ -225,7 +341,42 @@
     <tr><td>Master template</td><td>GamesNEXT (Games division) — square 1200×1200 and LinkedIn ad 1200×627</td></tr>
   </table>
 
-  <h2>2. Division brand &amp; copy registry</h2>
+  <h3 style="margin-top:28px;">Statistics &amp; current totals</h3>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-num">11</div>
+      <div class="stat-label">Divisions</div>
+      <div class="stat-sub">Games is the master template</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">26</div>
+      <div class="stat-label">Formats</div>
+      <div class="stat-sub">1&ndash;13 original · 14&ndash;25 speaker/advocacy · 26 sponsorship</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">288</div>
+      <div class="stat-label">Canva designs live</div>
+      <div class="stat-sub">Direct Open ↗ links across all divisions</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">21</div>
+      <div class="stat-label">Tracked build notes</div>
+      <div class="stat-sub">"done" status flags in the registry</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">2</div>
+      <div class="stat-label">Event days</div>
+      <div class="stat-sub">24 &amp; 25 September 2026 · London</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">7</div>
+      <div class="stat-label">Reference sections</div>
+      <div class="stat-sub">Event → Brand → Registry → Formats → Assets → Status → Element IDs</div>
+    </div>
+  </div>
+
+
+  <h2 id="sec-2">2. Division brand &amp; copy registry</h2>
   <table>
     <tr>
       <th>Division</th><th>Color logo</th><th>Accent color</th><th>Pantone</th><th>Headline suffix</th><th>Body copy</th>
@@ -322,11 +473,11 @@
 
   <!-- ============ DESIGN REGISTRY BY DIVISION ============ -->
 
-  <h2>3. Design registry by division</h2>
+  <h2 id="sec-3">3. Design registry by division</h2>
   <div class="note">Each division below lists its design across all 26 formats built to date. Format numbers refer to section 5 (Format reference), where layout details, shared vs. per-division copy, and element notes are documented once rather than repeated 11 times. Formats 1&ndash;13 are the original square/LinkedIn/email-header campaign; formats 14&ndash;25 are the speaker-card and advocacy-square campaign built afterward; format 26 is the sponsorship packet built most recently.</div>
   <div class="note"><strong>Use the Design ID, not the edit link.</strong> Canva's <code>canva.com/d/XXXX</code> edit URLs are rotating short-lived tokens &mdash; the same design returns a different one on each API call, so those links will eventually stop resolving (marked <span class="noid">(rotating link)</span> where only that form was on file). The <code>DAHO&hellip;</code> design ID is the only stable identifier. A permanent URL can always be rebuilt as <code>canva.com/design/{design_id}/edit</code>.</div>
 
-  <div class="division-block">
+  <div class="division-block" id="div-games">
     <h3><img class="div-logo" src="Games-NEXT-color-logo.png" alt="GamesNEXT color logo">Games <em>(master division — source template for all formats)</em></h3>
     <div class="quickref">
       <span class="swatch-lg" style="background:#A6FA87"></span>
@@ -366,7 +517,7 @@
     </table>
   </div>
 
-  <div class="division-block">
+  <div class="division-block" id="div-transperfect">
     <h3><img class="div-logo" src="TP-NEXT-Color-Logo.png" alt="TransPerfectNEXT color logo">TransPerfect</h3>
     <div class="quickref">
       <span class="swatch-lg" style="background:#13B1F3"></span>
@@ -406,7 +557,7 @@
     </table>
   </div>
 
-  <div class="division-block">
+  <div class="division-block" id="div-globallink">
     <h3><img class="div-logo" src="GlobalLink-NEXT-Color-Logo.png" alt="GlobalLinkNEXT color logo">GlobalLink</h3>
     <div class="quickref">
       <span class="swatch-lg" style="background:#13B1F3"></span>
@@ -446,7 +597,7 @@
     </table>
   </div>
 
-  <div class="division-block">
+  <div class="division-block" id="div-finance">
     <h3><img class="div-logo" src="Finance-NEXT-color-logo.png" alt="FinanceNEXT color logo">Finance</h3>
     <div class="quickref">
       <span class="swatch-lg" style="background:#FF9B70"></span>
@@ -486,7 +637,7 @@
     </table>
   </div>
 
-  <div class="division-block">
+  <div class="division-block" id="div-legal">
     <h3><img class="div-logo" src="Legal-NEXT-color-logo.png" alt="LegalNEXT color logo">Legal</h3>
     <div class="quickref">
       <span class="swatch-lg" style="background:#3BBEB6"></span>
@@ -526,7 +677,7 @@
     </table>
   </div>
 
-  <div class="division-block">
+  <div class="division-block" id="div-lifesci">
     <h3><img class="div-logo" src="Life-Sci-NEXT-color-logo.png" alt="Life SciNEXT color logo">Life Sci</h3>
     <div class="quickref">
       <span class="swatch-lg" style="background:#58ED21"></span>
@@ -566,7 +717,7 @@
     </table>
   </div>
 
-  <div class="division-block">
+  <div class="division-block" id="div-experience">
     <h3><img class="div-logo" src="Experience-NEXT-color-logo.png" alt="ExperienceNEXT color logo">Experience</h3>
     <div class="quickref">
       <span class="swatch-lg" style="background:#FF5757"></span>
@@ -606,7 +757,7 @@
     </table>
   </div>
 
-  <div class="division-block">
+  <div class="division-block" id="div-learn">
     <h3><img class="div-logo" src="Learn-NEXT-color-logo.png" alt="LearnNEXT color logo">Learn</h3>
     <div class="quickref">
       <span class="swatch-lg" style="background:#FFEB66"></span>
@@ -646,7 +797,7 @@
     </table>
   </div>
 
-  <div class="division-block">
+  <div class="division-block" id="div-media">
     <h3><img class="div-logo" src="Media-NEXT-color-logo.png" alt="MediaNEXT color logo">Media</h3>
     <div class="quickref">
       <span class="swatch-lg" style="background:#EC388A"></span>
@@ -686,7 +837,7 @@
     </table>
   </div>
 
-  <div class="division-block">
+  <div class="division-block" id="div-digital">
     <h3><img class="div-logo" src="Digital-NEXT-color-logo.png" alt="DigitalNEXT color logo">Digital</h3>
     <div class="quickref">
       <span class="swatch-lg" style="background:#C2A3FF"></span>
@@ -726,7 +877,7 @@
     </table>
   </div>
 
-  <div class="division-block">
+  <div class="division-block" id="div-dataforce">
     <h3><img class="div-logo" src="Dataforce-NEXT-color-Logo.png" alt="DataforceNEXT color logo">Dataforce</h3>
     <div class="quickref">
       <span class="swatch-lg" style="background:#5CE1E6"></span>
@@ -768,7 +919,7 @@
 
   <!-- ============ FORMAT REFERENCE ============ -->
 
-  <h2>4. Format reference</h2>
+  <h2 id="sec-4">4. Format reference</h2>
   <div class="note">Layout logic, dimensions, and per-division vs. shared-copy notes for each of the 26 formats referenced by number in section 4. Formats 1&ndash;13 are the original square/LinkedIn/email-header campaign; 14&ndash;25 are the advocacy-square and speaker-card campaign; 26 is the sponsorship packet.</div>
 
   <h4>1. Square post (1200×1200)</h4>
@@ -831,7 +982,7 @@
   <h4>26. Sponsorship packet (8 pages, letter/A4 proportions)</h4>
   <div class="card">Multi-page sponsorship prospectus: cover, gradient/tagline page, "Who Attends?" stats page, "The Event" (venue/date/CTA), Past Attendees logo grid, Sponsorship Opportunities (Silver/Gold table), Agreement Terms and Conditions, and a signature page. GlobalLink is the master (design <code>DAHDGo1c_tU</code>) &mdash; cleaned from an older 10-page file down to 8 pages (dropped duplicate USA/EMEA event-location pages and a triple-duplicated event-listing block), and its own logo/color-logo fills were corrected from leftover TransPerfect assets to true GlobalLink assets. Per-division edits: reversed logo (&times;3, on cover/p2/past-attendees), circlelines (&times;2, on cover/event page), color logo (&times;1, on event page), and three text elements on the Agreement Terms page renaming "TransPerfect GlobalLink NEXT" / "GlobalLinkNEXT" to "[Division]NEXT" (no "TransPerfect" prefix). No accent-circle or CTA-button fills in this format. Built across all 11 divisions, including Media.</div>
 
-  <h2>5. Asset ID registry (for direct Canva API edits)</h2>
+  <h2 id="sec-5">5. Asset ID registry (for direct Canva API edits)</h2>
   <div class="note">The "Color preview" column renders the division's accent hex directly (from section 2) as a permanent CSS swatch &mdash; confirmed to match the actual <code>MAHOv...</code> accent asset thumbnails pulled from Canva. It's a stand-in for the real PNG/SVG files, which can't be embedded here directly; see the note at the end of this section for how to get the actual asset files.</div>
   <table>
     <tr><th>Division</th><th>Logo asset (navy bg)</th><th>Accent/button/CTA asset</th><th>Color preview</th><th>Circlelines asset</th></tr>
@@ -871,7 +1022,7 @@
 
   <!-- ============ STATUS ============ -->
 
-  <h2>6. Build status &amp; decisions</h2>
+  <h2 id="sec-6">6. Build status &amp; decisions</h2>
   <div class="card">
     <strong>Formats 1&ndash;13 (original campaign): complete for all 11 divisions.</strong> Square post, LinkedIn single-image ad (navy + light), white-version LinkedIn post, LinkedIn post light "white callouts" style, and all 6 email header sub-variations (light v1&ndash;v4, dark v1&ndash;v4) (143 designs total).
   </div>
@@ -896,7 +1047,7 @@
 
   <!-- ============ ELEMENT ID REFERENCE ============ -->
 
-  <h2>7. Master element ID reference (all formats, 1&ndash;26)</h2>
+  <h2 id="sec-7">7. Master element ID reference (all formats, 1&ndash;26)</h2>
   <div class="note">Page IDs and swappable element IDs on the <strong>master</strong> design for each format, captured directly from the Canva API. Page IDs and per-element IDs are identical across every division's copy of a given format (only the fill/text <em>contents</em> differ), so this table doubles as the reference for editing any division's copy, not just the master.</div>
   <div class="note"><strong>Page IDs are not globally unique in this workspace.</strong> Canva reuses page IDs across unrelated top-level designs when one was duplicated from another (e.g. formats 2 and 4 share a page ID; formats 6, 7, 8, and 9 share another; formats 10&ndash;13 share yet another; and formats 5 and 14&ndash;19 happen to share one too). A page ID alone never identifies which design you're looking at &mdash; always pair it with the Design ID from section 4.</div>
   <div class="note"><strong>Caution when copying values from the master:</strong> a master's fill sometimes shows a generic/placeholder asset rather than Games' own registered accent color (e.g. the dark advocacy squares' CTA button shows <code>MAHOu1EAbd0</code> on the Games master, not Games' actual accent asset <code>MAHOvDwDvpc</code>). Always pull the target division's asset ID from section 3's registry &mdash; never copy whatever asset ID the master currently displays.</div>
