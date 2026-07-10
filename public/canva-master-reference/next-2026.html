@@ -690,7 +690,11 @@
     .stat-card { padding: 12px 12px; }
     .stat-card .stat-num { font-size: 22px; }
 
-    /* Tables: stack as cards on mobile so all columns are visible without horizontal scroll */
+    /* Non-division tables (event details, brand registry): allow horizontal scroll */
+    table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap; font-size: 12.5px; border-radius: 8px; }
+    th, td { padding: 8px 10px; }
+
+    /* Tables inside division-blocks: stack as cards on mobile so all columns are visible without horizontal scroll */
     .division-block table,
     .division-block table tbody { display: block; width: 100%; }
     .division-block table { border: 0; background: transparent; border-radius: 0; overflow: visible; }
