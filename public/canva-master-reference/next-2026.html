@@ -169,6 +169,27 @@
     margin: 0 0 12px;
     font-size: 17px;
     color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .division-block h3 img.div-logo {
+    height: 46px;
+    width: auto;
+    background: #0b1a3a;
+    padding: 6px 10px;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+  td .div-logo-inline {
+    height: 30px;
+    width: auto;
+    background: #0b1a3a;
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    vertical-align: middle;
   }
   footer { margin-top: 48px; font-size: 12px; color: var(--muted); text-align: center; }
 </style>
@@ -212,10 +233,11 @@
   <h2>2. Division brand &amp; copy registry</h2>
   <table>
     <tr>
-      <th>Division</th><th>Accent color</th><th>Pantone</th><th>Headline suffix</th><th>Body copy</th>
+      <th>Division</th><th>Color logo</th><th>Accent color</th><th>Pantone</th><th>Headline suffix</th><th>Body copy</th>
     </tr>
     <tr>
       <td>Games <em>(master)</em></td>
+      <td><img class="div-logo-inline" src="Games-NEXT-color-logo.png" alt="GamesNEXT color logo"></td>
       <td><span class="swatch" style="background:#A6FA87"></span>#A6FA87</td>
       <td>7487 C</td>
       <td>GAMES</td>
@@ -223,6 +245,7 @@
     </tr>
     <tr>
       <td>TransPerfect</td>
+      <td><img class="div-logo-inline" src="TP-NEXT-Color-Logo.png" alt="TransPerfectNEXT color logo"></td>
       <td><span class="swatch" style="background:#13B1F3"></span>#13B1F3</td>
       <td>306 C</td>
       <td>GLOBAL BUSINESS</td>
@@ -230,6 +253,7 @@
     </tr>
     <tr>
       <td>GlobalLink</td>
+      <td><img class="div-logo-inline" src="GlobalLink-NEXT-Color-Logo.png" alt="GlobalLinkNEXT color logo"></td>
       <td><span class="swatch" style="background:#13B1F3"></span>#13B1F3</td>
       <td>306 C</td>
       <td>GLOBALLINK</td>
@@ -237,6 +261,7 @@
     </tr>
     <tr>
       <td>Finance</td>
+      <td><img class="div-logo-inline" src="Finance-NEXT-color-logo.png" alt="FinanceNEXT color logo"></td>
       <td><span class="swatch" style="background:#FF9B70"></span>#FF9B70</td>
       <td>1635 C</td>
       <td>FINANCE</td>
@@ -244,6 +269,7 @@
     </tr>
     <tr>
       <td>Legal</td>
+      <td><img class="div-logo-inline" src="Legal-NEXT-color-logo.png" alt="LegalNEXT color logo"></td>
       <td><span class="swatch" style="background:#3BBEB6"></span>#3BBEB6</td>
       <td>7465 C</td>
       <td>LEGAL</td>
@@ -251,6 +277,7 @@
     </tr>
     <tr>
       <td>Life Sci</td>
+      <td><img class="div-logo-inline" src="Life-Sci-NEXT-color-logo.png" alt="Life SciNEXT color logo"></td>
       <td><span class="swatch" style="background:#58ED21"></span>#58ED21</td>
       <td>802 C</td>
       <td>LIFE SCIENCES</td>
@@ -258,6 +285,7 @@
     </tr>
     <tr>
       <td>Experience</td>
+      <td><img class="div-logo-inline" src="Experience-NEXT-color-logo.png" alt="ExperienceNEXT color logo"></td>
       <td><span class="swatch" style="background:#FF5757"></span>#FF5757</td>
       <td>1785 C</td>
       <td>EXPERIENCE</td>
@@ -265,6 +293,7 @@
     </tr>
     <tr>
       <td>Learn</td>
+      <td><img class="div-logo-inline" src="Learn-NEXT-color-logo.png" alt="LearnNEXT color logo"></td>
       <td><span class="swatch" style="background:#FFEB66"></span>#FFEB66</td>
       <td>100 C</td>
       <td>LEARN</td>
@@ -272,6 +301,7 @@
     </tr>
     <tr>
       <td>Media</td>
+      <td><img class="div-logo-inline" src="Media-NEXT-color-logo.png" alt="MediaNEXT color logo"></td>
       <td><span class="swatch" style="background:#EC388A"></span>#EC388A</td>
       <td>205 C</td>
       <td>MEDIA</td>
@@ -279,6 +309,7 @@
     </tr>
     <tr>
       <td>Digital</td>
+      <td><img class="div-logo-inline" src="Digital-NEXT-color-logo.png" alt="DigitalNEXT color logo"></td>
       <td><span class="swatch" style="background:#C2A3FF"></span>#C2A3FF</td>
       <td>2645 C</td>
       <td>DIGITAL</td>
@@ -286,6 +317,7 @@
     </tr>
     <tr>
       <td>Dataforce</td>
+      <td><img class="div-logo-inline" src="Dataforce-NEXT-color-Logo.png" alt="DataforceNEXT color logo"></td>
       <td><span class="swatch" style="background:#5CE1E6"></span>#5CE1E6</td>
       <td>3105 C</td>
       <td>DATA</td>
@@ -337,7 +369,7 @@
   <div class="note"><strong>Use the Design ID, not the edit link.</strong> Canva's <code>canva.com/d/XXXX</code> edit URLs are rotating short-lived tokens &mdash; the same design returns a different one on each API call, so those links will eventually stop resolving (marked <span class="noid">(rotating link)</span> where only that form was on file). The <code>DAHO&hellip;</code> design ID is the only stable identifier. A permanent URL can always be rebuilt as <code>canva.com/design/{design_id}/edit</code>.</div>
 
   <div class="division-block">
-    <h3>Games <em>(master division — source template for all formats)</em></h3>
+    <h3><img class="div-logo" src="Games-NEXT-color-logo.png" alt="GamesNEXT color logo">Games <em>(master division — source template for all formats)</em></h3>
     <div class="quickref">
       <span class="swatch-lg" style="background:#A6FA87"></span>
       <div class="quickref-info">
@@ -377,7 +409,7 @@
   </div>
 
   <div class="division-block">
-    <h3>TransPerfect</h3>
+    <h3><img class="div-logo" src="TP-NEXT-Color-Logo.png" alt="TransPerfectNEXT color logo">TransPerfect</h3>
     <div class="quickref">
       <span class="swatch-lg" style="background:#13B1F3"></span>
       <div class="quickref-info">
@@ -417,7 +449,7 @@
   </div>
 
   <div class="division-block">
-    <h3>GlobalLink</h3>
+    <h3><img class="div-logo" src="GlobalLink-NEXT-Color-Logo.png" alt="GlobalLinkNEXT color logo">GlobalLink</h3>
     <div class="quickref">
       <span class="swatch-lg" style="background:#13B1F3"></span>
       <div class="quickref-info">
@@ -457,7 +489,7 @@
   </div>
 
   <div class="division-block">
-    <h3>Finance</h3>
+    <h3><img class="div-logo" src="Finance-NEXT-color-logo.png" alt="FinanceNEXT color logo">Finance</h3>
     <div class="quickref">
       <span class="swatch-lg" style="background:#FF9B70"></span>
       <div class="quickref-info">
@@ -497,7 +529,7 @@
   </div>
 
   <div class="division-block">
-    <h3>Legal</h3>
+    <h3><img class="div-logo" src="Legal-NEXT-color-logo.png" alt="LegalNEXT color logo">Legal</h3>
     <div class="quickref">
       <span class="swatch-lg" style="background:#3BBEB6"></span>
       <div class="quickref-info">
@@ -537,7 +569,7 @@
   </div>
 
   <div class="division-block">
-    <h3>Life Sci</h3>
+    <h3><img class="div-logo" src="Life-Sci-NEXT-color-logo.png" alt="Life SciNEXT color logo">Life Sci</h3>
     <div class="quickref">
       <span class="swatch-lg" style="background:#58ED21"></span>
       <div class="quickref-info">
@@ -577,7 +609,7 @@
   </div>
 
   <div class="division-block">
-    <h3>Experience</h3>
+    <h3><img class="div-logo" src="Experience-NEXT-color-logo.png" alt="ExperienceNEXT color logo">Experience</h3>
     <div class="quickref">
       <span class="swatch-lg" style="background:#FF5757"></span>
       <div class="quickref-info">
@@ -617,7 +649,7 @@
   </div>
 
   <div class="division-block">
-    <h3>Learn</h3>
+    <h3><img class="div-logo" src="Learn-NEXT-color-logo.png" alt="LearnNEXT color logo">Learn</h3>
     <div class="quickref">
       <span class="swatch-lg" style="background:#FFEB66"></span>
       <div class="quickref-info">
@@ -657,7 +689,7 @@
   </div>
 
   <div class="division-block">
-    <h3>Media</h3>
+    <h3><img class="div-logo" src="Media-NEXT-color-logo.png" alt="MediaNEXT color logo">Media</h3>
     <div class="quickref">
       <span class="swatch-lg" style="background:#EC388A"></span>
       <div class="quickref-info">
@@ -697,7 +729,7 @@
   </div>
 
   <div class="division-block">
-    <h3>Digital</h3>
+    <h3><img class="div-logo" src="Digital-NEXT-color-logo.png" alt="DigitalNEXT color logo">Digital</h3>
     <div class="quickref">
       <span class="swatch-lg" style="background:#C2A3FF"></span>
       <div class="quickref-info">
@@ -737,7 +769,7 @@
   </div>
 
   <div class="division-block">
-    <h3>Dataforce</h3>
+    <h3><img class="div-logo" src="Dataforce-NEXT-color-Logo.png" alt="DataforceNEXT color logo">Dataforce</h3>
     <div class="quickref">
       <span class="swatch-lg" style="background:#5CE1E6"></span>
       <div class="quickref-info">
