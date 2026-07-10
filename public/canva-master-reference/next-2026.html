@@ -361,7 +361,38 @@
     border-radius: 12px;
     padding: 20px 22px;
     margin-bottom: 20px;
+    --div-rgb: 0, 194, 168;
   }
+  .division-block#div-transperfect,
+  .division-block#div-globallink { --div-rgb: 19, 177, 243; }
+  .division-block#div-games { --div-rgb: 166, 250, 135; }
+  .division-block#div-finance { --div-rgb: 255, 155, 112; }
+  .division-block#div-legal { --div-rgb: 59, 190, 182; }
+  .division-block#div-lifesci { --div-rgb: 88, 237, 33; }
+  .division-block#div-experience { --div-rgb: 255, 87, 87; }
+  .division-block#div-learn { --div-rgb: 255, 235, 102; }
+  .division-block#div-media { --div-rgb: 236, 56, 138; }
+  .division-block#div-digital { --div-rgb: 194, 163, 255; }
+  .division-block#div-dataforce { --div-rgb: 92, 225, 230; }
+  th.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: color .2s ease;
+  }
+  th.sortable:hover {
+    color: rgba(var(--div-rgb), 1);
+  }
+  th.sortable .sort-arrow {
+    display: inline-block;
+    margin-left: 4px;
+    font-size: 10px;
+    color: var(--muted);
+    transition: color .2s ease;
+  }
+  th.sortable:hover .sort-arrow {
+    color: rgba(var(--div-rgb), 1);
+  }
+
   .division-block h3 {
     margin: 0 0 12px;
     font-size: 17px;
@@ -1493,5 +1524,68 @@
   <footer>Generated from a live audit of the TransPerfect NEXT 2026 Canva workspace.</footer>
 
 </div>
+
+<script>
+(function() {
+  function parseSize(text) {
+    const m = text.trim().match(/(\d+)\s*[×x]\s*(\d+)/);
+    if (m) {
+      const w = parseInt(m[1], 10);
+      const h = parseInt(m[2], 10);
+      return { w, h, area: w * h, special: false };
+    }
+    return { w: 0, h: 0, area: 0, special: true };
+  }
+
+  function sortRows(rows, dir) {
+    const copy = rows.slice();
+    copy.sort((a, b) => {
+      const aCell = a.cells[2] ? a.cells[2].textContent : '';
+      const bCell = b.cells[2] ? b.cells[2].textContent : '';
+      const pa = parseSize(aCell);
+      const pb = parseSize(bCell);
+      if (pa.special && pb.special) return 0;
+      if (pa.special) return 1;
+      if (pb.special) return -1;
+      const diff = pa.area - pb.area;
+      return dir === 'asc' ? diff : -diff;
+    });
+    return copy;
+  }
+
+  document.querySelectorAll('.division-block table').forEach(table => {
+    const allRows = Array.from(table.querySelectorAll('tr'));
+    if (allRows.length < 2) return;
+    const headerRow = allRows[0];
+    const dataRows = allRows.slice(1);
+    const sizeTh = headerRow.cells[2];
+    if (!sizeTh) return;
+
+    sizeTh.classList.add('sortable');
+    sizeTh.innerHTML = 'Size <span class="sort-arrow" aria-hidden="true">⇅</span>';
+    sizeTh.setAttribute('title', 'Click to sort by size');
+
+    let state = 'none';
+
+    sizeTh.addEventListener('click', () => {
+      const arrow = sizeTh.querySelector('.sort-arrow');
+      if (state === 'none') {
+        state = 'asc';
+        sortRows(dataRows, 'asc').forEach(row => table.appendChild(row));
+        arrow.textContent = '▲';
+      } else if (state === 'asc') {
+        state = 'desc';
+        sortRows(dataRows, 'desc').forEach(row => table.appendChild(row));
+        arrow.textContent = '▼';
+      } else {
+        state = 'none';
+        dataRows.forEach(row => table.appendChild(row));
+        arrow.textContent = '⇅';
+      }
+    });
+  });
+})();
+</script>
+
 </body>
 </html>
