@@ -1,66 +1,27 @@
-# Social Assets & Guidelines — Rebuild
+## Pilot: Embed Canva PNG previews in the TransPerfect division
 
-Piloted on the TransPerfect NEXT brand + sub-event pages. Once approved, we roll the same pattern to other brands.
+Add rendered PNG thumbnails to each format row of the TransPerfect division as a proof-of-concept. Once you approve the look, roll out to the remaining 10 divisions in a follow-up.
 
-## The problem today
+### Steps
 
-Templates, guidelines, sizing rules, and platform assets are all stacked into one long scrolling wall. It's hard to tell what platform an asset belongs to, what's a template vs. a finished creation, and where the rules live. There's no live link to where designs actually get made (Canva).
+1. **Locate the TransPerfect division table** in `public/canva-master-reference/next-2026.html` and extract the Canva design URL for every row that has one. Skip:
+   - Row 1 (Sponsorship packet — not a Canva design)
+   - Row 2 (PowerPoint Template — Coming Soon)
+   - Any row without a live Canva link
+2. **Export each design as PNG** via the Canva MCP:
+   - `get-export-formats` per design to confirm PNG support
+   - `export-design` with `type: png`, page 1, ~1080px width, regular quality
+   - Download each result to `public/canva-master-reference/thumbs/transperfect/<row-slug>.png`
+3. **Add a Preview column** to the TransPerfect table only:
+   - New `<th>Preview</th>` header
+   - Each qualifying row gets `<img src="/canva-master-reference/thumbs/transperfect/…" loading="lazy" class="row-thumb" alt="…">`
+   - Clicking the thumb opens the existing lightbox (same pattern as the logo click-to-enlarge added earlier)
+   - Skipped rows show an em-dash placeholder
+4. **Style `.row-thumb`** using existing semantic tokens (small ~96px wide, `object-fit: contain`, rounded, subtle border) — no raw color classes.
+5. **Verify with Playwright**: load `/canva-master-reference/next-2026`, screenshot the TransPerfect table, and confirm each thumbnail renders on the correct row and the lightbox opens on click.
+6. **Report back with the screenshot** so you can approve before I bulk-run divisions 2–11.
 
-## New structure
-
-Three clearly separated zones, in this order:
-
-**1. Social Playbook (top)**
-The always-visible brand social identity — read-only reference.
-- Voice & tone (short, punchy, TP NEXT-specific)
-- Hashtag system (event, sub-event, campaign)
-- Imagery rules (orb aesthetic, no text on hero shots, safe zones)
-- Do / Don't gallery (small paired thumbnails)
-- Response & moderation guidelines
-- Platform sizing table (cover, post, story, reel, square) as one compact reference
-
-**2. Platform-first tabs (middle)**
-Horizontal tabs: LinkedIn · Instagram · X · YouTube · TikTok · Facebook.
-Each tab shows only that platform's content, in three rows:
-- Row A — **Live Templates (Canva-connected)**: cards pulled from a linked Canva folder, auto-branded with the current event's logo + location. "Open in Canva" and "Duplicate for this event" actions.
-- Row B — **Published creations**: finished, approved assets ready to download/share.
-- Row C — **Specs strip**: dimensions, safe zones, file types for that platform only (so specs live where they're used, not in a separate rules dump).
-
-**3. Asset Library (bottom, collapsed by default)**
-The full raw asset dump for power users — filterable by platform, format, campaign. No cards, just a dense searchable table.
-
-## Canva integration
-
-- Add a `canva_folder_id` field on the event (and per sub-event) so each event points to its own Canva template folder.
-- New edge function `canva-templates-sync` calls the Canva Connect API to list templates in that folder, caches to a new `canva_templates` table (thumbnail, template_id, name, updated_at, platform tag).
-- On the frontend, the "Live Templates" row reads from cache and refreshes on demand via a "Sync from Canva" button (admin only).
-- Each card injects the sub-event's logo + location as Canva autofill variables when the user clicks "Duplicate for this event", so the opened Canva design already has the right branding baked in.
-- Canva OAuth tokens already exist in `canva_oauth_tokens` — reuse that connection.
-
-## Component work
-
-Refactor `SocialAssetsSection` (or equivalent) into:
-- `SocialPlaybookHeader.tsx` — the playbook zone
-- `SocialPlatformTabs.tsx` — the tabbed platform view
-- `SocialPlatformPanel.tsx` — one platform's three rows
-- `CanvaTemplateCard.tsx` — live template card with sync/duplicate actions
-- `SocialAssetLibrary.tsx` — collapsed raw table
-
-Data still comes from `guide_data.socialAssets`; we're regrouping by `platform` on the client and layering the Canva rows on top.
-
-## Scope for this pass
-
-- Only the TransPerfect NEXT brand page + its 10 sub-event pages.
-- Other brands keep the current UI untouched until we validate the pattern.
-- Canva sync starts as a stub returning the existing template list; wiring the real Canva Connect call can be a follow-up if the OAuth scope isn't already granted.
-
-## Technical notes
-
-- New table: `canva_templates` (id, event_id, sub_event_id nullable, platform, canva_template_id, thumbnail_url, name, updated_at). RLS + grants per project rules.
-- New edge function: `canva-templates-sync` (verify_jwt=false, manual JWT check, admin-only).
-- Extend `events.guide_data` with `canvaFolderId` (no schema change — it's JSONB).
-- No changes to existing template preview images; those become fallbacks when Canva sync hasn't run.
-
-## Deliverable
-
-A single, calmer Social section on `/event/transperfect-next` (and each sub-event) with: playbook on top, platform tabs in the middle, and a live Canva-connected template row inside each platform tab that auto-brands to the current event.
+### Notes
+- PNGs are static; re-exporting is a quick per-row operation if a design changes later.
+- Files live under `public/…/thumbs/transperfect/` so they ship with the site.
+- Every row's export is one Canva API call — a handful of credits for the pilot, ~11× that for full rollout.
