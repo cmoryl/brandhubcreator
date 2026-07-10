@@ -2581,7 +2581,7 @@
     <button type="button" class="ux-btn" id="uxExpandAll" title="Expand all divisions">▾ Expand all</button>
     <button type="button" class="ux-btn" id="uxCollapseAll" title="Collapse all divisions">▸ Collapse all</button>
     <button type="button" class="ux-btn ux-btn-density" id="uxDensity" aria-pressed="false" title="Toggle density">◐ Density</button>
-    <button type="button" class="ux-btn" id="uxTheme" aria-pressed="false" title="Toggle dark mode" aria-label="Toggle dark mode">☾ Theme</button>
+    
     <span class="ux-count" id="uxCount" aria-live="polite">Showing 0 of 0</span>
   `;
   divbar.insertAdjacentElement('afterend', toolbar);
@@ -2823,24 +2823,10 @@
     if (saved === 'compact') setDensity('compact');
   } catch {}
 
-  // Theme
-  const themeBtn = document.getElementById('uxTheme');
-  const setTheme = (mode) => {
-    document.documentElement.setAttribute('data-theme', mode);
-    themeBtn.setAttribute('aria-pressed', String(mode === 'dark'));
-    themeBtn.innerHTML = mode === 'dark' ? '☀ Light' : '☾ Dark';
-    try { localStorage.setItem(LS_THEME, mode); } catch {}
-  };
-  themeBtn.addEventListener('click', () => {
-    const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    setTheme(cur);
-  });
-  try {
-    const saved = localStorage.getItem(LS_THEME);
-    if (saved === 'dark' || saved === 'light') setTheme(saved);
-    else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) setTheme('dark');
-    else setTheme('light');
-  } catch { setTheme('light'); }
+  // Theme: locked to light
+  document.documentElement.setAttribute('data-theme', 'light');
+  try { localStorage.removeItem(LS_THEME); } catch {}
+
 
   // Keyboard: `/` focuses search, Esc clears
   document.addEventListener('keydown', (e) => {
