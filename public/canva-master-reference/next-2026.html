@@ -506,6 +506,22 @@
     border: 1px solid rgba(255, 87, 87, 0.9);
     box-shadow: 0 0 0 1px rgba(255,87,87,0.25), 0 4px 14px rgba(255,59,59,0.35);
   }
+  .palette-downloads {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    margin: 14px 0 18px;
+  }
+  .palette-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.04em;
+    text-decoration: none;
+    background: linear-gradient(135deg, #13B1F3, #0d8fd0);
+    color: #fff;
+    border: 0;
+    transition: transform 120ms ease, box-shadow 120ms ease;
+  }
+  .palette-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(19,177,243,0.35); }
   footer { margin-top: 48px; font-size: 12px; color: var(--muted); text-align: center; }
 
   /* ---------- Mobile / responsive ---------- */
@@ -750,6 +766,33 @@
       <td>DataforceNEXT will bring together decision-makers from data scientists, engineers, and analytics leaders to discuss how data infrastructure is being built, scaled, and operated in today's market.</td>
     </tr>
   </table>
+
+  <h3 style="margin-top:36px;">2a. Downloadable color palette (Hex / RGB / CMYK / HSV / Pantone)</h3>
+  <div class="note">Print-and-screen color reference for all 11 divisions. Values below match the accent colors registered in section 2. Download in CSV (Excel / Google Sheets), JSON (developers), or plain-text (design handoff) using the buttons below the table.</div>
+  <div class="palette-downloads">
+    <a class="palette-btn" href="/canva-master-reference/next-2026-color-palette.csv" download>⬇ Download .CSV</a>
+    <a class="palette-btn" href="/canva-master-reference/next-2026-color-palette.json" download>⬇ Download .JSON</a>
+    <a class="palette-btn" href="/canva-master-reference/next-2026-color-palette.txt" download>⬇ Download .TXT</a>
+  </div>
+  <table>
+    <tr>
+      <th>Division</th><th>Hex</th><th>RGB (R, G, B)</th><th>CMYK (C, M, Y, K)</th><th>HSV (H, S, V)</th><th>Pantone</th>
+    </tr>
+    <tr><td><span class="swatch" style="background:#13B1F3"></span>TransPerfect</td><td><code>#13B1F3</code></td><td>19, 177, 243</td><td>92, 27, 0, 5</td><td>198°, 92%, 95%</td><td>306 C</td></tr>
+    <tr><td><span class="swatch" style="background:#A6FA87"></span>Games</td><td><code>#A6FA87</code></td><td>166, 250, 135</td><td>34, 0, 46, 2</td><td>104°, 46%, 98%</td><td>7487 C</td></tr>
+    <tr><td><span class="swatch" style="background:#13B1F3"></span>GlobalLink</td><td><code>#13B1F3</code></td><td>19, 177, 243</td><td>92, 27, 0, 5</td><td>198°, 92%, 95%</td><td>306 C</td></tr>
+    <tr><td><span class="swatch" style="background:#FF9B70"></span>Finance</td><td><code>#FF9B70</code></td><td>255, 155, 112</td><td>0, 39, 56, 0</td><td>18°, 56%, 100%</td><td>1635 C</td></tr>
+    <tr><td><span class="swatch" style="background:#3BBEB6"></span>Legal</td><td><code>#3BBEB6</code></td><td>59, 190, 182</td><td>69, 0, 4, 25</td><td>176°, 69%, 75%</td><td>7465 C</td></tr>
+    <tr><td><span class="swatch" style="background:#58ED21"></span>Life Sci</td><td><code>#58ED21</code></td><td>88, 237, 33</td><td>63, 0, 86, 7</td><td>104°, 86%, 93%</td><td>802 C</td></tr>
+    <tr><td><span class="swatch" style="background:#FF5757"></span>Experience</td><td><code>#FF5757</code></td><td>255, 87, 87</td><td>0, 66, 66, 0</td><td>0°, 66%, 100%</td><td>1785 C</td></tr>
+    <tr><td><span class="swatch" style="background:#FFEB66"></span>Learn</td><td><code>#FFEB66</code></td><td>255, 235, 102</td><td>0, 8, 60, 0</td><td>52°, 60%, 100%</td><td>100 C</td></tr>
+    <tr><td><span class="swatch" style="background:#EC388A"></span>Media</td><td><code>#EC388A</code></td><td>236, 56, 138</td><td>0, 76, 42, 7</td><td>333°, 76%, 93%</td><td>205 C</td></tr>
+    <tr><td><span class="swatch" style="background:#C2A3FF"></span>Digital</td><td><code>#C2A3FF</code></td><td>194, 163, 255</td><td>24, 36, 0, 0</td><td>260°, 36%, 100%</td><td>2645 C</td></tr>
+    <tr><td><span class="swatch" style="background:#5CE1E6"></span>Dataforce</td><td><code>#5CE1E6</code></td><td>92, 225, 230</td><td>60, 2, 0, 10</td><td>182°, 60%, 90%</td><td>3105 C</td></tr>
+  </table>
+  <div class="note" style="margin-top:8px;">CMYK values are unprofiled/uncalibrated conversions from sRGB and should be treated as a starting point &mdash; always cross-check against the Pantone reference on your production color system for print jobs.</div>
+
+
 
   <!-- ============ DESIGN REGISTRY BY DIVISION ============ -->
 
