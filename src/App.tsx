@@ -104,6 +104,8 @@ const TransPerfectLifeSciencesCanvaAudit = lazyWithRetry(() => import("./pages/T
 const TransPerfectDataforceTemplateInventory = lazyWithRetry(() => import("./pages/TransPerfectDataforceTemplateInventory"));
 const TransPerfectGlobalLinkTemplateInventory = lazyWithRetry(() => import("./pages/TransPerfectGlobalLinkTemplateInventory"));
 const TransPerfectCanvaAuditsHub = lazyWithRetry(() => import("./pages/TransPerfectCanvaAuditsHub"));
+const CanvaMasterReferenceHub = lazyWithRetry(() => import("./pages/CanvaMasterReferenceHub"));
+const CanvaMasterReferenceView = lazyWithRetry(() => import("./pages/CanvaMasterReferenceView"));
 const ClaudeForDesigners = lazyWithRetry(() => import("./pages/ClaudeForDesigners"));
 const BrandAgentPage = lazyWithRetry(() => import("./pages/BrandAgentPage"));
 const IconStudioPage = lazyWithRetry(() => import("./pages/IconStudioPage"));
@@ -563,6 +565,22 @@ const App = () => (
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <TransPerfectCanvaAuditsHub />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="canva-master-reference"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <CanvaMasterReferenceHub />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="canva-master-reference/:slug"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <CanvaMasterReferenceView />
                         </Suspense>
                       }
                     />

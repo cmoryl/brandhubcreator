@@ -369,6 +369,10 @@ const OrganizationPortal = () => {
                           <LayoutGrid className="h-4 w-4" />
                           Canva Audits Hub
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate('/canva-master-reference')} className="gap-2 cursor-pointer">
+                          <FileText className="h-4 w-4" />
+                          Canva Master Reference
+                        </DropdownMenuItem>
                       </>
                     )}
                     
