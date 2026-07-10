@@ -652,16 +652,35 @@
     nav.toc a { padding: 5px 10px; font-size: 12px; }
     nav.toc strong { display: none; }
 
+    /* Compact horizontal-scroll divisions bar on mobile */
     nav.divbar {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      margin: 0 -4px 8px;
-      padding: 8px;
+      display: flex;
+      grid-template-columns: none;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      margin: 0 -4px 6px;
+      padding: 6px 8px;
       gap: 6px;
+      border-radius: 10px;
     }
-    nav.divbar a { font-size: 10.5px; padding: 6px 4px; }
-    nav.divbar a::before { width: 18px; height: 18px; border-radius: 5px; }
+    nav.divbar::-webkit-scrollbar { display: none; }
+    nav.divbar a {
+      flex: 0 0 auto;
+      aspect-ratio: auto;
+      flex-direction: row;
+      gap: 6px;
+      padding: 6px 10px;
+      font-size: 11px;
+      border-radius: 8px;
+      min-height: 36px;
+    }
+    nav.divbar a::before { width: 14px; height: 14px; border-radius: 4px; }
+    nav.divbar a::after { display: none; }
+    nav.divbar a.is-active { padding: 6px 10px; }
 
-    :target, h2, h3, .division-block { scroll-margin-top: 160px; }
+    :target, h2, h3, .division-block { scroll-margin-top: 120px; }
 
     h2 { font-size: 16px; margin: 28px 0 12px; }
     h3 { font-size: 14px; }
@@ -2165,7 +2184,7 @@
         const el = document.getElementById(id);
         if (!el) return;
         e.preventDefault();
-        const offset = window.matchMedia('(max-width: 720px)').matches ? 160 : 200;
+        const offset = window.matchMedia('(max-width: 768px)').matches ? 120 : 200;
         const y = el.getBoundingClientRect().top + window.scrollY - offset;
         window.scrollTo({ top: y, behavior: 'smooth' });
         history.replaceState(null, '', '#' + id);
