@@ -335,7 +335,9 @@
   }
   .stat-card .stat-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
   html { scroll-behavior: smooth; }
-  :target { scroll-margin-top: 80px; }
+  :target { scroll-margin-top: 200px; }
+  h2, h3 { scroll-margin-top: 200px; }
+  .division-block { scroll-margin-top: 200px; }
   section { margin-top: 8px; }
   h2 {
     font-size: 18px;
@@ -659,7 +661,7 @@
     nav.divbar a { font-size: 10.5px; padding: 6px 4px; }
     nav.divbar a::before { width: 18px; height: 18px; border-radius: 5px; }
 
-    :target { scroll-margin-top: 64px; }
+    :target, h2, h3, .division-block { scroll-margin-top: 160px; }
 
     h2 { font-size: 16px; margin: 28px 0 12px; }
     h3 { font-size: 14px; }
@@ -2163,7 +2165,8 @@
         const el = document.getElementById(id);
         if (!el) return;
         e.preventDefault();
-        const y = el.getBoundingClientRect().top + window.scrollY - 88;
+        const offset = window.matchMedia('(max-width: 720px)').matches ? 160 : 200;
+        const y = el.getBoundingClientRect().top + window.scrollY - offset;
         window.scrollTo({ top: y, behavior: 'smooth' });
         history.replaceState(null, '', '#' + id);
       });
