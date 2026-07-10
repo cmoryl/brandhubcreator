@@ -2823,24 +2823,10 @@
     if (saved === 'compact') setDensity('compact');
   } catch {}
 
-  // Theme
-  const themeBtn = document.getElementById('uxTheme');
-  const setTheme = (mode) => {
-    document.documentElement.setAttribute('data-theme', mode);
-    themeBtn.setAttribute('aria-pressed', String(mode === 'dark'));
-    themeBtn.innerHTML = mode === 'dark' ? '☀ Light' : '☾ Dark';
-    try { localStorage.setItem(LS_THEME, mode); } catch {}
-  };
-  themeBtn.addEventListener('click', () => {
-    const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    setTheme(cur);
-  });
-  try {
-    const saved = localStorage.getItem(LS_THEME);
-    if (saved === 'dark' || saved === 'light') setTheme(saved);
-    else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) setTheme('dark');
-    else setTheme('light');
-  } catch { setTheme('light'); }
+  // Theme: locked to light
+  document.documentElement.setAttribute('data-theme', 'light');
+  try { localStorage.removeItem(LS_THEME); } catch {}
+
 
   // Keyboard: `/` focuses search, Esc clears
   document.addEventListener('keydown', (e) => {
