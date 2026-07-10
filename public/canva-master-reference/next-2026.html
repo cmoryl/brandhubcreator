@@ -506,6 +506,22 @@
     border: 1px solid rgba(255, 87, 87, 0.9);
     box-shadow: 0 0 0 1px rgba(255,87,87,0.25), 0 4px 14px rgba(255,59,59,0.35);
   }
+  .palette-downloads {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    margin: 14px 0 18px;
+  }
+  .palette-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.04em;
+    text-decoration: none;
+    background: linear-gradient(135deg, #13B1F3, #0d8fd0);
+    color: #fff;
+    border: 0;
+    transition: transform 120ms ease, box-shadow 120ms ease;
+  }
+  .palette-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(19,177,243,0.35); }
   footer { margin-top: 48px; font-size: 12px; color: var(--muted); text-align: center; }
 
   /* ---------- Mobile / responsive ---------- */
