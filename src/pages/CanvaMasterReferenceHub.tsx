@@ -1,4 +1,5 @@
-import { FileText, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { FileText, ArrowRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
@@ -67,24 +68,14 @@ export default function CanvaMasterReferenceHub() {
               </div>
               <p className="mt-4 text-sm text-muted-foreground">{r.description}</p>
               <div className="mt-5 flex gap-2">
-                <a
-                  href={r.href}
-                  target="_blank"
-                  rel="noreferrer"
+              <div className="mt-5 flex gap-2">
+                <Link
+                  to={r.href}
                   className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
                 >
-                  <ExternalLink className="h-3.5 w-3.5" />
+                  <ArrowRight className="h-3.5 w-3.5" />
                   Open Reference
-                </a>
-                <a
-                  href={r.sourceUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                  Raw HTML
-                </a>
+                </Link>
               </div>
             </Card>
           ))}
