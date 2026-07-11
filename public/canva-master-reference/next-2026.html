@@ -2342,14 +2342,44 @@
     backdrop-filter: blur(12px) saturate(140%);
     border: 1px solid var(--border);
     border-radius: 14px;
-    padding: 10px 12px;
+    padding: 0;
     margin-bottom: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    font-size: 12px;
+    box-shadow: 0 1px 2px rgba(10,18,44,.04), 0 8px 24px -18px rgba(10,18,44,.14);
+    overflow: hidden;
+  }
+  .ux-row {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 10px;
-    font-size: 12px;
-    box-shadow: 0 1px 2px rgba(10,18,44,.04), 0 8px 24px -18px rgba(10,18,44,.14);
+    gap: 12px;
+    padding: 10px 14px;
+    min-height: 44px;
+  }
+  .ux-row-top {
+    border-bottom: 1px solid rgba(10,18,44,.06);
+  }
+  .ux-row-bottom {
+    background: rgba(247,248,251,.55);
+    padding: 8px 14px;
+  }
+  .ux-row-bottom .ux-count { margin-left: auto; }
+  /* Compact/Density button — distinct pill-style toggle */
+  .ux-btn-density {
+    border-radius: 999px;
+    padding: 5px 12px;
+  }
+  .ux-btn-density[aria-pressed="true"] {
+    background: rgba(19,177,243,.10);
+    color: #0b6fa6;
+    border-color: rgba(19,177,243,.25);
+    box-shadow: inset 0 0 0 1px rgba(19,177,243,.15);
+  }
+  .ux-btn-density[aria-pressed="true"]:hover {
+    background: rgba(19,177,243,.14);
   }
   .ux-search {
     flex: 1 1 240px; min-width: 200px; position: relative;
