@@ -2773,40 +2773,43 @@
   toolbar.className = 'ux-toolbar';
   toolbar.setAttribute('aria-label', 'Filter, search, and view controls');
   toolbar.innerHTML = `
-    <div class="ux-search">
-      <span class="ux-search-icon" aria-hidden="true">🔍</span>
-      <input type="search" id="uxSearchInput" placeholder="Search formats, sizes, examples…" aria-label="Search formats" autocomplete="off">
-      <span class="ux-search-kbd" aria-hidden="true">/</span>
-      <button type="button" class="ux-search-clear" id="uxSearchClear" aria-label="Clear search">×</button>
+    <div class="ux-row ux-row-top">
+      <div class="ux-search">
+        <span class="ux-search-icon" aria-hidden="true">🔍</span>
+        <input type="search" id="uxSearchInput" placeholder="Search formats, sizes, examples…" aria-label="Search formats" autocomplete="off">
+        <span class="ux-search-kbd" aria-hidden="true">/</span>
+        <button type="button" class="ux-search-clear" id="uxSearchClear" aria-label="Clear search">×</button>
+      </div>
+      <div class="ux-chips" role="group" aria-label="Variant filter">
+        <span class="ux-chip-label">Variant</span>
+        <button type="button" class="ux-chip" data-variant="all" aria-pressed="true">All</button>
+        <button type="button" class="ux-chip" data-variant="light" aria-pressed="false">Light</button>
+        <button type="button" class="ux-chip" data-variant="dark" aria-pressed="false">Dark</button>
+      </div>
+      <div class="ux-chips" role="group" aria-label="Type filter">
+        <span class="ux-chip-label">Type</span>
+        <button type="button" class="ux-chip" data-type="all" aria-pressed="true">All</button>
+        <button type="button" class="ux-chip" data-type="social" aria-pressed="false">Social</button>
+        <button type="button" class="ux-chip" data-type="email" aria-pressed="false">Email</button>
+        <button type="button" class="ux-chip" data-type="print" aria-pressed="false">Print</button>
+        <button type="button" class="ux-chip" data-type="speakers" aria-pressed="false">Speakers</button>
+      </div>
     </div>
-    <div class="ux-chips" role="group" aria-label="Variant filter">
-      <span class="ux-chip-label">Variant</span>
-      <button type="button" class="ux-chip" data-variant="all" aria-pressed="true">All</button>
-      <button type="button" class="ux-chip" data-variant="light" aria-pressed="false">Light</button>
-      <button type="button" class="ux-chip" data-variant="dark" aria-pressed="false">Dark</button>
+    <div class="ux-row ux-row-bottom">
+      <div class="ux-chips" role="group" aria-label="Arrange rows">
+        <span class="ux-chip-label">Arrange</span>
+        <button type="button" class="ux-chip" data-arrange="default" aria-pressed="true">Default</button>
+        <button type="button" class="ux-chip" data-arrange="light" aria-pressed="false">Light first</button>
+        <button type="button" class="ux-chip" data-arrange="dark" aria-pressed="false">Dark first</button>
+        <button type="button" class="ux-chip" data-arrange="group" aria-pressed="false">Group</button>
+      </div>
+      <span class="ux-divider" aria-hidden="true"></span>
+      <button type="button" class="ux-btn ux-btn-filters" id="uxFiltersToggle" aria-pressed="false" aria-expanded="false" aria-controls="uxToolbarChips" title="Show filters">▾ Filters<span class="ux-active-dot" aria-hidden="true"></span></button>
+      <button type="button" class="ux-btn" id="uxExpandAll" title="Expand all divisions">▾ Expand all</button>
+      <button type="button" class="ux-btn" id="uxCollapseAll" title="Collapse all divisions">▸ Collapse all</button>
+      <button type="button" class="ux-btn ux-btn-density" id="uxDensity" aria-pressed="false" title="Toggle density">◐ Density</button>
+      <span class="ux-count" id="uxCount" aria-live="polite">Showing 0 of 0</span>
     </div>
-    <div class="ux-chips" role="group" aria-label="Type filter">
-      <span class="ux-chip-label">Type</span>
-      <button type="button" class="ux-chip" data-type="all" aria-pressed="true">All</button>
-      <button type="button" class="ux-chip" data-type="social" aria-pressed="false">Social</button>
-      <button type="button" class="ux-chip" data-type="email" aria-pressed="false">Email</button>
-      <button type="button" class="ux-chip" data-type="print" aria-pressed="false">Print</button>
-      <button type="button" class="ux-chip" data-type="speakers" aria-pressed="false">Speakers</button>
-    </div>
-    <div class="ux-chips" role="group" aria-label="Arrange rows">
-      <span class="ux-chip-label">Arrange</span>
-      <button type="button" class="ux-chip" data-arrange="default" aria-pressed="true">Default</button>
-      <button type="button" class="ux-chip" data-arrange="light" aria-pressed="false">Light first</button>
-      <button type="button" class="ux-chip" data-arrange="dark" aria-pressed="false">Dark first</button>
-      <button type="button" class="ux-chip" data-arrange="group" aria-pressed="false">Group</button>
-    </div>
-    <span class="ux-divider" aria-hidden="true"></span>
-    <button type="button" class="ux-btn ux-btn-filters" id="uxFiltersToggle" aria-pressed="false" aria-expanded="false" aria-controls="uxToolbarChips" title="Show filters">▾ Filters<span class="ux-active-dot" aria-hidden="true"></span></button>
-    <button type="button" class="ux-btn" id="uxExpandAll" title="Expand all divisions">▾ Expand all</button>
-    <button type="button" class="ux-btn" id="uxCollapseAll" title="Collapse all divisions">▸ Collapse all</button>
-    <button type="button" class="ux-btn ux-btn-density" id="uxDensity" aria-pressed="false" title="Toggle density">◐ Density</button>
-    
-    <span class="ux-count" id="uxCount" aria-live="polite">Showing 0 of 0</span>
   `;
   divbar.insertAdjacentElement('afterend', toolbar);
 
