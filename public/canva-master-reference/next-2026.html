@@ -2402,6 +2402,204 @@
 
   <footer>Generated from a live audit of the TransPerfect NEXT 2026 Canva workspace.</footer>
 
+  <!-- ============ 8. KNOWLEDGE BASE ============ -->
+  <h2 id="sec-8">8. Knowledge base</h2>
+  <div class="note">A living reference of everything the NEXT 2026 build team should know — event conventions, division system, formats, workflow rules, and gotchas. New entries auto-append below as the build evolves; team members can also add local notes that persist in this browser.</div>
+
+  <div class="kb-grid">
+    <div class="kb-card">
+      <h4>📛 Naming &amp; identity</h4>
+      <ul>
+        <li>Event name pattern: <code>[Division]NEXT</code> (e.g. GamesNEXT, LegalNEXT, LifeSciencesNEXT).</li>
+        <li>Master event: <strong>TransPerfect NEXT 2026</strong>. Shared across 11 divisions.</li>
+        <li>Every division has: full-color logo, reversed (white) logo, monochrome variant, accent color, division subtitle line.</li>
+        <li>Logos stored in shared Dropbox with per-division subfolders — access via the logo modal on any division block.</li>
+      </ul>
+    </div>
+
+    <div class="kb-card">
+      <h4>🎨 Division color system</h4>
+      <ul>
+        <li>TransPerfect &amp; GlobalLink share the core brand blue <code>#13B1F3</code>.</li>
+        <li>Games <code>#A6FA87</code> · Finance <code>#FF9B70</code> · Legal <code>#3BBEB6</code> · Life Sciences <code>#58ED21</code>.</li>
+        <li>Experience <code>#FF5757</code> · Learn <code>#FFEB66</code> · Media <code>#EC388A</code> · Digital <code>#C2A3FF</code> · Dataforce <code>#5CE1E6</code>.</li>
+        <li>Accent color drives circle fill, CTA button, and division text across all 28 formats.</li>
+      </ul>
+    </div>
+
+    <div class="kb-card">
+      <h4>📐 Format families</h4>
+      <ul>
+        <li><strong>Social:</strong> Square post, LinkedIn ads (navy / white / light / dark callouts), Story.</li>
+        <li><strong>Print:</strong> Sponsorship packet, one-pagers, event signage (8.5×11 &amp; A4).</li>
+        <li><strong>Screens:</strong> Event screen imagery / large-screen visuals (16:9, 21:9).</li>
+        <li><strong>Web:</strong> Hero banners, email headers, landing tiles.</li>
+        <li>See section 4 for pixel dimensions and section 7 for element IDs.</li>
+      </ul>
+    </div>
+
+    <div class="kb-card">
+      <h4>⚙️ Canva workflow</h4>
+      <ul>
+        <li>Permanent design URL: <code>canva.com/design/{design_id}/edit</code>. Short <code>/d/</code> URLs rotate — don't hard-code them.</li>
+        <li>Page IDs are <em>not</em> globally unique — always pair a page ID with its source template ID.</li>
+        <li>When editing via API, pull each fill's asset ID from section 3, not from whatever the source template currently displays.</li>
+        <li>Source templates are single-source-of-truth. Division copies inherit element IDs; only fill/text content differs.</li>
+      </ul>
+    </div>
+
+    <div class="kb-card">
+      <h4>🧭 Editing conventions</h4>
+      <ul>
+        <li>Headline: division name in caps, e.g. <code>GAMESNEXT</code>. Body copy: max 2 lines.</li>
+        <li>Date/venue block is shared copy — update it in section 1 first, then propagate.</li>
+        <li>Circlelines and accent-circle are optional per layout (see section 5 note).</li>
+        <li>CTA: consistent verb + destination ("Register now", "See the agenda").</li>
+      </ul>
+    </div>
+
+    <div class="kb-card">
+      <h4>🧠 Gotchas &amp; known issues</h4>
+      <ul>
+        <li>Games source template shows a placeholder fill <code>MAHOu1EAbd0</code> for the dark advocacy CTA — the real Games accent asset is <code>MAHOvDwDvpc</code>.</li>
+        <li>PowerPoint template = <span class="coming-soon">Coming Soon</span>. Element IDs will be captured once staged.</li>
+        <li>Event signage / screen imagery secondary tables intentionally skip the sort UI — only primary format tables are sortable.</li>
+      </ul>
+    </div>
+
+    <div class="kb-card">
+      <h4>🔗 Quick links</h4>
+      <ul>
+        <li><a href="#sec-1">Shared event details</a> · <a href="#sec-2">Brand &amp; copy registry</a></li>
+        <li><a href="#sec-3">Design registry by division</a> · <a href="#sec-4">Format reference</a></li>
+        <li><a href="#sec-5">Asset IDs</a> · <a href="#sec-7">Element IDs</a></li>
+        <li>Shared Dropbox: click any division logo to open its folder.</li>
+      </ul>
+    </div>
+
+    <div class="kb-card">
+      <h4>🗒 Recent changes</h4>
+      <ul id="kbChangelog">
+        <li><strong>11 Jul 2026</strong> — Knowledge base section added.</li>
+        <li><strong>11 Jul 2026</strong> — Event general signage &amp; screen imagery sections added (8.5×11 + A4 + large-screen).</li>
+        <li><strong>11 Jul 2026</strong> — Auto "Last updated" stamp wired to hero header.</li>
+        <li><strong>10 Jul 2026</strong> — Logo modal + Dropbox subfolder routing per division.</li>
+      </ul>
+      <p class="kb-hint">The top entry auto-syncs with the hero "Last updated" note whenever the page ships a new build.</p>
+    </div>
+  </div>
+
+  <div class="kb-notes">
+    <h4>📝 Team notes <span class="kb-hint">— saved locally in your browser, evolves as you add entries</span></h4>
+    <ul id="kbNotesList" aria-live="polite"></ul>
+    <form id="kbNoteForm" class="kb-note-form">
+      <input type="text" id="kbNoteInput" placeholder="Add a note, tip, or lesson learned…" maxlength="280" autocomplete="off" />
+      <button type="submit" class="btn-link">Add note</button>
+      <button type="button" id="kbNoteClear" class="btn-link" style="background:transparent;color:var(--muted);">Clear all</button>
+    </form>
+  </div>
+
+  <style>
+    .kb-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin: 18px 0 22px; }
+    .kb-card { background: rgba(19,177,243,0.04); border: 1px solid rgba(19,177,243,0.18); border-radius: 12px; padding: 16px 18px; }
+    .kb-card h4 { margin: 0 0 10px; font-size: 14px; color: var(--navy); }
+    .kb-card ul { margin: 0; padding-left: 18px; }
+    .kb-card li { margin: 6px 0; font-size: 13px; line-height: 1.5; color: var(--ink); }
+    .kb-card code { font-size: 12px; }
+    .kb-hint { color: var(--muted); font-size: 12px; font-weight: 400; }
+    .kb-notes { background: rgba(255,255,255,0.02); border: 1px dashed rgba(19,177,243,0.28); border-radius: 12px; padding: 16px 18px; margin: 8px 0 22px; }
+    .kb-notes h4 { margin: 0 0 10px; font-size: 14px; color: var(--navy); }
+    #kbNotesList { list-style: none; padding: 0; margin: 0 0 12px; }
+    #kbNotesList li { background: rgba(19,177,243,0.06); border-left: 3px solid var(--brand); padding: 8px 12px; margin: 6px 0; border-radius: 6px; font-size: 13px; display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+    #kbNotesList time { color: var(--muted); font-size: 11px; white-space: nowrap; }
+    #kbNotesList button.kb-note-del { background: transparent; border: 0; color: var(--muted); cursor: pointer; font-size: 14px; line-height: 1; padding: 2px 6px; }
+    #kbNotesList button.kb-note-del:hover { color: #ff6b6b; }
+    #kbNotesList .kb-empty { color: var(--muted); font-style: italic; background: transparent; border: 0; }
+    .kb-note-form { display: flex; gap: 8px; flex-wrap: wrap; }
+    .kb-note-form input { flex: 1 1 260px; min-width: 200px; padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(19,177,243,0.28); background: rgba(255,255,255,0.03); color: var(--ink); font-size: 13px; }
+    .kb-note-form input:focus { outline: 2px solid var(--brand); outline-offset: 1px; }
+  </style>
+
+  <script>
+  (function() {
+    // Sync top changelog entry with hero "Last updated" note
+    var hero = document.getElementById('heroUpdated');
+    var log = document.getElementById('kbChangelog');
+    if (hero && log) {
+      var note = hero.getAttribute('data-note') || '';
+      var stamp = (hero.textContent || '').replace(/^Last updated:\s*/, '').split(' · ')[0];
+      if (stamp && note) {
+        var first = log.querySelector('li');
+        if (first) first.innerHTML = '<strong>' + stamp + '</strong> — ' + note + '.';
+      }
+    }
+
+    // Local team-notes (localStorage, per-browser, evolves as team adds)
+    var KEY = 'next2026-kb-notes-v1';
+    var listEl = document.getElementById('kbNotesList');
+    var form = document.getElementById('kbNoteForm');
+    var input = document.getElementById('kbNoteInput');
+    var clearBtn = document.getElementById('kbNoteClear');
+    if (!listEl || !form) return;
+
+    function load() {
+      try { return JSON.parse(localStorage.getItem(KEY) || '[]'); }
+      catch(e) { return []; }
+    }
+    function save(arr) {
+      try { localStorage.setItem(KEY, JSON.stringify(arr)); } catch(e) {}
+    }
+    function fmt(ts) {
+      var d = new Date(ts);
+      return d.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+    function esc(s) { return String(s).replace(/[&<>"']/g, function(c){ return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]; }); }
+    function render() {
+      var items = load();
+      listEl.innerHTML = '';
+      if (!items.length) {
+        var li = document.createElement('li');
+        li.className = 'kb-empty';
+        li.textContent = 'No team notes yet — add the first one below.';
+        listEl.appendChild(li);
+        return;
+      }
+      items.slice().reverse().forEach(function(n) {
+        var li = document.createElement('li');
+        li.innerHTML = '<span>' + esc(n.text) + '</span>' +
+          '<span style="display:flex;gap:6px;align-items:center;"><time datetime="' + new Date(n.ts).toISOString() + '">' + fmt(n.ts) + '</time>' +
+          '<button type="button" class="kb-note-del" data-id="' + n.id + '" aria-label="Delete note">×</button></span>';
+        listEl.appendChild(li);
+      });
+    }
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var text = (input.value || '').trim();
+      if (!text) return;
+      var items = load();
+      items.push({ id: Date.now() + '-' + Math.random().toString(36).slice(2,7), text: text, ts: Date.now() });
+      save(items);
+      input.value = '';
+      render();
+    });
+    listEl.addEventListener('click', function(e) {
+      var btn = e.target.closest('.kb-note-del');
+      if (!btn) return;
+      var id = btn.getAttribute('data-id');
+      save(load().filter(function(n){ return n.id !== id; }));
+      render();
+    });
+    clearBtn.addEventListener('click', function() {
+      if (!confirm('Clear all team notes on this device?')) return;
+      save([]);
+      render();
+    });
+    render();
+  })();
+  </script>
+
+
+
 </div>
 
 <script>
