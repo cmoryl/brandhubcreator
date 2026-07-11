@@ -486,6 +486,9 @@
     font-size: 13.5px;
     margin-bottom: 10px;
   }
+  /* Safari shows a native disclosure triangle via ::-webkit-details-marker that list-style:none does NOT suppress. Hide it so only our custom "▸" glyph shows. */
+  .division-block details > summary::-webkit-details-marker { display: none; }
+  .division-block details > summary { list-style: none; }
   .division-block {
     background: #fff;
     border: 1px solid var(--border);
@@ -2475,7 +2478,7 @@
     return copy;
   }
 
-  document.querySelectorAll('.division-block table').forEach(table => {
+  document.querySelectorAll('.division-block > table').forEach(table => {
     const allRows = Array.from(table.querySelectorAll('tr'));
     if (allRows.length < 2) return;
     const headerRow = allRows[0];
