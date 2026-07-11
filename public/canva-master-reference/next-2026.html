@@ -2718,10 +2718,36 @@
     empty.textContent = 'No formats match your current filters.';
     div.appendChild(empty);
 
-    // Header toggle: badge + chevron. Wrap trailing controls in a button.
+    // Header controls: copy-link + toggle badge/chevron
     const h3 = div.querySelector('h3');
     if (h3 && !h3.querySelector('.division-toggle')) {
       const total = rows.length;
+
+      const copy = document.createElement('button');
+      copy.type = 'button';
+      copy.className = 'division-copy-link';
+      copy.setAttribute('aria-label', `Copy link to ${div.id.replace(/^div-/, '')} section`);
+      copy.title = 'Copy link to this section';
+      copy.innerHTML = '<span class="dcl-icon" aria-hidden="true">🔗</span><span class="dcl-text">Copy link</span>';
+      copy.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const url = `${location.origin}${location.pathname}#${div.id}`;
+        try {
+          await navigator.clipboard.writeText(url);
+          copy.classList.add('is-copied');
+          const txt = copy.querySelector('.dcl-text');
+          const prev = txt.textContent;
+          txt.textContent = 'Copied!';
+          setTimeout(() => { copy.classList.remove('is-copied'); txt.textContent = prev; }, 1400);
+        } catch {
+          // Fallback: select-and-prompt
+          window.prompt('Copy this link:', url);
+        }
+        // Also update the browser URL so the hash reflects the section
+        history.replaceState(null, '', `#${div.id}`);
+      });
+      h3.appendChild(copy);
+
       const toggle = document.createElement('button');
       toggle.type = 'button';
       toggle.className = 'division-toggle';
@@ -2737,6 +2763,27 @@
       });
     }
   });
+
+  // ---------- Deep-link: expand & scroll to hashed division ----------
+  function focusHashDivision() {
+    const id = (location.hash || '').replace(/^#/, '');
+    if (!id) return;
+    const target = document.getElementById(id);
+    if (!target || !target.classList.contains('division-block')) return;
+    target.classList.remove('is-collapsed');
+    const t = target.querySelector('.division-toggle');
+    if (t) t.setAttribute('aria-expanded', 'true');
+    // Defer to next frame so sticky toolbar height is measured after layout
+    requestAnimationFrame(() => {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      target.classList.add('is-hash-flash');
+      setTimeout(() => target.classList.remove('is-hash-flash'), 1600);
+    });
+  }
+  window.addEventListener('hashchange', focusHashDivision);
+  // Run once after the toolbar/rows are wired below
+  setTimeout(focusHashDivision, 60);
+
 
   // ---------- State ----------
   const state = {
