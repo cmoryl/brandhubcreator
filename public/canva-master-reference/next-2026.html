@@ -2757,6 +2757,7 @@
       <button type="button" class="ux-chip" data-arrange="group" aria-pressed="false">Group</button>
     </div>
     <span class="ux-divider" aria-hidden="true"></span>
+    <button type="button" class="ux-btn ux-btn-filters" id="uxFiltersToggle" aria-pressed="false" aria-expanded="false" aria-controls="uxToolbarChips" title="Show filters">▾ Filters<span class="ux-active-dot" aria-hidden="true"></span></button>
     <button type="button" class="ux-btn" id="uxExpandAll" title="Expand all divisions">▾ Expand all</button>
     <button type="button" class="ux-btn" id="uxCollapseAll" title="Collapse all divisions">▸ Collapse all</button>
     <button type="button" class="ux-btn ux-btn-density" id="uxDensity" aria-pressed="false" title="Toggle density">◐ Density</button>
@@ -2764,6 +2765,25 @@
     <span class="ux-count" id="uxCount" aria-live="polite">Showing 0 of 0</span>
   `;
   divbar.insertAdjacentElement('afterend', toolbar);
+
+  // ---------- Mobile: Filters panel toggle ----------
+  const filtersBtn = toolbar.querySelector('#uxFiltersToggle');
+  if (filtersBtn) {
+    filtersBtn.addEventListener('click', () => {
+      const open = toolbar.classList.toggle('filters-open');
+      filtersBtn.setAttribute('aria-pressed', String(open));
+      filtersBtn.setAttribute('aria-expanded', String(open));
+    });
+  }
+  // Reflect active-filter state as a dot on the Filters button
+  function updateFiltersBtnState() {
+    if (!filtersBtn) return;
+    const anyActive = !!toolbar.querySelector('.ux-chip[aria-pressed="true"]:not([data-variant="all"]):not([data-type="all"]):not([data-arrange="default"])');
+    filtersBtn.classList.toggle('has-active', anyActive);
+  }
+  toolbar.addEventListener('click', (e) => {
+    if (e.target.closest('.ux-chip')) setTimeout(updateFiltersBtnState, 0);
+  });
 
   // ---------- Index rows ----------
   function inferType(text) {
