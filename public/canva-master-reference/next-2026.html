@@ -377,6 +377,15 @@
     color: var(--muted);
   }
   tr:last-child td { border-bottom: none; }
+  .division-block table tbody tr { transition: background .15s ease, box-shadow .15s ease; }
+  .division-block table tbody tr:hover {
+    background: #f7f9fc;
+    box-shadow: inset 3px 0 0 rgba(var(--div-rgb, 19,177,243), .55);
+  }
+  .division-block table tbody tr:focus-within {
+    background: #f2f6fb;
+    box-shadow: inset 3px 0 0 rgb(var(--div-rgb, 19,177,243));
+  }
   .swatch {
     display: inline-block;
     width: 16px; height: 16px;
