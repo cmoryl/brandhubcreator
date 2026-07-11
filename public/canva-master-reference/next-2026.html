@@ -1969,7 +1969,9 @@
   function sortRows(rows, mode, indexMap) {
     const copy = rows.slice();
     if (mode === 'none') {
-      return groupedOrder(rows, indexMap);
+      // Default: preserve original numeric order — the format numbers are
+      // curated so sub-variants (light/dark/navy) already sit next to each other.
+      return copy.sort((a, b) => indexMap.get(a) - indexMap.get(b));
     }
     copy.sort((a, b) => {
       const aCell = a.cells[2] ? a.cells[2].textContent : '';
