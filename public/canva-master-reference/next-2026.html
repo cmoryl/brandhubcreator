@@ -2611,22 +2611,28 @@
 
   const divisions = Array.from(document.querySelectorAll('.division-block'));
   const rowIndex = []; // {row, division, search, variant, type}
+  const divisionRows = new Map(); // division -> { tbody, entries: [{row, variant, originalIndex}] }
   divisions.forEach((div) => {
     const table = div.querySelector('table');
     if (!table) return;
     const rows = Array.from(table.querySelectorAll('tr')).slice(1); // skip header
-    rows.forEach((row) => {
+    const tbody = rows[0]?.parentNode || table.querySelector('tbody') || table;
+    const entries = [];
+    rows.forEach((row, i) => {
       const fmt = row.cells[1]?.textContent || '';
       const size = row.cells[2]?.textContent || '';
       const ex = row.cells[3]?.textContent || '';
+      const variant = inferVariant(fmt);
       rowIndex.push({
         row,
         division: div,
         text: (fmt + ' ' + size + ' ' + ex).toLowerCase(),
-        variant: inferVariant(fmt),
+        variant,
         type: inferType(fmt),
       });
+      entries.push({ row, variant, originalIndex: i });
     });
+    divisionRows.set(div, { tbody, entries });
 
     // Empty-state message per division
     const empty = document.createElement('div');
