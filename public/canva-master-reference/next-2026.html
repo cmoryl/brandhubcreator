@@ -2200,20 +2200,28 @@
   const imgEl = document.getElementById('exampleModalImg');
   const titleEl = document.getElementById('exampleModalTitle');
   const closeBtn = modal.querySelector('.example-modal-close');
-  const open = (src, title) => {
+  let lastInvoker = null;
+  const open = (src, title, invoker) => {
+    lastInvoker = invoker || null;
     imgEl.src = src;
     imgEl.alt = title || 'Example render';
     titleEl.textContent = title || 'Example render';
     modal.classList.add('open');
     document.body.style.overflow = 'hidden';
+    // Move focus to close button so keyboard users can dismiss immediately
+    requestAnimationFrame(() => closeBtn.focus());
   };
   const close = () => {
     modal.classList.remove('open');
     document.body.style.overflow = '';
+    if (lastInvoker && typeof lastInvoker.focus === 'function') {
+      lastInvoker.focus();
+    }
+    lastInvoker = null;
   };
   document.querySelectorAll('.example-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      open(btn.getAttribute('data-example'), btn.getAttribute('data-example-title'));
+      open(btn.getAttribute('data-example'), btn.getAttribute('data-example-title'), btn);
     });
   });
   closeBtn.addEventListener('click', close);
