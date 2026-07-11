@@ -2921,24 +2921,13 @@
   const LS_DENSITY = 'next2026:density';
   const LS_THEME = 'next2026:theme';
 
-  function persistCollapsed() {
-    const collapsed = divisions.filter((d) => d.classList.contains('is-collapsed')).map((d) => d.id);
-    try { localStorage.setItem(LS_COLLAPSED, JSON.stringify(collapsed)); } catch {}
-  }
+  // Collapse state is NOT persisted — divisions are always expanded on load.
+  // Users can still manually collapse via the chevron or "Collapse all" button
+  // for the current session only.
+  function persistCollapsed() { /* no-op: manual-only collapse, no persistence */ }
   function restoreCollapsed() {
-    try {
-      const raw = localStorage.getItem(LS_COLLAPSED);
-      if (!raw) return;
-      const ids = JSON.parse(raw);
-      if (!Array.isArray(ids)) return;
-      divisions.forEach((d) => {
-        if (ids.includes(d.id)) {
-          d.classList.add('is-collapsed');
-          const t = d.querySelector('.division-toggle');
-          if (t) t.setAttribute('aria-expanded', 'false');
-        }
-      });
-    } catch {}
+    // Clear any legacy persisted collapse state from earlier versions
+    try { localStorage.removeItem(LS_COLLAPSED); } catch {}
   }
   restoreCollapsed();
 
