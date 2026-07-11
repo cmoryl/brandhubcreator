@@ -2038,8 +2038,8 @@
 
     let state = 'none';
 
-    // Default view: grouped by format family so versions stay together
-    groupedOrder(dataRows, rowIndex).forEach(row => table.appendChild(row));
+    // Default view: preserve original numeric order (sub-variants are already adjacent by design)
+
 
     sizeTh.addEventListener('click', () => {
       const arrow = sizeTh.querySelector('.sort-arrow');
