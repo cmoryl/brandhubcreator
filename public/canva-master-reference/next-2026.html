@@ -2475,7 +2475,7 @@
     return copy;
   }
 
-  document.querySelectorAll('.division-block table').forEach(table => {
+  document.querySelectorAll('.division-block > table').forEach(table => {
     const allRows = Array.from(table.querySelectorAll('tr'));
     if (allRows.length < 2) return;
     const headerRow = allRows[0];
