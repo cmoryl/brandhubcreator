@@ -2577,6 +2577,13 @@
       <button type="button" class="ux-chip" data-type="print" aria-pressed="false">Print</button>
       <button type="button" class="ux-chip" data-type="speakers" aria-pressed="false">Speakers</button>
     </div>
+    <div class="ux-chips" role="group" aria-label="Arrange rows">
+      <span class="ux-chip-label">Arrange</span>
+      <button type="button" class="ux-chip" data-arrange="default" aria-pressed="true">Default</button>
+      <button type="button" class="ux-chip" data-arrange="light" aria-pressed="false">Light first</button>
+      <button type="button" class="ux-chip" data-arrange="dark" aria-pressed="false">Dark first</button>
+      <button type="button" class="ux-chip" data-arrange="group" aria-pressed="false">Group</button>
+    </div>
     <span class="ux-divider" aria-hidden="true"></span>
     <button type="button" class="ux-btn" id="uxExpandAll" title="Expand all divisions">▾ Expand all</button>
     <button type="button" class="ux-btn" id="uxCollapseAll" title="Collapse all divisions">▸ Collapse all</button>
@@ -2604,22 +2611,28 @@
 
   const divisions = Array.from(document.querySelectorAll('.division-block'));
   const rowIndex = []; // {row, division, search, variant, type}
+  const divisionRows = new Map(); // division -> { tbody, entries: [{row, variant, originalIndex}] }
   divisions.forEach((div) => {
     const table = div.querySelector('table');
     if (!table) return;
     const rows = Array.from(table.querySelectorAll('tr')).slice(1); // skip header
-    rows.forEach((row) => {
+    const tbody = rows[0]?.parentNode || table.querySelector('tbody') || table;
+    const entries = [];
+    rows.forEach((row, i) => {
       const fmt = row.cells[1]?.textContent || '';
       const size = row.cells[2]?.textContent || '';
       const ex = row.cells[3]?.textContent || '';
+      const variant = inferVariant(fmt);
       rowIndex.push({
         row,
         division: div,
         text: (fmt + ' ' + size + ' ' + ex).toLowerCase(),
-        variant: inferVariant(fmt),
+        variant,
         type: inferType(fmt),
       });
+      entries.push({ row, variant, originalIndex: i });
     });
+    divisionRows.set(div, { tbody, entries });
 
     // Empty-state message per division
     const empty = document.createElement('div');
@@ -2652,6 +2665,7 @@
     q: '',
     variant: 'all',
     type: 'all',
+    arrange: 'default',
   };
 
   // ---------- Persistence ----------
@@ -2788,6 +2802,40 @@
       applyFilters();
     });
   });
+  toolbar.querySelectorAll('.ux-chip[data-arrange]').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      const v = chip.getAttribute('data-arrange');
+      state.arrange = v;
+      toolbar.querySelectorAll('.ux-chip[data-arrange]').forEach((c) => {
+        c.setAttribute('aria-pressed', String(c === chip));
+      });
+      applyArrange();
+    });
+  });
+
+  // ---------- Arrange (reorder rows by variant) ----------
+  function applyArrange() {
+    // Ranks for sort: lower = earlier. Ties preserve original order.
+    const RANK = {
+      default: () => ({ light: 0, neutral: 0, dark: 0 }),
+      light:   () => ({ light: 0, neutral: 1, dark: 2 }),
+      dark:    () => ({ dark: 0,  neutral: 1, light: 2 }),
+      group:   () => ({ light: 0, dark: 1,    neutral: 2 }),
+    };
+    const rank = (RANK[state.arrange] || RANK.default)();
+    divisionRows.forEach(({ tbody, entries }) => {
+      const sorted = entries.slice().sort((a, b) => {
+        if (state.arrange === 'default') return a.originalIndex - b.originalIndex;
+        const ra = rank[a.variant] ?? 9;
+        const rb = rank[b.variant] ?? 9;
+        if (ra !== rb) return ra - rb;
+        return a.originalIndex - b.originalIndex;
+      });
+      // Re-append in sorted order (append moves existing nodes)
+      sorted.forEach(({ row }) => tbody.appendChild(row));
+    });
+  }
+
 
   document.getElementById('uxExpandAll').addEventListener('click', () => {
     divisions.forEach((d) => {
