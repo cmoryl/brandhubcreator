@@ -3889,6 +3889,43 @@
   applyFilters();
 })();
 </script>
+<script>
+// Auto-computed statistics — recalculated from the DOM on every page load so the
+// registry stays the single source of truth. Add rows / divisions / links and the
+// stats update themselves next refresh.
+(function(){
+  const grid = document.getElementById('stats-grid');
+  if (!grid) return;
+  const set = (key, value) => {
+    const el = grid.querySelector(`[data-stat="${key}"]`);
+    if (el) el.textContent = value;
+  };
+  const divisions = document.querySelectorAll('.division-block');
+  const divCount = divisions.length;
+  // Count rows in the first division's registry table (excludes header row)
+  let formatsPerDiv = 0;
+  if (divisions[0]) {
+    const table = divisions[0].querySelector('table');
+    if (table) formatsPerDiv = Math.max(0, table.querySelectorAll('tr').length - 1);
+  }
+  let canvaLinks = 0, comingSoon = 0, exampleBtns = 0, totalRows = 0;
+  divisions.forEach(div => {
+    canvaLinks += div.querySelectorAll('a[href*="canva.com"]').length;
+    comingSoon += div.querySelectorAll('.coming-soon').length;
+    exampleBtns += div.querySelectorAll('.example-btn').length;
+    const t = div.querySelector('table');
+    if (t) totalRows += Math.max(0, t.querySelectorAll('tr').length - 1);
+  });
+  set('divisions', divCount);
+  set('formats', formatsPerDiv);
+  set('formats-sub', `Registry rows 1–${formatsPerDiv} in each division`);
+  set('canva-links', canvaLinks);
+  set('coming-soon', comingSoon);
+  set('examples', exampleBtns);
+  set('total-rows', totalRows);
+  set('updated', new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }));
+})();
+</script>
 </body>
 </html>
 
