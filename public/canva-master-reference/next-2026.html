@@ -2523,6 +2523,9 @@
   .ux-btn-filters.has-active .ux-active-dot { display: inline-block; }
 
   @media (max-width: 768px) {
+    /* Collapse row wrappers on mobile so the existing grid layout controls children directly */
+    .ux-row { display: contents; }
+    .ux-row-top, .ux-row-bottom { border: 0; background: transparent; padding: 0; }
     nav.ux-toolbar {
       top: 56px; padding: 8px; gap: 8px; border-radius: 12px;
       display: grid;
