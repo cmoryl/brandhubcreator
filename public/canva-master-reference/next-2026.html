@@ -2658,6 +2658,83 @@
     }
   }
 
+  // Attach logo download actions to every division-block header (h3)
+  function openLogoModal(img, divisionKey) {
+    const division = divisionKey || detectDivision(img.alt, img.src);
+    const label = division
+      ? division.replace(/\b\w/g, c => c.toUpperCase())
+      : (img.alt || 'Logo').replace(/color logo/i, '').trim();
+    imgEl.src = img.src;
+    imgEl.alt = img.alt || 'Division logo';
+    titleEl.textContent = label + ' logo';
+    directBtn.href = img.src;
+    if (division && DIVISION_DROPBOX[division]) {
+      dropboxBtn.href = DIVISION_DROPBOX[division];
+      dropboxBtn.textContent = '⬇ Download ' + label + ' logo set (Dropbox)';
+      hintEl.textContent = 'Opens the ' + label + ' subfolder in the shared NEXT 2026 logo Dropbox.';
+    } else {
+      dropboxBtn.href = SHARED_DROPBOX;
+      dropboxBtn.textContent = '⬇ Download logo variations (Dropbox)';
+      hintEl.textContent = 'Opens the shared NEXT 2026 logo Dropbox folder.';
+    }
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  // Map division-block id -> DIVISION_DROPBOX key
+  const DIV_ID_TO_KEY = {
+    'div-transperfect': 'transperfect',
+    'div-games': 'games',
+    'div-globallink': 'globallink',
+    'div-finance': 'finance',
+    'div-legal': 'legal',
+    'div-lifesci': 'life sci',
+    'div-experience': 'experience',
+    'div-learn': 'learn',
+    'div-media': 'media',
+    'div-digital': 'digital',
+    'div-dataforce': 'dataforce'
+  };
+
+  document.querySelectorAll('.division-block').forEach(block => {
+    const h3 = block.querySelector('h3');
+    if (!h3) return;
+    const img = h3.querySelector('img.div-logo');
+    if (!img) return;
+    const key = DIV_ID_TO_KEY[block.id] || null;
+    const label = key ? key.replace(/\b\w/g, c => c.toUpperCase()) : (img.alt || 'Logo').replace(/color logo/i, '').trim();
+    const dropboxUrl = (key && DIVISION_DROPBOX[key]) ? DIVISION_DROPBOX[key] : SHARED_DROPBOX;
+
+    // Make the logo image itself clickable (zoom + download)
+    img.setAttribute('tabindex', '0');
+    img.setAttribute('role', 'button');
+    img.setAttribute('title', 'Click to preview & download ' + label + ' logos');
+    const openFromImg = () => openLogoModal(img, key);
+    img.addEventListener('click', openFromImg);
+    img.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openFromImg(); }
+    });
+
+    // Add action buttons next to the h3 title
+    if (h3.querySelector('.div-logo-actions')) return; // idempotent
+    const actions = document.createElement('span');
+    actions.className = 'div-logo-actions';
+    actions.innerHTML =
+      '<button type="button" class="div-logo-btn" data-action="preview" title="Preview logo & open Dropbox">' +
+        '<span aria-hidden="true">🔍</span> Preview logo' +
+      '</button>' +
+      '<a class="div-logo-btn" href="' + dropboxUrl + '" target="_blank" rel="noopener" title="Open ' + label + ' logo folder on Dropbox">' +
+        '<span aria-hidden="true">⬇</span> Dropbox folder' +
+      '</a>' +
+      '<a class="div-logo-btn secondary" href="' + img.getAttribute('src') + '" download title="Download this PNG (' + label + ' color logo)">' +
+        '<span aria-hidden="true">🖼</span> This PNG' +
+      '</a>';
+    h3.appendChild(actions);
+    actions.querySelector('[data-action="preview"]').addEventListener('click', () => openLogoModal(img, key));
+  });
+
+
+
   const close = () => {
     modal.classList.remove('open');
     document.body.style.overflow = '';
