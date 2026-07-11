@@ -2473,13 +2473,65 @@
     padding-left: 4px;
   }
 
+  /* Mobile filters toggle — hidden on desktop */
+  .ux-btn-filters { display: none; }
+  .ux-btn-filters .ux-active-dot {
+    display: none; width: 6px; height: 6px; border-radius: 999px;
+    background: var(--accent, #13B1F3); margin-left: 2px;
+  }
+  .ux-btn-filters.has-active .ux-active-dot { display: inline-block; }
+
   @media (max-width: 768px) {
-    nav.ux-toolbar { top: 56px; padding: 8px; gap: 8px; border-radius: 12px; }
-    .ux-search { flex-basis: 100%; }
-    .ux-chips { flex-wrap: wrap; }
-    .ux-chip-label { display: none; }
-    .ux-count { margin-left: 0; width: 100%; text-align: right; }
+    nav.ux-toolbar {
+      top: 56px; padding: 8px; gap: 8px; border-radius: 12px;
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      grid-template-areas:
+        "search  search  search"
+        "filters expand  count";
+      align-items: center;
+    }
+    .ux-search { grid-area: search; flex-basis: auto; min-width: 0; }
+    .ux-btn-filters {
+      grid-area: filters;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    #uxExpandAll, #uxCollapseAll { grid-area: expand; justify-self: end; }
+    #uxCollapseAll { display: none; } /* keep one action to save space */
+    .ux-divider { display: none; }
     .ux-btn-density { display: none; }
+    .ux-count {
+      grid-area: count; margin-left: 0;
+      text-align: right; width: auto; font-size: 10.5px;
+    }
+
+    /* Chip groups collapse into a panel that slides open under the toolbar */
+    .ux-chips {
+      grid-column: 1 / -1;
+      display: none;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      max-width: 100%;
+      padding: 3px 4px;
+    }
+    .ux-chips::-webkit-scrollbar { display: none; }
+    .ux-chip { flex: 0 0 auto; }
+    .ux-chip-label { display: none; }
+
+    nav.ux-toolbar.filters-open .ux-chips { display: inline-flex; }
+    nav.ux-toolbar.filters-open {
+      grid-template-areas:
+        "search  search  search"
+        "filters expand  count"
+        "chips1  chips1  chips1"
+        "chips2  chips2  chips2"
+        "chips3  chips3  chips3";
+    }
+    nav.ux-toolbar.filters-open .ux-chips:nth-of-type(1) { grid-area: chips1; }
+    nav.ux-toolbar.filters-open .ux-chips:nth-of-type(2) { grid-area: chips2; }
+    nav.ux-toolbar.filters-open .ux-chips:nth-of-type(3) { grid-area: chips3; }
   }
 
 
@@ -2705,6 +2757,7 @@
       <button type="button" class="ux-chip" data-arrange="group" aria-pressed="false">Group</button>
     </div>
     <span class="ux-divider" aria-hidden="true"></span>
+    <button type="button" class="ux-btn ux-btn-filters" id="uxFiltersToggle" aria-pressed="false" aria-expanded="false" aria-controls="uxToolbarChips" title="Show filters">▾ Filters<span class="ux-active-dot" aria-hidden="true"></span></button>
     <button type="button" class="ux-btn" id="uxExpandAll" title="Expand all divisions">▾ Expand all</button>
     <button type="button" class="ux-btn" id="uxCollapseAll" title="Collapse all divisions">▸ Collapse all</button>
     <button type="button" class="ux-btn ux-btn-density" id="uxDensity" aria-pressed="false" title="Toggle density">◐ Density</button>
@@ -2712,6 +2765,25 @@
     <span class="ux-count" id="uxCount" aria-live="polite">Showing 0 of 0</span>
   `;
   divbar.insertAdjacentElement('afterend', toolbar);
+
+  // ---------- Mobile: Filters panel toggle ----------
+  const filtersBtn = toolbar.querySelector('#uxFiltersToggle');
+  if (filtersBtn) {
+    filtersBtn.addEventListener('click', () => {
+      const open = toolbar.classList.toggle('filters-open');
+      filtersBtn.setAttribute('aria-pressed', String(open));
+      filtersBtn.setAttribute('aria-expanded', String(open));
+    });
+  }
+  // Reflect active-filter state as a dot on the Filters button
+  function updateFiltersBtnState() {
+    if (!filtersBtn) return;
+    const anyActive = !!toolbar.querySelector('.ux-chip[aria-pressed="true"]:not([data-variant="all"]):not([data-type="all"]):not([data-arrange="default"])');
+    filtersBtn.classList.toggle('has-active', anyActive);
+  }
+  toolbar.addEventListener('click', (e) => {
+    if (e.target.closest('.ux-chip')) setTimeout(updateFiltersBtnState, 0);
+  });
 
   // ---------- Index rows ----------
   function inferType(text) {
