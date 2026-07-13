@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import { CanvaShareDiagnostics } from '@/components/canva/CanvaShareDiagnostics';
 
 interface LiveFilesLinkProps {
   url?: string;
@@ -35,6 +36,7 @@ export const LiveFilesLink = ({ url, onUrlChange, isEditable = false, className,
           </a>
         </Button>
       ) : null}
+      {url && <CanvaShareDiagnostics url={url} compact={compact} />}
       {isEditable && (
         <Popover open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (open) setEditUrl(url || ''); }}>
           <PopoverTrigger asChild>
