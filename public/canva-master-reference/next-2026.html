@@ -3469,7 +3469,8 @@
 <script>
 (function () {
   // Keep Canva links exact: no BrandHub-added /view, /edit, or tracking params.
-  document.querySelectorAll('a[href*="canva.com/design/"]').forEach((link) => {
+  var canvaLinkSelector = 'a[href*="canva.com/design/"], a[href*="canva.com/d/"]';
+  document.querySelectorAll(canvaLinkSelector).forEach((link) => {
     const originalHref = link.getAttribute('href');
     if (!originalHref) return;
     const cleanHref = originalHref
@@ -3480,7 +3481,7 @@
   });
 
   // ---------- Copy-link button next to every Canva "Open ↗" link ----------
-  document.querySelectorAll('a[href*="canva.com/design/"]').forEach((link) => {
+  document.querySelectorAll(canvaLinkSelector).forEach((link) => {
     if (link.dataset.copyAttached === '1') return;
     link.dataset.copyAttached = '1';
     const url = link.getAttribute('href');
