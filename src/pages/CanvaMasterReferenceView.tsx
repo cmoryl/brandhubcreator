@@ -51,7 +51,7 @@ export default function CanvaMasterReferenceView() {
       </div>
       <iframe
         title={ref.title}
-        src={ref.sourceUrl}
+        src={iframeSrc}
         className="flex-1 w-full border-0"
         style={{ minHeight: 'calc(100vh - 49px)' }}
       />
