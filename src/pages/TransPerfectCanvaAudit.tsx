@@ -48,7 +48,7 @@ export default function TransPerfectCanvaAudit() {
       <AuditDetailLoader loaded={loaded}>
         <iframe
           ref={iframeRef}
-          src={AUDIT_URL}
+          src={iframeSrc}
           title="Canva Master Registry + Audit — TransPerfect"
           className="absolute inset-0 h-full w-full border-0 bg-background"
           onLoad={() => {
