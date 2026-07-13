@@ -69,3 +69,15 @@
 # Revalidate manifest quickly to avoid stale app metadata
 /manifest.webmanifest
   Cache-Control: public, max-age=300, must-revalidate
+
+# Static audit/reference HTML pages embedded via iframe — always fetch fresh
+# so users see updates and newly-added assets immediately.
+/canva-master-reference/*.html
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+  Expires: 0
+
+/transperfect/*.html
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+  Expires: 0
