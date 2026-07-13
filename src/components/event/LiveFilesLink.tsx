@@ -36,6 +36,7 @@ export const LiveFilesLink = ({ url, onUrlChange, isEditable = false, className,
           </a>
         </Button>
       ) : null}
+      {url && <CanvaShareDiagnostics url={url} compact={compact} />}
       {isEditable && (
         <Popover open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (open) setEditUrl(url || ''); }}>
           <PopoverTrigger asChild>
