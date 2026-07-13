@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<base target="_blank">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>TransPerfect NEXT 2026 — Master Build Reference</title>
@@ -2431,7 +2430,7 @@
   <div class="card">Source template and per-slide element IDs will be captured here once the master PowerPoint deck is built and staged in Canva. Structure will mirror the sponsorship packet: one source template (division TBD), shared page IDs across all 11 division copies, per-slide reversed-logo / color-logo / circlelines / division-text element IDs listed for direct API edits.</div>
 
 
-  <div class="note"><strong>Open designs via the share links.</strong> Links use the permanent form <code>canva.com/design/{design_id}/view</code> — this lets Canva's share resolver route each user correctly (editors land in the editor, viewers see view mode, outside users get a sign-in / request-access prompt instead of a hard 403). The <code>canva.com/d/XXXX</code> short URLs are rotating tokens and may stop resolving over time. Source templates and element IDs for direct API edits are recorded in section 7.</div>
+  <div class="note"><strong>Open designs via the original Canva links.</strong> BrandHub does not add <code>/view</code>, <code>/edit</code>, or tracking parameters to Canva links. Canva decides access from the file's own share settings. The <code>canva.com/d/XXXX</code> short URLs are rotating tokens and may stop resolving over time. Source templates and element IDs for direct API edits are recorded in section 7.</div>
 
   <footer>Generated from a live audit of the TransPerfect NEXT 2026 Canva workspace.</footer>
 
@@ -2474,7 +2473,7 @@
     <div class="kb-card">
       <h4><svg class="kb-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Canva workflow</h4>
       <ul>
-        <li>Permanent design URL: <code>canva.com/design/{design_id}/view</code>. Short <code>/d/</code> URLs rotate — don't hard-code them. Avoid <code>/edit</code>: Canva 403s users who lack edit rights instead of showing sign-in.</li>
+        <li>Permanent design URL: <code>canva.com/design/{design_id}</code>. Short <code>/d/</code> URLs rotate — don't hard-code them. Do not append <code>/view</code>, <code>/edit</code>, or tracking parameters in BrandHub.</li>
         <li>Page IDs are <em>not</em> globally unique — always pair a page ID with its source template ID.</li>
         <li>When editing via API, pull each fill's asset ID from section 3, not from whatever the source template currently displays.</li>
         <li>Source templates are single-source-of-truth. Division copies inherit element IDs; only fill/text content differs.</li>
@@ -3469,6 +3468,17 @@
 
 <script>
 (function () {
+  // Keep Canva links exact: no BrandHub-added /view, /edit, or tracking params.
+  document.querySelectorAll('a[href*="canva.com/design/"]').forEach((link) => {
+    const originalHref = link.getAttribute('href');
+    if (!originalHref) return;
+    const cleanHref = originalHref
+      .replace(/\/(view|edit)(?=([?#]|$))/i, '')
+      .replace(/[?&](utm_[^=]+|share|token)=[^&#]*/gi, '')
+      .replace(/[?&]$/, '');
+    if (cleanHref !== originalHref) link.setAttribute('href', cleanHref);
+  });
+
   // ---------- Progress bar ----------
   const progress = document.createElement('div');
   progress.className = 'ux-progress';
