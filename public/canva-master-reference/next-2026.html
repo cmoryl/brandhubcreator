@@ -2474,7 +2474,7 @@
     <div class="kb-card">
       <h4><svg class="kb-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Canva workflow</h4>
       <ul>
-        <li>Permanent design URL: <code>canva.com/design/{design_id}/edit</code>. Short <code>/d/</code> URLs rotate — don't hard-code them.</li>
+        <li>Permanent design URL: <code>canva.com/design/{design_id}/view</code>. Short <code>/d/</code> URLs rotate — don't hard-code them. Avoid <code>/edit</code>: Canva 403s users who lack edit rights instead of showing sign-in.</li>
         <li>Page IDs are <em>not</em> globally unique — always pair a page ID with its source template ID.</li>
         <li>When editing via API, pull each fill's asset ID from section 3, not from whatever the source template currently displays.</li>
         <li>Source templates are single-source-of-truth. Division copies inherit element IDs; only fill/text content differs.</li>
