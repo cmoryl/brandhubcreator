@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AuditDetailLoader } from '@/components/brand/CanvaAuditSkeletons';
 import { AuditPageHeader } from '@/components/brand/AuditPageHeader';
 import { useBrandContextBySlug } from '@/hooks/useBrandContextBySlug';
