@@ -3479,6 +3479,42 @@
     if (cleanHref !== originalHref) link.setAttribute('href', cleanHref);
   });
 
+  // ---------- Copy-link button next to every Canva "Open ↗" link ----------
+  document.querySelectorAll('a[href*="canva.com/design/"]').forEach((link) => {
+    if (link.dataset.copyAttached === '1') return;
+    link.dataset.copyAttached = '1';
+    const url = link.getAttribute('href');
+    const wrap = document.createElement('span');
+    wrap.style.cssText = 'display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;';
+    const code = document.createElement('code');
+    code.textContent = url;
+    code.style.cssText = 'font-size:11px;padding:2px 6px;background:rgba(127,127,127,.12);border-radius:4px;user-select:all;word-break:break-all;';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = 'Copy';
+    btn.className = 'btn-link';
+    btn.style.cssText = 'font-size:11px;padding:2px 8px;cursor:pointer;';
+    btn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      try {
+        await navigator.clipboard.writeText(url);
+        const prev = btn.textContent;
+        btn.textContent = 'Copied ✓';
+        setTimeout(() => { btn.textContent = prev; }, 1200);
+      } catch {
+        const r = document.createRange();
+        r.selectNodeContents(code);
+        const s = window.getSelection();
+        s.removeAllRanges(); s.addRange(r);
+      }
+    });
+    link.parentNode.insertBefore(wrap, link);
+    wrap.appendChild(link);
+    wrap.appendChild(document.createTextNode(' '));
+    wrap.appendChild(code);
+    wrap.appendChild(btn);
+  });
+
   // ---------- Progress bar ----------
   const progress = document.createElement('div');
   progress.className = 'ux-progress';
