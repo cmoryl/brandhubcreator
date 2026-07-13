@@ -12,6 +12,10 @@ const REFERENCES: Record<string, { title: string; sourceUrl: string }> = {
 export default function CanvaMasterReferenceView() {
   const { slug } = useParams<{ slug: string }>();
   const ref = slug ? REFERENCES[slug] : undefined;
+  // Cache-buster: forces a fresh fetch on each mount so returning users
+  // always see the latest content and newly-added assets.
+  const cacheBust = useMemo(() => Date.now().toString(36), [slug]);
+  const iframeSrc = ref ? `${ref.sourceUrl}?v=${cacheBust}` : '';
 
   if (!ref) {
     return (
