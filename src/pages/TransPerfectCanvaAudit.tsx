@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AuditDetailLoader } from '@/components/brand/CanvaAuditSkeletons';
 import { AuditPageHeader } from '@/components/brand/AuditPageHeader';
 import { useBrandContextBySlug } from '@/hooks/useBrandContextBySlug';
@@ -10,6 +10,9 @@ export default function TransPerfectCanvaAudit() {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [loaded, setLoaded] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  // Cache-buster on each mount ensures returning users always fetch the
+  // latest audit HTML and see newly-added assets immediately.
+  const iframeSrc = useMemo(() => `${AUDIT_URL}?v=${Date.now().toString(36)}`, []);
   const { brandId, organizationId } = useBrandContextBySlug('transperfect');
   useCanvaAuditAutoSync(
     organizationId
@@ -45,7 +48,7 @@ export default function TransPerfectCanvaAudit() {
       <AuditDetailLoader loaded={loaded}>
         <iframe
           ref={iframeRef}
-          src={AUDIT_URL}
+          src={iframeSrc}
           title="Canva Master Registry + Audit — TransPerfect"
           className="absolute inset-0 h-full w-full border-0 bg-background"
           onLoad={() => {
