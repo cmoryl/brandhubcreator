@@ -3841,12 +3841,19 @@
       });
     }
 
+    function tagDashPlaceholders(root){
+      (root || document).querySelectorAll('span.coming-soon').forEach(el => {
+        const t = (el.textContent || '').trim();
+        if (t === '—' || t === '-' || t === '–') el.classList.add('na-dash');
+      });
+    }
     // Boot
     function boot(){
       document.querySelectorAll('.division-block').forEach(div => {
         initDivision(div);
         reformatAuxDetails(div);
       });
+      tagDashPlaceholders(document);
       // Refresh folder-view Open ↗ links when the shelf store changes
       window.addEventListener('storage', e => { if (e.key === LS_KEY) rebuildFolderViews(); });
     }
