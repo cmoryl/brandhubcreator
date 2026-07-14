@@ -3300,6 +3300,16 @@
     .division-block.folder-mode > table { display: none; }
     .division-block:not(.folder-mode) > .folder-view { display: none; }
 
+    /* Auxiliary cards (signage / screens / pillar) sit below the folder view */
+    .fv-card--aux { margin-top: 12px; }
+    .fv-card--aux .fv-open.is-badge {
+      pointer-events: none;
+      background: rgba(var(--dsub-rgb), 0.14);
+      border-color: rgba(var(--dsub-rgb), 0.35);
+      color: rgb(var(--dsub-rgb));
+      letter-spacing: .06em;
+    }
+
     /* Folder card */
     .fv-card {
       --dsub-rgb: var(--div-rgb, 19,177,243);
@@ -3704,9 +3714,87 @@
       });
     });
 
+    // Reformat the auxiliary signage/screen details blocks to match the folder-card look
+    const AUX_META = {
+      'event-signage': { icon: '🪧', label: 'Event general signage', badge: 'Print' },
+      'event-screens': { icon: '📺', label: 'Event screen imagery',  badge: 'Screen' },
+      'pillar-signage':{ icon: '📐', label: 'Pillar signage',         badge: 'Banner' }
+    };
+    function reformatAuxDetails(divBlock){
+      Object.keys(AUX_META).forEach(cls => {
+        const det = divBlock.querySelector(':scope > details.' + cls);
+        if (!det || det.dataset.fvStyled === '1') return;
+        const meta = AUX_META[cls];
+        const sum = det.querySelector(':scope > summary');
+        const tbl = det.querySelector(':scope > table');
+        if (!sum || !tbl) return;
+
+        // Pull subtitle from the summary's 2nd div (fallback to empty)
+        const subDivs = sum.querySelectorAll(':scope > div');
+        const subtitle = subDivs[1] ? subDivs[1].innerHTML : '';
+
+        const rows = Array.from(tbl.querySelectorAll('tr')).slice(1);
+        const items = rows.map(tr => {
+          const c = tr.cells;
+          return {
+            num:  c[0] ? c[0].textContent.trim()  : '',
+            label:c[1] ? c[1].textContent.trim()  : '',
+            size: c[2] ? c[2].textContent.trim()  : '',
+            ex:   c[3] ? c[3].innerHTML           : '',
+            open: c[4] ? c[4].innerHTML           : ''
+          };
+        });
+
+        det.classList.add('fv-card','fv-card--aux');
+        det.setAttribute('data-aux', cls);
+        // Strip inline top-border/padding styles that clash with card look
+        det.removeAttribute('style');
+
+        sum.className = 'fv-summary';
+        sum.removeAttribute('style');
+        sum.innerHTML =
+          '<span class="fv-icon" aria-hidden="true">' + meta.icon + '</span>' +
+          '<span class="fv-title">' +
+            '<span class="fv-name">' + meta.label + '</span>' +
+            '<span class="fv-meta">' + subtitle + '</span>' +
+          '</span>' +
+          '<span class="fv-count" title="' + items.length + ' items">' + items.length + '</span>' +
+          '<span class="fv-open is-badge">' + meta.badge + '</span>';
+
+        // Replace the <table> with an fv-body/fv-list block
+        const body = document.createElement('div');
+        body.className = 'fv-body';
+        if (!items.length) {
+          body.innerHTML = '<div class="fv-empty">No items yet.</div>';
+        } else {
+          const list = document.createElement('div');
+          list.className = 'fv-list';
+          items.forEach(it => {
+            const row = document.createElement('div');
+            row.className = 'fv-row';
+            row.innerHTML =
+              '<span class="fv-num">' + it.num + '</span>' +
+              '<span class="fv-label" title="' + it.label.replace(/"/g,'&quot;') + '">' + it.label + '</span>' +
+              '<span class="fv-actions">' +
+                '<span class="fv-size">' + it.size + '</span>' +
+                '<span class="fv-example">' + it.ex + '</span>' +
+                '<span class="fv-openbtn">' + it.open + '</span>' +
+              '</span>';
+            list.appendChild(row);
+          });
+          body.appendChild(list);
+        }
+        tbl.replaceWith(body);
+        det.dataset.fvStyled = '1';
+      });
+    }
+
     // Boot
     function boot(){
-      document.querySelectorAll('.division-block').forEach(initDivision);
+      document.querySelectorAll('.division-block').forEach(div => {
+        initDivision(div);
+        reformatAuxDetails(div);
+      });
       // Refresh folder-view Open ↗ links when the shelf store changes
       window.addEventListener('storage', e => { if (e.key === LS_KEY) rebuildFolderViews(); });
     }
