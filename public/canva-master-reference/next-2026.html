@@ -3517,9 +3517,11 @@
             row.innerHTML =
               '<span class="fv-num">' + it.num + '</span>' +
               '<span class="fv-label" title="' + it.label.replace(/"/g,'&quot;') + '">' + it.label + '</span>' +
-              '<span class="fv-size">' + it.size + '</span>' +
-              '<span class="fv-example">' + it.exHTML + '</span>' +
-              '<span class="fv-openbtn">' + it.openHTML + '</span>';
+              '<span class="fv-actions">' +
+                '<span class="fv-size">' + it.size + '</span>' +
+                '<span class="fv-example">' + it.exHTML + '</span>' +
+                '<span class="fv-openbtn">' + it.openHTML + '</span>' +
+              '</span>';
             list.appendChild(row);
           });
           body.appendChild(list);
