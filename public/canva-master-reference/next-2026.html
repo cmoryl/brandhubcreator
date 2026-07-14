@@ -809,6 +809,47 @@
     border-radius: 8px;
     padding: 20px;
   }
+  /* Dual-variant grid: horizontal + stacked side by side */
+  .logo-modal-variants {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    width: 100%;
+  }
+  .logo-variant-tile {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    padding: 16px 14px 14px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(15,27,61,0.04);
+  }
+  .logo-variant-label {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+    color: #64748b;
+  }
+  .logo-variant-frame {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    display: flex; align-items: center; justify-content: center;
+    background: #ffffff;
+    border: 1px solid #eef2f7;
+    border-radius: 8px;
+    padding: 14px;
+  }
+  .logo-variant-frame img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .logo-variant-download {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px;
+    border-radius: 7px;
+    font-size: 11.5px; font-weight: 600; letter-spacing: .04em;
+    text-decoration: none;
+    background: #ffffff; color: #0f1b3d;
+    border: 1px solid #cbd5e1;
+    transition: background .15s ease, box-shadow .15s ease, transform .15s ease;
+  }
+  .logo-variant-download:hover { background: #f1f5f9; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(15,23,42,0.08); }
   .logo-modal-actions {
     display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
   }
@@ -836,6 +877,7 @@
   @media (max-width: 600px) {
     .logo-modal-inner { padding: 22px 16px 16px; }
     .logo-modal-img { max-height: 45vh; padding: 12px; }
+    .logo-modal-variants { grid-template-columns: 1fr; }
   }
   .coming-soon {
     display: inline-block;
