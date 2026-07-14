@@ -3535,41 +3535,8 @@
     if (cleanHref !== originalHref) link.setAttribute('href', cleanHref);
   });
 
-  // ---------- Copy-link button next to every Canva "Open ↗" link ----------
-  document.querySelectorAll(canvaLinkSelector).forEach((link) => {
-    if (link.dataset.copyAttached === '1') return;
-    link.dataset.copyAttached = '1';
-    const url = link.getAttribute('href');
-    const wrap = document.createElement('span');
-    wrap.style.cssText = 'display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;';
-    const code = document.createElement('code');
-    code.textContent = url;
-    code.style.cssText = 'font-size:11px;padding:2px 6px;background:rgba(127,127,127,.12);border-radius:4px;user-select:all;word-break:break-all;';
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.textContent = 'Copy';
-    btn.className = 'btn-link';
-    btn.style.cssText = 'font-size:11px;padding:2px 8px;cursor:pointer;';
-    btn.addEventListener('click', async (e) => {
-      e.preventDefault();
-      try {
-        await navigator.clipboard.writeText(url);
-        const prev = btn.textContent;
-        btn.textContent = 'Copied ✓';
-        setTimeout(() => { btn.textContent = prev; }, 1200);
-      } catch {
-        const r = document.createRange();
-        r.selectNodeContents(code);
-        const s = window.getSelection();
-        s.removeAllRanges(); s.addRange(r);
-      }
-    });
-    link.parentNode.insertBefore(wrap, link);
-    wrap.appendChild(link);
-    wrap.appendChild(document.createTextNode(' '));
-    wrap.appendChild(code);
-    wrap.appendChild(btn);
-  });
+  // ---------- (Copy-link UI moved to the Integrated Blueprint Strip enhancer at the bottom of this file) ----------
+
 
   // ---------- Progress bar ----------
   const progress = document.createElement('div');
@@ -4028,6 +3995,216 @@
   set('updated', new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }));
 })();
 </script>
+
+<!-- ============ INTEGRATED BLUEPRINT STRIP — Open cell enhancer ============ -->
+<style>
+  /* Replaces the plain "Open ↗" link cell with an editorial mono-URL strip. */
+  .open-strip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 3px 3px 10px;
+    background: #0f1b3d;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 8px;
+    box-shadow: 0 6px 18px -8px rgba(0, 0, 0, 0.45);
+    transition: border-color .25s ease, transform .25s ease;
+    max-width: 100%;
+    min-width: 0;
+  }
+  .open-strip:hover { border-color: rgba(19, 177, 243, 0.45); }
+  .open-strip__url {
+    font-family: 'JetBrains Mono', 'SFMono-Regular', ui-monospace, Menlo, Consolas, monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.01em;
+    color: rgba(226, 232, 240, 0.72);
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    user-select: all;
+    opacity: .85;
+    transition: opacity .2s ease;
+    flex: 0 1 auto;
+  }
+  .open-strip:hover .open-strip__url { opacity: 1; }
+  .open-strip__copy {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: rgba(203, 213, 225, 0.75);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: color .18s ease, background-color .18s ease, transform .18s ease;
+    flex: none;
+  }
+  .open-strip__copy:hover { color: #fff; background: rgba(255,255,255,0.06); }
+  .open-strip__copy:active { transform: scale(0.94); }
+  .open-strip__copy svg { width: 14px; height: 14px; }
+  .open-strip__copy.is-copied { color: #22c55e; }
+  .open-strip__go {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: #13B1F3;
+    color: #0a1128 !important;
+    font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+    font-weight: 600;
+    font-size: 11.5px;
+    letter-spacing: 0.01em;
+    border-radius: 6px;
+    text-decoration: none !important;
+    box-shadow: 0 6px 16px -6px rgba(19, 177, 243, 0.55);
+    transition: background-color .18s ease, transform .12s ease, box-shadow .18s ease;
+    flex: none;
+  }
+  .open-strip__go:hover { background: #35bff5; box-shadow: 0 8px 20px -6px rgba(19, 177, 243, 0.75); }
+  .open-strip__go:active { transform: scale(0.98); }
+  .open-strip__go svg { width: 12px; height: 12px; }
+  /* Toast for copy feedback */
+  .open-strip-toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #0f1b3d;
+    color: #f8fafc;
+    border: 1px solid rgba(19, 177, 243, 0.4);
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 12.5px;
+    font-family: 'Poppins', system-ui, sans-serif;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.6);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .22s ease, transform .22s ease;
+    z-index: 9999;
+  }
+  .open-strip-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  @media (max-width: 720px) {
+    .open-strip__url { max-width: 130px; font-size: 10.5px; }
+    .open-strip__go { padding: 5px 10px; font-size: 11px; }
+  }
+</style>
+<script>
+(function() {
+  // Preload JetBrains Mono for the URL string
+  if (!document.querySelector('link[href*="JetBrains+Mono"]')) {
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap';
+    document.head.appendChild(link);
+  }
+
+  var COPY_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
+  var CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+  var GO_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 6H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"></path><path d="M14 4h6v6"></path><path d="M10 14 20 4"></path></svg>';
+
+  var toast;
+  function showToast(msg) {
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.className = 'open-strip-toast';
+      document.body.appendChild(toast);
+    }
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function() { toast.classList.remove('show'); }, 1600);
+  }
+
+  function shortenUrl(u) {
+    // Strip protocol + www for compact display; keep canva.com/... path
+    return u.replace(/^https?:\/\/(www\.)?/, '');
+  }
+
+  function enhance(anchor) {
+    if (!anchor || anchor.dataset.enhanced === '1') return;
+    var href = anchor.getAttribute('href') || '';
+    if (!/canva\.com\/(design|d)\//i.test(href)) return;
+
+    var strip = document.createElement('span');
+    strip.className = 'open-strip';
+
+    var url = document.createElement('code');
+    url.className = 'open-strip__url';
+    url.textContent = shortenUrl(href);
+    url.title = href;
+
+    var copyBtn = document.createElement('button');
+    copyBtn.type = 'button';
+    copyBtn.className = 'open-strip__copy';
+    copyBtn.setAttribute('aria-label', 'Copy Canva link');
+    copyBtn.title = 'Copy link';
+    copyBtn.innerHTML = COPY_SVG;
+    copyBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var done = function() {
+        copyBtn.classList.add('is-copied');
+        copyBtn.innerHTML = CHECK_SVG;
+        showToast('Link copied');
+        setTimeout(function() {
+          copyBtn.classList.remove('is-copied');
+          copyBtn.innerHTML = COPY_SVG;
+        }, 1400);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(href).then(done, function() {
+          // Fallback
+          var ta = document.createElement('textarea');
+          ta.value = href; document.body.appendChild(ta); ta.select();
+          try { document.execCommand('copy'); done(); } catch(_) {}
+          document.body.removeChild(ta);
+        });
+      } else {
+        var ta = document.createElement('textarea');
+        ta.value = href; document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); done(); } catch(_) {}
+        document.body.removeChild(ta);
+      }
+    });
+
+    var go = document.createElement('a');
+    go.className = 'open-strip__go';
+    go.href = href;
+    go.target = '_blank';
+    go.rel = 'noopener noreferrer';
+    go.innerHTML = '<span>Open</span>' + GO_SVG;
+
+    strip.appendChild(url);
+    strip.appendChild(copyBtn);
+    strip.appendChild(go);
+
+    anchor.dataset.enhanced = '1';
+    anchor.replaceWith(strip);
+  }
+
+  function run() {
+    // Only enhance links inside the design registry tables (format tables live inside .division-block).
+    var anchors = document.querySelectorAll('.division-block table a.btn-link[href*="canva.com"]');
+    anchors.forEach(enhance);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', run);
+  } else {
+    run();
+  }
+  // In case rows are re-rendered after sort, re-run once more shortly after.
+  setTimeout(run, 800);
+})();
+</script>
+
 </body>
 </html>
+
 
