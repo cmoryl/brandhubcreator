@@ -2717,11 +2717,117 @@
 
   <script>
   (function(){
-    const LS_KEY = 'next2026.canvaDirSubfolders.v1';
+    const LS_KEY = 'next2026.canvaDirSubfolders.v2';
     const CANONICAL = ['Social Ads','Content Social Banners','Email Banners','Advocacy','Speakers','Signs','Sponsorship Packet'];
+    // Live seed synced from Canva folder FAHPR2OULEQ on 2026-07-13.
+    // Order matches canonical list above.
+    const SEED = {
+      'TransPerfect': [
+        { name: 'Social Ads', id: 'FAHPTXu--p8' },
+        { name: 'Content Social Banners', id: 'FAHPTAvfYGc' },
+        { name: 'Email Banners', id: 'FAHPTOHVicQ' },
+        { name: 'Advocacy', id: 'FAHPTOBU9Ks' },
+        { name: 'Speakers', id: 'FAHPTFY9bE8' },
+        { name: 'Signs', id: 'FAHPTM55-hA' },
+        { name: 'Sponsorship Packet', id: 'FAHPTGLc6-I' },
+      ],
+      'GlobalLink': [
+        { name: 'Social Ads', id: 'FAHPTeKOe7w' },
+        { name: 'Content Social Banners', id: 'FAHPTY5s4e0' },
+        { name: 'Email Banners', id: 'FAHPTEbvE3o' },
+        { name: 'Advocacy', id: 'FAHPTDAo_-U' },
+        { name: 'Speakers', id: 'FAHPTFSJm_Y' },
+        { name: 'Signs', id: 'FAHPTMS-4N0' },
+        { name: 'Sponsorship Packet', id: 'FAHPTM0DRh8' },
+      ],
+      'Games': [
+        { name: 'Social Ads', id: 'FAHPTfLLEi8' },
+        { name: 'Content Social Banners', id: 'FAHPTbnFf2I' },
+        { name: 'Email Banners', id: 'FAHPTHF-aJk' },
+        { name: 'Advocacy', id: 'FAHPTMk5U_c' },
+        { name: 'Speakers', id: 'FAHPTNPEb3w' },
+        { name: 'Signs', id: 'FAHPTFIdxsQ' },
+        { name: 'Sponsorship Packet', id: 'FAHPTNLznS8' },
+      ],
+      'Finance': [
+        { name: 'Social Ads', id: 'FAHPTSPdjq8' },
+        { name: 'Content Social Banners', id: 'FAHPTewxSpY' },
+        { name: 'Email Banners', id: 'FAHPTISNFLE' },
+        { name: 'Advocacy', id: 'FAHPTPVhNlM' },
+        { name: 'Speakers', id: 'FAHPTNlBaso' },
+        { name: 'Signs', id: 'FAHPTCNEw-w' },
+        { name: 'Sponsorship Packet', id: 'FAHPTBUW-vI' },
+      ],
+      'Legal': [
+        { name: 'Social Ads', id: 'FAHPTUudu4o' },
+        { name: 'Content Social Banners', id: 'FAHPTHi6FSU' },
+        { name: 'Email Banners', id: 'FAHPTDVsRq4' },
+        { name: 'Advocacy', id: 'FAHPTIvtn_I' },
+        { name: 'Speakers', id: 'FAHPTId4HhI' },
+        { name: 'Signs', id: 'FAHPTEz9WTk' },
+        { name: 'Sponsorship Packet', id: 'FAHPTEN5-j4' },
+      ],
+      'Life Sci': [
+        { name: 'Social Ads', id: 'FAHPTaJDo-s' },
+        { name: 'Content Social Banners', id: 'FAHPTPTsUhY' },
+        { name: 'Email Banners', id: 'FAHPTFDZaQ0' },
+        { name: 'Advocacy', id: 'FAHPTLHcZ24' },
+        { name: 'Speakers', id: 'FAHPTNzKNeY' },
+        { name: 'Signs', id: 'FAHPTIc2NFI' },
+        { name: 'Sponsorship Packet', id: 'FAHPTHhvmOk' },
+      ],
+      'Experience': [
+        { name: 'Social Ads', id: 'FAHPTTEvtG8' },
+        { name: 'Content Social Banners', id: 'FAHPTSEg4q8' },
+        { name: 'Email Banners', id: 'FAHPTINW4Z4' },
+        { name: 'Advocacy', id: 'FAHPTPGFkOw' },
+        { name: 'Speakers', id: 'FAHPTO_1H60' },
+        { name: 'Signs', id: 'FAHPTD5sHvU' },
+        { name: 'Sponsorship Packet', id: 'FAHPTLpYpPc' },
+      ],
+      'Learn': [
+        { name: 'Social Ads', id: 'FAHPTcDHKzs' },
+        { name: 'Content Social Banners', id: 'FAHPTC9sS7w' },
+        { name: 'Email Banners', id: 'FAHPTDaTRAg' },
+        { name: 'Advocacy', id: 'FAHPTJ6DZs8' },
+        { name: 'Speakers', id: 'FAHPTLmSxUI' },
+        { name: 'Signs', id: 'FAHPTOK7Xx0' },
+        { name: 'Sponsorship Packet', id: 'FAHPTHAT_as' },
+      ],
+      'Media': [
+        { name: 'Social Ads', id: 'FAHPTXvW_nA' },
+        { name: 'Content Social Banners', id: 'FAHPTNGWcZQ' },
+        { name: 'Email Banners', id: 'FAHPTIgdinc' },
+        { name: 'Advocacy', id: 'FAHPTCB-Kdc' },
+        { name: 'Speakers', id: 'FAHPTCSD8Dg' },
+        { name: 'Signs', id: 'FAHPTCShHdQ' },
+        { name: 'Sponsorship Packet', id: 'FAHPTF8eH9Q' },
+      ],
+      'Digital': [
+        { name: 'Social Ads', id: 'FAHPTdeihH0' },
+        { name: 'Content Social Banners', id: 'FAHPTQ4ueuA' },
+        { name: 'Email Banners', id: 'FAHPTJK2hmQ' },
+        { name: 'Advocacy', id: 'FAHPTNT5dAs' },
+        { name: 'Speakers', id: 'FAHPTP6ONCo' },
+        { name: 'Signs', id: 'FAHPTI7HC0I' },
+        { name: 'Sponsorship Packet', id: 'FAHPTKxgv8s' },
+      ],
+      'Dataforce': [
+        { name: 'Social Ads', id: 'FAHPTflJmaw' },
+        { name: 'Content Social Banners', id: 'FAHPTfoDu-M' },
+        { name: 'Email Banners', id: 'FAHPTPhQNNM' },
+        { name: 'Advocacy', id: 'FAHPTM51qhI' },
+        { name: 'Speakers', id: 'FAHPTCSy7wQ' },
+        { name: 'Signs', id: 'FAHPTDDrsZs' },
+        { name: 'Sponsorship Packet', id: 'FAHPTJNhF_0' },
+      ],
+    };
     function load(){ try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch(e){ return {}; } }
     function save(data){ try { localStorage.setItem(LS_KEY, JSON.stringify(data)); } catch(e){} }
     const store = load();
+    // Merge seed for divisions that have no local edits yet
+    Object.keys(SEED).forEach(div => { if (!store[div] || store[div].length === 0) store[div] = SEED[div].map(x => ({ ...x })); });
+    save(store);
 
     const table = document.querySelector('.canva-dir-divisions');
     if (!table) return;
@@ -2732,6 +2838,8 @@
       const cell = row.querySelector('.cdt-count');
       if (cell) cell.textContent = String(list.length);
     }
+
+    function folderUrl(id){ return id ? 'https://www.canva.com/folder/' + id : ''; }
 
     function renderSubList(container, division){
       const list = store[division] || [];
@@ -2745,7 +2853,7 @@
       }
       const head = document.createElement('div');
       head.className = 'cdt-sub-head';
-      head.innerHTML = '<span>Subfolder name</span><span>Canva folder ID</span><span></span>';
+      head.innerHTML = '<span>Subfolder name</span><span>Canva folder ID</span><span></span><span></span>';
       container.appendChild(head);
       list.forEach((item, idx) => {
         const row = document.createElement('div');
@@ -2755,7 +2863,18 @@
         nameInput.addEventListener('input', e => { list[idx].name = e.target.value; store[division] = list; save(store); });
         const idInput = document.createElement('input');
         idInput.type = 'text'; idInput.value = item.id || ''; idInput.placeholder = 'FAHP…'; idInput.className = 'cdt-sub-id';
-        idInput.addEventListener('input', e => { list[idx].id = e.target.value.trim(); store[division] = list; save(store); });
+        const openLink = document.createElement('a');
+        openLink.className = 'cdt-sub-open';
+        openLink.target = '_blank'; openLink.rel = 'noreferrer';
+        openLink.title = 'Open folder in Canva';
+        openLink.textContent = '↗';
+        function refreshLink(){
+          const url = folderUrl((list[idx].id || '').trim());
+          if (url) { openLink.href = url; openLink.classList.remove('is-disabled'); }
+          else { openLink.removeAttribute('href'); openLink.classList.add('is-disabled'); }
+        }
+        refreshLink();
+        idInput.addEventListener('input', e => { list[idx].id = e.target.value.trim(); store[division] = list; save(store); refreshLink(); });
         const rm = document.createElement('button');
         rm.type = 'button'; rm.className = 'cdt-sub-remove'; rm.textContent = '×'; rm.title = 'Remove';
         rm.addEventListener('click', () => {
@@ -2764,7 +2883,7 @@
           const parentRow = table.querySelector('tr[data-division="'+division.replace(/"/g,'\\"')+'"]');
           if (parentRow) updateCount(parentRow, division);
         });
-        row.appendChild(nameInput); row.appendChild(idInput); row.appendChild(rm);
+        row.appendChild(nameInput); row.appendChild(idInput); row.appendChild(openLink); row.appendChild(rm);
         container.appendChild(row);
       });
     }
@@ -2773,8 +2892,7 @@
       const division = row.getAttribute('data-division');
       updateCount(row, division);
       row.addEventListener('click', (e) => {
-        // Avoid toggling when clicking a code element (for select/copy)
-        if (e.target.tagName === 'CODE') return;
+        if (e.target.tagName === 'CODE' || e.target.tagName === 'A' || e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
         const existing = row.nextElementSibling;
         if (existing && existing.classList.contains('cdt-subrow')) {
           existing.remove();
@@ -2809,7 +2927,16 @@
           store[division] = existingList; save(store);
           renderSubList(list, division); updateCount(row, division);
         });
-        actions.appendChild(add); actions.appendChild(seed);
+        const reset = document.createElement('button');
+        reset.type = 'button'; reset.className = 'cdt-btn'; reset.textContent = 'Reset to live';
+        reset.title = 'Restore this division to the live Canva folder snapshot';
+        reset.addEventListener('click', () => {
+          if (SEED[division]) {
+            store[division] = SEED[division].map(x => ({ ...x }));
+            save(store); renderSubList(list, division); updateCount(row, division);
+          }
+        });
+        actions.appendChild(add); actions.appendChild(seed); actions.appendChild(reset);
         wrap.appendChild(actions);
         td.appendChild(wrap);
         tr.appendChild(td);
@@ -2818,6 +2945,8 @@
       });
     });
   })();
+  </script>
+
   </script>
 
 
