@@ -5100,14 +5100,11 @@
   }
 
   function applyFilters() {
-    const countEl = document.getElementById('uxCount'); if (countEl) countEl.textContent = `Showing ${shown} of ${total}`;
-  }
-  function _origApplyFiltersUnused() {
     const q = state.q.trim().toLowerCase();
     let shown = 0;
     const total = rowIndex.length;
     const perDivision = new Map();
-    const detailsMatchCount = new Map(); // <details> -> visible row count
+    const detailsMatchCount = new Map();
     const filterActive = !!q || state.variant !== 'all' || state.type !== 'all';
 
     rowIndex.forEach(({ row, division, details, text, variant, type }) => {
@@ -5124,8 +5121,6 @@
       highlightRow(row, q);
     });
 
-    // Auto-open <details> groups (screens / printables / pillars) that contain
-    // matching rows; collapse them back when a search clears no rows there.
     detailsMatchCount.forEach((count, details) => {
       if (filterActive) {
         if (count > 0) details.setAttribute('open', '');
@@ -5135,7 +5130,6 @@
       }
     });
 
-    // Update per-division badge and auto-expand on active search
     divisions.forEach((d) => {
       const count = perDivision.get(d) || 0;
       const badge = d.querySelector('.row-count-badge');
@@ -5144,7 +5138,6 @@
         badge.textContent = filterActive ? `${count}/${totalRows}` : String(totalRows);
       }
       d.classList.toggle('no-matches', count === 0);
-      // Auto-expand any division with matches when a filter is active
       if (filterActive && count > 0) {
         d.classList.remove('is-collapsed');
         const t = d.querySelector('.division-toggle');
@@ -5152,8 +5145,10 @@
       }
     });
 
-    document.getElementById('uxCount').textContent = `Showing ${shown} of ${total}`;
+    const countEl = document.getElementById('uxCount');
+    if (countEl) countEl.textContent = `Showing ${shown} of ${total}`;
   }
+
 
   // ---------- Wire up controls ----------
 
