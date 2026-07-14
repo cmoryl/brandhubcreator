@@ -4903,58 +4903,10 @@
   window.addEventListener('resize', updateProgress);
   updateProgress();
 
-  // ---------- Build toolbar ----------
-  const divbar = document.querySelector('nav.divbar');
-  if (!divbar) return;
-
+  // ---------- Toolbar removed ----------
+  // Stub toolbar element kept off-DOM so downstream querySelectors are no-ops.
   const toolbar = document.createElement('nav');
-  toolbar.className = 'ux-toolbar';
-  toolbar.setAttribute('aria-label', 'Filter, search, and view controls');
-  toolbar.innerHTML = `
-    <div class="ux-row ux-row-top">
-      <div class="ux-chips" role="group" aria-label="Variant filter">
-        <span class="ux-chip-label">Variant</span>
-        <button type="button" class="ux-chip" data-variant="all" aria-pressed="true">All</button>
-        <button type="button" class="ux-chip" data-variant="light" aria-pressed="false">Light</button>
-        <button type="button" class="ux-chip" data-variant="dark" aria-pressed="false">Dark</button>
-      </div>
-      <div class="ux-chips" role="group" aria-label="Type filter">
-        <span class="ux-chip-label">Type</span>
-        <button type="button" class="ux-chip" data-type="all" aria-pressed="true">All</button>
-        <button type="button" class="ux-chip" data-type="social" aria-pressed="false">Social</button>
-        <button type="button" class="ux-chip" data-type="email" aria-pressed="false">Email</button>
-        <button type="button" class="ux-chip" data-type="print" aria-pressed="false">Print</button>
-        <button type="button" class="ux-chip" data-type="speakers" aria-pressed="false">Speakers</button>
-      </div>
-    </div>
-    <div class="ux-row ux-row-bottom">
-      <button type="button" class="ux-btn ux-btn-filters" id="uxFiltersToggle" aria-pressed="false" aria-expanded="false" aria-controls="uxToolbarChips" title="Show filters">▾ Filters<span class="ux-active-dot" aria-hidden="true"></span></button>
-      <button type="button" class="ux-btn" id="uxExpandAll" title="Expand all divisions">▾ Expand all</button>
-      <button type="button" class="ux-btn" id="uxCollapseAll" title="Collapse all divisions">▸ Collapse all</button>
-      <button type="button" class="ux-btn ux-btn-density" id="uxDensity" aria-pressed="false" title="Toggle density">◐ Density</button>
-      <span class="ux-count" id="uxCount" aria-live="polite">Showing 0 of 0</span>
-    </div>
-  `;
-  divbar.insertAdjacentElement('afterend', toolbar);
 
-  // ---------- Mobile: Filters panel toggle ----------
-  const filtersBtn = toolbar.querySelector('#uxFiltersToggle');
-  if (filtersBtn) {
-    filtersBtn.addEventListener('click', () => {
-      const open = toolbar.classList.toggle('filters-open');
-      filtersBtn.setAttribute('aria-pressed', String(open));
-      filtersBtn.setAttribute('aria-expanded', String(open));
-    });
-  }
-  // Reflect active-filter state as a dot on the Filters button
-  function updateFiltersBtnState() {
-    if (!filtersBtn) return;
-    const anyActive = !!toolbar.querySelector('.ux-chip[aria-pressed="true"]:not([data-variant="all"]):not([data-type="all"])');
-    filtersBtn.classList.toggle('has-active', anyActive);
-  }
-  toolbar.addEventListener('click', (e) => {
-    if (e.target.closest('.ux-chip')) setTimeout(updateFiltersBtnState, 0);
-  });
 
   // ---------- Index rows ----------
   function inferType(text) {
@@ -5152,7 +5104,7 @@
     let shown = 0;
     const total = rowIndex.length;
     const perDivision = new Map();
-    const detailsMatchCount = new Map(); // <details> -> visible row count
+    const detailsMatchCount = new Map();
     const filterActive = !!q || state.variant !== 'all' || state.type !== 'all';
 
     rowIndex.forEach(({ row, division, details, text, variant, type }) => {
@@ -5169,8 +5121,6 @@
       highlightRow(row, q);
     });
 
-    // Auto-open <details> groups (screens / printables / pillars) that contain
-    // matching rows; collapse them back when a search clears no rows there.
     detailsMatchCount.forEach((count, details) => {
       if (filterActive) {
         if (count > 0) details.setAttribute('open', '');
@@ -5180,7 +5130,6 @@
       }
     });
 
-    // Update per-division badge and auto-expand on active search
     divisions.forEach((d) => {
       const count = perDivision.get(d) || 0;
       const badge = d.querySelector('.row-count-badge');
@@ -5189,7 +5138,6 @@
         badge.textContent = filterActive ? `${count}/${totalRows}` : String(totalRows);
       }
       d.classList.toggle('no-matches', count === 0);
-      // Auto-expand any division with matches when a filter is active
       if (filterActive && count > 0) {
         d.classList.remove('is-collapsed');
         const t = d.querySelector('.division-toggle');
@@ -5197,73 +5145,21 @@
       }
     });
 
-    document.getElementById('uxCount').textContent = `Showing ${shown} of ${total}`;
+    const countEl = document.getElementById('uxCount');
+    if (countEl) countEl.textContent = `Showing ${shown} of ${total}`;
   }
 
-  // ---------- Wire up controls ----------
 
-
-  toolbar.querySelectorAll('.ux-chip[data-variant]').forEach((chip) => {
-    chip.addEventListener('click', () => {
-      const v = chip.getAttribute('data-variant');
-      state.variant = v;
-      toolbar.querySelectorAll('.ux-chip[data-variant]').forEach((c) => {
-        c.setAttribute('aria-pressed', String(c === chip));
-      });
-      applyFilters();
-    });
-  });
-  toolbar.querySelectorAll('.ux-chip[data-type]').forEach((chip) => {
-    chip.addEventListener('click', () => {
-      const v = chip.getAttribute('data-type');
-      state.type = v;
-      toolbar.querySelectorAll('.ux-chip[data-type]').forEach((c) => {
-        c.setAttribute('aria-pressed', String(c === chip));
-      });
-      applyFilters();
-    });
-  });
-
-
-
-
-  document.getElementById('uxExpandAll').addEventListener('click', () => {
-    divisions.forEach((d) => {
-      d.classList.remove('is-collapsed');
-      const t = d.querySelector('.division-toggle');
-      if (t) t.setAttribute('aria-expanded', 'true');
-    });
-    persistCollapsed();
-  });
-  document.getElementById('uxCollapseAll').addEventListener('click', () => {
-    divisions.forEach((d) => {
-      d.classList.add('is-collapsed');
-      const t = d.querySelector('.division-toggle');
-      if (t) t.setAttribute('aria-expanded', 'false');
-    });
-    persistCollapsed();
-  });
-
-  // Density
-  const densityBtn = document.getElementById('uxDensity');
-  const setDensity = (mode) => {
-    document.documentElement.setAttribute('data-density', mode);
-    densityBtn.setAttribute('aria-pressed', String(mode === 'compact'));
-    densityBtn.innerHTML = mode === 'compact' ? '● Compact' : '◐ Density';
-    try { localStorage.setItem(LS_DENSITY, mode); } catch {}
-  };
-  densityBtn.addEventListener('click', () => {
-    const cur = document.documentElement.getAttribute('data-density') === 'compact' ? 'comfortable' : 'compact';
-    setDensity(cur);
-  });
+  // ---------- Wire up controls (toolbar removed; keep density persistence only) ----------
   try {
     const saved = localStorage.getItem(LS_DENSITY);
-    if (saved === 'compact') setDensity('compact');
+    if (saved === 'compact') document.documentElement.setAttribute('data-density', 'compact');
   } catch {}
 
   // Theme: locked to light
   document.documentElement.setAttribute('data-theme', 'light');
   try { localStorage.removeItem(LS_THEME); } catch {}
+
 
 
 
