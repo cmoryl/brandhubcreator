@@ -2700,10 +2700,13 @@
     .cdt-subrow > td { background: rgba(15,23,42,0.02); padding: 10px 12px 14px !important; border-bottom: 1px solid rgba(19,177,243,0.18); }
     .cdt-sub-wrap { display: flex; flex-direction: column; gap: 8px; }
     .cdt-sub-list { display: flex; flex-direction: column; gap: 6px; }
-    .cdt-sub-item { display: grid; grid-template-columns: 1fr 200px 26px; gap: 8px; align-items: center; }
+    .cdt-sub-item { display: grid; grid-template-columns: 1fr 200px 28px 26px; gap: 8px; align-items: center; }
     .cdt-sub-item input { width: 100%; padding: 6px 9px; border: 1px solid #e2e8f0; border-radius: 6px; background: #fff; color: #0f1b3d; font-size: 12px; font-family: inherit; }
     .cdt-sub-item input.cdt-sub-id { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; }
     .cdt-sub-item input:focus { outline: none; border-color: #13B1F3; box-shadow: 0 0 0 3px rgba(19,177,243,0.15); }
+    .cdt-sub-open { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 26px; border: 1px solid #e2e8f0; border-radius: 6px; background: #fff; color: #13B1F3; font-size: 13px; text-decoration: none; transition: all .15s; }
+    .cdt-sub-open:hover { background: #13B1F3; color: #fff; border-color: #13B1F3; }
+    .cdt-sub-open.is-disabled { color: #cbd5e1; pointer-events: none; background: #f8fafc; }
     .cdt-sub-remove { width: 26px; height: 26px; border: 1px solid #e2e8f0; background: #fff; color: #64748b; border-radius: 6px; cursor: pointer; font-size: 14px; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
     .cdt-sub-remove:hover { background: #fef2f2; border-color: #fecaca; color: #dc2626; }
     .cdt-sub-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 4px; }
@@ -2711,7 +2714,8 @@
     .cdt-btn:hover { border-color: #13B1F3; color: #13B1F3; }
     .cdt-btn--primary { background: #13B1F3; border-color: #13B1F3; color: #fff; }
     .cdt-btn--primary:hover { background: #0d8fd0; border-color: #0d8fd0; color: #fff; }
-    .cdt-sub-head { display: grid; grid-template-columns: 1fr 200px 26px; gap: 8px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; padding: 0 2px; }
+    .cdt-sub-head { display: grid; grid-template-columns: 1fr 200px 28px 26px; gap: 8px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; padding: 0 2px; }
+
     .cdt-empty { font-size: 12px; color: var(--muted); font-style: italic; padding: 4px 2px; }
   </style>
 
