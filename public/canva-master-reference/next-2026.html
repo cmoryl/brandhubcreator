@@ -560,6 +560,36 @@
     transform: scale(1.08);
     filter: drop-shadow(0 0 6px rgba(255,255,255,0.35));
   }
+  
+  /* Canva folder chip on division blocks */
+  .canva-folder-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: -4px 0 14px;
+    padding: 6px 12px 6px 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    color: #0f1b3d;
+    font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    text-decoration: none;
+    transition: border-color .18s ease, background-color .18s ease, box-shadow .18s ease, transform .12s ease;
+  }
+  .canva-folder-chip:hover {
+    border-color: #13B1F3;
+    background: #ffffff;
+    box-shadow: 0 4px 12px -6px rgba(19, 177, 243, 0.35);
+    transform: translateY(-1px);
+  }
+  .canva-folder-chip svg { flex: none; }
+  .canva-folder-chip__label { line-height: 1; }
+  .canva-folder-chip__go { color: #13B1F3; transition: transform .18s ease; }
+  .canva-folder-chip:hover .canva-folder-chip__go { transform: translate(2px, -2px); }
+
   /* ---------- Logo modal ---------- */
   .logo-modal {
     position: fixed; inset: 0; z-index: 9999;
@@ -1070,6 +1100,7 @@
 
   <div class="division-block" id="div-transperfect">
     <h3><img class="div-logo" src="TP-NEXT-Color-Logo.png" alt="TransPerfectNEXT color logo">TransPerfect</h3>
+    <a class="canva-folder-chip" href="https://www.canva.com/folder/FAHPRyXS61o" target="_blank" rel="noopener noreferrer" data-canva-folder="FAHPRyXS61o" aria-label="Open TransPerfect folder in Canva"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span class="canva-folder-chip__label">Open TransPerfect folder in Canva</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="canva-folder-chip__go" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></a>
     <div class="quickref">
       <span class="swatch-lg" style="background:#13B1F3"></span>
       <div class="quickref-info">
@@ -1127,6 +1158,7 @@
 
   <div class="division-block" id="div-games">
     <h3><img class="div-logo" src="Games-NEXT-color-logo.png" alt="GamesNEXT color logo">Games</h3>
+    <a class="canva-folder-chip" href="https://www.canva.com/folder/FAHPR1_6UFk" target="_blank" rel="noopener noreferrer" data-canva-folder="FAHPR1_6UFk" aria-label="Open Games folder in Canva"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span class="canva-folder-chip__label">Open Games folder in Canva</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="canva-folder-chip__go" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></a>
     <div class="quickref">
       <span class="swatch-lg" style="background:#A6FA87"></span>
       <div class="quickref-info">
@@ -1184,6 +1216,7 @@
 
   <div class="division-block" id="div-globallink">
     <h3><img class="div-logo" src="GlobalLink-NEXT-Color-Logo.png" alt="GlobalLinkNEXT color logo">GlobalLink</h3>
+    <a class="canva-folder-chip" href="https://www.canva.com/folder/FAHPR3ow2Cs" target="_blank" rel="noopener noreferrer" data-canva-folder="FAHPR3ow2Cs" aria-label="Open GlobalLink folder in Canva"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span class="canva-folder-chip__label">Open GlobalLink folder in Canva</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="canva-folder-chip__go" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></a>
     <div class="quickref">
       <span class="swatch-lg" style="background:#13B1F3"></span>
       <div class="quickref-info">
@@ -1240,6 +1273,7 @@
 
   <div class="division-block" id="div-finance">
     <h3><img class="div-logo" src="Finance-NEXT-color-logo.png" alt="FinanceNEXT color logo">Finance</h3>
+    <a class="canva-folder-chip" href="https://www.canva.com/folder/FAHPR0J0H6g" target="_blank" rel="noopener noreferrer" data-canva-folder="FAHPR0J0H6g" aria-label="Open Finance folder in Canva"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span class="canva-folder-chip__label">Open Finance folder in Canva</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="canva-folder-chip__go" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></a>
     <div class="quickref">
       <span class="swatch-lg" style="background:#FF9B70"></span>
       <div class="quickref-info">
@@ -1296,6 +1330,7 @@
 
   <div class="division-block" id="div-legal">
     <h3><img class="div-logo" src="Legal-NEXT-color-logo.png" alt="LegalNEXT color logo">Legal</h3>
+    <a class="canva-folder-chip" href="https://www.canva.com/folder/FAHPR0S6RHI" target="_blank" rel="noopener noreferrer" data-canva-folder="FAHPR0S6RHI" aria-label="Open Legal folder in Canva"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span class="canva-folder-chip__label">Open Legal folder in Canva</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="canva-folder-chip__go" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></a>
     <div class="quickref">
       <span class="swatch-lg" style="background:#3BBEB6"></span>
       <div class="quickref-info">
@@ -1352,6 +1387,7 @@
 
   <div class="division-block" id="div-lifesci">
     <h3><img class="div-logo" src="Life-Sci-NEXT-color-logo.png" alt="Life SciNEXT color logo">Life Sci</h3>
+    <a class="canva-folder-chip" href="https://www.canva.com/folder/FAHPR7s4kbY" target="_blank" rel="noopener noreferrer" data-canva-folder="FAHPR7s4kbY" aria-label="Open Life Sci folder in Canva"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span class="canva-folder-chip__label">Open Life Sci folder in Canva</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="canva-folder-chip__go" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></a>
     <div class="quickref">
       <span class="swatch-lg" style="background:#58ED21"></span>
       <div class="quickref-info">
@@ -1409,6 +1445,7 @@
 
   <div class="division-block" id="div-experience">
     <h3><img class="div-logo" src="Experience-NEXT-color-logo.png" alt="ExperienceNEXT color logo">Experience</h3>
+    <a class="canva-folder-chip" href="https://www.canva.com/folder/FAHPRwWEGAY" target="_blank" rel="noopener noreferrer" data-canva-folder="FAHPRwWEGAY" aria-label="Open Experience folder in Canva"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span class="canva-folder-chip__label">Open Experience folder in Canva</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="canva-folder-chip__go" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></a>
     <div class="quickref">
       <span class="swatch-lg" style="background:#FF5757"></span>
       <div class="quickref-info">
@@ -1465,6 +1502,7 @@
 
   <div class="division-block" id="div-learn">
     <h3><img class="div-logo" src="Learn-NEXT-color-logo.png" alt="LearnNEXT color logo">Learn</h3>
+    <a class="canva-folder-chip" href="https://www.canva.com/folder/FAHPR_sFxuw" target="_blank" rel="noopener noreferrer" data-canva-folder="FAHPR_sFxuw" aria-label="Open Learn folder in Canva"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span class="canva-folder-chip__label">Open Learn folder in Canva</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="canva-folder-chip__go" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></a>
     <div class="quickref">
       <span class="swatch-lg" style="background:#FFEB66"></span>
       <div class="quickref-info">
@@ -1521,6 +1559,7 @@
 
   <div class="division-block" id="div-media">
     <h3><img class="div-logo" src="Media-NEXT-color-logo.png" alt="MediaNEXT color logo">Media</h3>
+    <a class="canva-folder-chip" href="https://www.canva.com/folder/FAHPR6djzeQ" target="_blank" rel="noopener noreferrer" data-canva-folder="FAHPR6djzeQ" aria-label="Open Media folder in Canva"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span class="canva-folder-chip__label">Open Media folder in Canva</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="canva-folder-chip__go" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></a>
     <div class="quickref">
       <span class="swatch-lg" style="background:#EC388A"></span>
       <div class="quickref-info">
@@ -1577,6 +1616,7 @@
 
   <div class="division-block" id="div-digital">
     <h3><img class="div-logo" src="Digital-NEXT-color-logo.png" alt="DigitalNEXT color logo">Digital</h3>
+    <a class="canva-folder-chip" href="https://www.canva.com/folder/FAHPR8xaydI" target="_blank" rel="noopener noreferrer" data-canva-folder="FAHPR8xaydI" aria-label="Open Digital folder in Canva"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span class="canva-folder-chip__label">Open Digital folder in Canva</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="canva-folder-chip__go" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></a>
     <div class="quickref">
       <span class="swatch-lg" style="background:#C2A3FF"></span>
       <div class="quickref-info">
@@ -1633,6 +1673,7 @@
 
   <div class="division-block" id="div-dataforce">
     <h3><img class="div-logo" src="Dataforce-NEXT-color-Logo.png" alt="DataforceNEXT color logo">Dataforce</h3>
+    <a class="canva-folder-chip" href="https://www.canva.com/folder/FAHPR8HkLkY" target="_blank" rel="noopener noreferrer" data-canva-folder="FAHPR8HkLkY" aria-label="Open Dataforce folder in Canva"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span class="canva-folder-chip__label">Open Dataforce folder in Canva</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="canva-folder-chip__go" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></a>
     <div class="quickref">
       <span class="swatch-lg" style="background:#5CE1E6"></span>
       <div class="quickref-info">
