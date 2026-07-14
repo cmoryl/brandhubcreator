@@ -4467,19 +4467,18 @@
   .ux-search input:focus ~ .ux-search-kbd,
   .ux-search input:not(:placeholder-shown) ~ .ux-search-kbd { display: none; }
 
-  /* Search results dropdown (popover under the input) */
+  /* Search results dropdown (popover under the input) — fixed so it
+     escapes any ancestor overflow/stacking context and always floats
+     above other UI while the user scrolls. Position is synced in JS. */
   .ux-search-dropdown {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
-    right: 0;
-    max-height: 380px;
+    position: fixed;
+    max-height: 60vh;
     overflow-y: auto;
     background: #fff;
     border: 1px solid var(--border);
     border-radius: 12px;
     box-shadow: 0 12px 32px rgba(10, 18, 44, .18), 0 2px 6px rgba(10, 18, 44, .08);
-    z-index: 1000;
+    z-index: 2147483000;
     padding: 6px;
   }
   .ux-search-dropdown[hidden] { display: none; }
