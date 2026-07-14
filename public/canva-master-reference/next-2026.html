@@ -3460,10 +3460,11 @@
     }
     lastInvoker = null;
   };
-  document.querySelectorAll('.example-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      open(btn.getAttribute('data-example'), btn.getAttribute('data-example-title'), btn);
-    });
+  // Delegated so cloned/rebuilt example buttons (e.g. Folder view) also work
+  document.addEventListener('click', (e) => {
+    const btn = e.target && e.target.closest && e.target.closest('.example-btn');
+    if (!btn) return;
+    open(btn.getAttribute('data-example'), btn.getAttribute('data-example-title'), btn);
   });
   closeBtn.addEventListener('click', close);
   modal.addEventListener('click', e => { if (e.target === modal) close(); });
