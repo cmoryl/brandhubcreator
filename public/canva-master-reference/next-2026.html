@@ -407,39 +407,81 @@
   a { color: #1a56db; text-decoration: none; }
   a:hover { text-decoration: underline; }
   .btn-link {
-    display: inline-block;
-    background: var(--navy);
-    color: #fff !important;
-    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0) 42%, rgba(0,0,0,0.18) 100%),
+      linear-gradient(180deg, #1c2951 0%, #0b1638 100%);
+    color: #f4f7ff !important;
+    font-size: 11.5px;
     font-weight: 600;
-    padding: 5px 14px;
-    border-radius: 6px;
+    padding: 5px 12px;
+    border-radius: 7px;
     text-decoration: none !important;
-    letter-spacing: .02em;
+    letter-spacing: .015em;
+    border: 1px solid rgba(255,255,255,0.10);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.16),
+      inset 0 -1px 0 rgba(0,0,0,0.35),
+      0 1px 2px rgba(6,10,28,0.45),
+      0 6px 14px -8px rgba(19,177,243,0.28);
+    transition: background .18s ease, box-shadow .18s ease, transform .12s cubic-bezier(.2,.7,.2,1), border-color .18s ease;
+    white-space: nowrap;
   }
-  .btn-link { transition: background .15s ease, box-shadow .15s ease, transform .08s ease; }
-  .btn-link:hover { background: #1a2f5c; box-shadow: 0 2px 6px -1px rgba(10,18,44,.25); }
-  .btn-link:active { transform: scale(.97); }
-  .btn-link:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--accent-glow, rgba(19,177,243,.35));
-  }
-  button.btn-link { border: 0; cursor: pointer; font-family: inherit; }
-  .example-btn {
-    --ex-rgb: var(--div-rgb, 19, 177, 243);
-    background: linear-gradient(135deg, rgba(var(--ex-rgb), 0.18), rgba(var(--ex-rgb), 0.06)) !important;
-    color: rgb(var(--ex-rgb)) !important;
-    border: 1px solid rgba(var(--ex-rgb), 0.45) !important;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 1px 2px rgba(0,0,0,0.25);
-    backdrop-filter: blur(8px) saturate(140%);
-    -webkit-backdrop-filter: blur(8px) saturate(140%);
-    transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
-  }
-  .example-btn:hover {
-    background: linear-gradient(135deg, rgba(var(--ex-rgb), 0.32), rgba(var(--ex-rgb), 0.12)) !important;
-    border-color: rgba(var(--ex-rgb), 0.75) !important;
+  .btn-link:hover {
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0) 45%, rgba(0,0,0,0.18) 100%),
+      linear-gradient(180deg, #24336a 0%, #0f1c46 100%);
+    border-color: rgba(255,255,255,0.18);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.22),
+      inset 0 -1px 0 rgba(0,0,0,0.35),
+      0 2px 6px rgba(6,10,28,0.5),
+      0 10px 22px -10px rgba(19,177,243,0.55);
     transform: translateY(-1px);
   }
+  .btn-link:active { transform: translateY(0) scale(.97); box-shadow: inset 0 1px 2px rgba(0,0,0,0.4); }
+  .btn-link:focus-visible {
+    outline: none;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.22),
+      0 0 0 2px var(--bg, #fff),
+      0 0 0 4px var(--accent-glow, rgba(19,177,243,.45));
+  }
+  button.btn-link { cursor: pointer; font-family: inherit; }
+  /* Premium glass "View" example button — division-tinted */
+  .example-btn {
+    --ex-rgb: var(--div-rgb, 19, 177, 243);
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0) 50%),
+      linear-gradient(135deg, rgba(var(--ex-rgb), 0.22), rgba(var(--ex-rgb), 0.06)) !important;
+    color: rgb(var(--ex-rgb)) !important;
+    border: 1px solid rgba(var(--ex-rgb), 0.55) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.30),
+      0 1px 2px rgba(0,0,0,0.18),
+      0 6px 16px -10px rgba(var(--ex-rgb), 0.55) !important;
+    backdrop-filter: blur(8px) saturate(140%);
+    -webkit-backdrop-filter: blur(8px) saturate(140%);
+    transition: background 160ms ease, border-color 160ms ease, transform 160ms cubic-bezier(.2,.7,.2,1), box-shadow 160ms ease;
+  }
+  .example-btn:hover {
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.22), rgba(255,255,255,0) 50%),
+      linear-gradient(135deg, rgba(var(--ex-rgb), 0.36), rgba(var(--ex-rgb), 0.12)) !important;
+    border-color: rgba(var(--ex-rgb), 0.85) !important;
+    transform: translateY(-1px);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.36),
+      0 2px 4px rgba(0,0,0,0.18),
+      0 12px 26px -10px rgba(var(--ex-rgb), 0.72) !important;
+  }
+  /* Segmented Letter · A4 pair — visually joined without hiding the middot */
+  td .btn-link + .btn-link,
+  .fv-openbtn .btn-link + .btn-link { margin-left: 2px; }
+  /* Trailing arrow glyph slightly recedes so the label leads */
+  .btn-link { text-shadow: 0 1px 0 rgba(0,0,0,0.35); }
   .swatch-lg {
     display: inline-block;
     width: 44px; height: 44px;
@@ -807,6 +849,16 @@
     color: #ffffff;
     border: 1px solid rgba(255, 87, 87, 0.9);
     box-shadow: 0 0 0 1px rgba(255,87,87,0.25), 0 4px 14px rgba(255,59,59,0.35);
+  }
+  /* Neutral placeholder pill for lone em-dash cells */
+  .coming-soon.na-dash {
+    background: rgba(10, 18, 44, 0.04);
+    color: rgba(10, 18, 44, 0.35);
+    border: 1px solid rgba(10, 18, 44, 0.10);
+    box-shadow: none;
+    letter-spacing: 0;
+    font-weight: 600;
+    padding: 3px 10px;
   }
   .palette-downloads {
     display: flex; flex-wrap: wrap; gap: 10px;
@@ -3789,12 +3841,19 @@
       });
     }
 
+    function tagDashPlaceholders(root){
+      (root || document).querySelectorAll('span.coming-soon').forEach(el => {
+        const t = (el.textContent || '').trim();
+        if (t === '—' || t === '-' || t === '–') el.classList.add('na-dash');
+      });
+    }
     // Boot
     function boot(){
       document.querySelectorAll('.division-block').forEach(div => {
         initDivision(div);
         reformatAuxDetails(div);
       });
+      tagDashPlaceholders(document);
       // Refresh folder-view Open ↗ links when the shelf store changes
       window.addEventListener('storage', e => { if (e.key === LS_KEY) rebuildFolderViews(); });
     }
