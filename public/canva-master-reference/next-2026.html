@@ -3057,8 +3057,9 @@
   <script>
   (function(){
     const LS_KEY = 'next2026.canvaDirSubfolders.v2';
-    const CANONICAL = ['Social Ads','Content Social Banners','Email Banners','Advocacy','Speakers','Signs','Sponsorship Packet'];
+    const CANONICAL = ['Social Ads','Content Social Banners','Email Banners','Advocacy','Speakers','Signs','Screen Images','Sponsorship Packet'];
     // Live seed synced from Canva folder FAHPR2OULEQ on 2026-07-13.
+    // "Screen Images" subfolder added 2026-07-14 — sibling of "Signs", holds S-series digital event screen designs (S1, S2, S4, S10, S11, etc.).
     // Order matches canonical list above.
     const SEED = {
       'TransPerfect': [
@@ -3068,6 +3069,7 @@
         { name: 'Advocacy', id: 'FAHPTOBU9Ks' },
         { name: 'Speakers', id: 'FAHPTFY9bE8' },
         { name: 'Signs', id: 'FAHPTM55-hA' },
+        { name: 'Screen Images', id: 'FAHPWz6yKtk' },
         { name: 'Sponsorship Packet', id: 'FAHPTGLc6-I' },
       ],
       'GlobalLink': [
@@ -3077,6 +3079,7 @@
         { name: 'Advocacy', id: 'FAHPTDAo_-U' },
         { name: 'Speakers', id: 'FAHPTFSJm_Y' },
         { name: 'Signs', id: 'FAHPTMS-4N0' },
+        { name: 'Screen Images', id: 'FAHPW_ffB1Y' },
         { name: 'Sponsorship Packet', id: 'FAHPTM0DRh8' },
       ],
       'Games': [
@@ -3086,6 +3089,7 @@
         { name: 'Advocacy', id: 'FAHPTMk5U_c' },
         { name: 'Speakers', id: 'FAHPTNPEb3w' },
         { name: 'Signs', id: 'FAHPTFIdxsQ' },
+        { name: 'Screen Images', id: 'FAHPWyDRJoU' },
         { name: 'Sponsorship Packet', id: 'FAHPTNLznS8' },
       ],
       'Finance': [
@@ -3095,6 +3099,7 @@
         { name: 'Advocacy', id: 'FAHPTPVhNlM' },
         { name: 'Speakers', id: 'FAHPTNlBaso' },
         { name: 'Signs', id: 'FAHPTCNEw-w' },
+        { name: 'Screen Images', id: 'FAHPWzRnPr4' },
         { name: 'Sponsorship Packet', id: 'FAHPTBUW-vI' },
       ],
       'Legal': [
@@ -3104,6 +3109,7 @@
         { name: 'Advocacy', id: 'FAHPTIvtn_I' },
         { name: 'Speakers', id: 'FAHPTId4HhI' },
         { name: 'Signs', id: 'FAHPTEz9WTk' },
+        { name: 'Screen Images', id: 'FAHPW5C--kk' },
         { name: 'Sponsorship Packet', id: 'FAHPTEN5-j4' },
       ],
       'Life Sci': [
@@ -3113,6 +3119,7 @@
         { name: 'Advocacy', id: 'FAHPTLHcZ24' },
         { name: 'Speakers', id: 'FAHPTNzKNeY' },
         { name: 'Signs', id: 'FAHPTIc2NFI' },
+        { name: 'Screen Images', id: 'FAHPWx2EljE' },
         { name: 'Sponsorship Packet', id: 'FAHPTHhvmOk' },
       ],
       'Experience': [
@@ -3122,6 +3129,7 @@
         { name: 'Advocacy', id: 'FAHPTPGFkOw' },
         { name: 'Speakers', id: 'FAHPTO_1H60' },
         { name: 'Signs', id: 'FAHPTD5sHvU' },
+        { name: 'Screen Images', id: 'FAHPWyHiRGs' },
         { name: 'Sponsorship Packet', id: 'FAHPTLpYpPc' },
       ],
       'Learn': [
@@ -3131,6 +3139,7 @@
         { name: 'Advocacy', id: 'FAHPTJ6DZs8' },
         { name: 'Speakers', id: 'FAHPTLmSxUI' },
         { name: 'Signs', id: 'FAHPTOK7Xx0' },
+        { name: 'Screen Images', id: 'FAHPW57eq_Y' },
         { name: 'Sponsorship Packet', id: 'FAHPTHAT_as' },
       ],
       'Media': [
@@ -3140,6 +3149,7 @@
         { name: 'Advocacy', id: 'FAHPTCB-Kdc' },
         { name: 'Speakers', id: 'FAHPTCSD8Dg' },
         { name: 'Signs', id: 'FAHPTCShHdQ' },
+        { name: 'Screen Images', id: 'FAHPW9Xyye0' },
         { name: 'Sponsorship Packet', id: 'FAHPTF8eH9Q' },
       ],
       'Digital': [
@@ -3149,6 +3159,7 @@
         { name: 'Advocacy', id: 'FAHPTNT5dAs' },
         { name: 'Speakers', id: 'FAHPTP6ONCo' },
         { name: 'Signs', id: 'FAHPTI7HC0I' },
+        { name: 'Screen Images', id: 'FAHPW_VJ7_s' },
         { name: 'Sponsorship Packet', id: 'FAHPTKxgv8s' },
       ],
       'Dataforce': [
@@ -3158,6 +3169,7 @@
         { name: 'Advocacy', id: 'FAHPTM51qhI' },
         { name: 'Speakers', id: 'FAHPTCSy7wQ' },
         { name: 'Signs', id: 'FAHPTDDrsZs' },
+        { name: 'Screen Images', id: 'FAHPWwiGVxU' },
         { name: 'Sponsorship Packet', id: 'FAHPTJNhF_0' },
       ],
     };
@@ -3166,6 +3178,17 @@
     const store = load();
     // Merge seed for divisions that have no local edits yet
     Object.keys(SEED).forEach(div => { if (!store[div] || store[div].length === 0) store[div] = SEED[div].map(x => ({ ...x })); });
+    // Migration (2026-07-14): ensure "Screen Images" subfolder is present for existing local snapshots.
+    Object.keys(SEED).forEach(div => {
+      const list = store[div]; if (!Array.isArray(list)) return;
+      const has = list.some(x => (x && x.name || '').trim().toLowerCase() === 'screen images');
+      if (has) return;
+      const seedEntry = SEED[div].find(x => x.name === 'Screen Images');
+      if (!seedEntry) return;
+      const spIdx = list.findIndex(x => (x && x.name || '').trim().toLowerCase() === 'sponsorship packet');
+      const insertAt = spIdx >= 0 ? spIdx : list.length;
+      list.splice(insertAt, 0, { ...seedEntry });
+    });
     save(store);
 
     const table = document.querySelector('.canva-dir-divisions');
