@@ -1289,3 +1289,26 @@ div[role="region"][aria-label^="Notifications"] {
   inherits: false;
 }
 
+/* Modern quick wins ---------------------------------------------------- */
+
+/* Smooth cross-route transitions in Chromium/Safari TP; ignored elsewhere. */
+@view-transition {
+  navigation: auto;
+}
+
+/* Skip rendering work for off-screen sections — huge scroll/LCP win on long guide pages. */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 600px;
+}
+
+/* Respect user motion preferences globally for view transitions. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+
