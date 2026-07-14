@@ -3548,9 +3548,9 @@
 
     /* Body */
     .fv-body {
-      border-top: 1px dashed rgba(var(--dsub-rgb), 0.22);
+      border-top: 1px dashed rgba(var(--fv-frame-rgb, 15,27,61), 0.14);
       padding: 6px 6px 8px 6px;
-      background: linear-gradient(180deg, rgba(var(--dsub-rgb), 0.02), transparent 60%);
+      background: linear-gradient(180deg, rgba(var(--fv-frame-rgb, 15,27,61), 0.025), transparent 60%);
     }
     .fv-list { display: flex; flex-direction: column; gap: 2px; }
     .fv-row {
@@ -3565,7 +3565,7 @@
       border-radius: 8px;
       transition: background .15s ease;
     }
-    .fv-row:hover { background: rgba(var(--dsub-rgb), 0.08); }
+    .fv-row:hover { background: rgba(var(--fv-frame-rgb, 15,27,61), 0.05); }
     .fv-num { grid-area: num; padding-top: 1px; }
     .fv-label { grid-area: label; }
     .fv-actions {
