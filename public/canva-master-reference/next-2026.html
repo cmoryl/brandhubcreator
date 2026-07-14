@@ -2959,6 +2959,35 @@
         renderSubList(list, division);
       });
     });
+
+    // Render inline subfolder strips on each division block in section 3
+    function renderDivisionStrips(){
+      document.querySelectorAll('.division-subfolders').forEach(strip => {
+        const division = strip.getAttribute('data-division');
+        const list = store[division] || [];
+        strip.innerHTML = '';
+        if (list.length === 0) return;
+        list.forEach(item => {
+          const url = folderUrl((item.id || '').trim());
+          const chip = document.createElement(url ? 'a' : 'span');
+          chip.className = 'div-sub-chip' + (url ? '' : ' is-empty');
+          if (url) { chip.href = url; chip.target = '_blank'; chip.rel = 'noopener noreferrer'; }
+          chip.title = item.name + (item.id ? ' — ' + item.id : '');
+          chip.innerHTML = '<span class="div-sub-name">' + (item.name || '—') + '</span>' + (url ? '<span class="div-sub-arrow" aria-hidden="true">↗</span>' : '');
+          strip.appendChild(chip);
+        });
+      });
+    }
+    renderDivisionStrips();
+    // Re-render strips whenever the directory changes in section 9
+    const _origSave = save;
+    window.addEventListener('storage', e => { if (e.key === LS_KEY) { Object.assign(store, load()); renderDivisionStrips(); } });
+    // Patch save() so in-page edits also refresh strips
+    (function(){
+      const orig = save;
+      // eslint-disable-next-line no-func-assign
+      save = function(d){ orig(d); renderDivisionStrips(); };
+    })();
   })();
   </script>
 
