@@ -4903,58 +4903,10 @@
   window.addEventListener('resize', updateProgress);
   updateProgress();
 
-  // ---------- Build toolbar ----------
-  const divbar = document.querySelector('nav.divbar');
-  if (!divbar) return;
-
+  // ---------- Toolbar removed ----------
+  // Stub toolbar element kept off-DOM so downstream querySelectors are no-ops.
   const toolbar = document.createElement('nav');
-  toolbar.className = 'ux-toolbar';
-  toolbar.setAttribute('aria-label', 'Filter, search, and view controls');
-  toolbar.innerHTML = `
-    <div class="ux-row ux-row-top">
-      <div class="ux-chips" role="group" aria-label="Variant filter">
-        <span class="ux-chip-label">Variant</span>
-        <button type="button" class="ux-chip" data-variant="all" aria-pressed="true">All</button>
-        <button type="button" class="ux-chip" data-variant="light" aria-pressed="false">Light</button>
-        <button type="button" class="ux-chip" data-variant="dark" aria-pressed="false">Dark</button>
-      </div>
-      <div class="ux-chips" role="group" aria-label="Type filter">
-        <span class="ux-chip-label">Type</span>
-        <button type="button" class="ux-chip" data-type="all" aria-pressed="true">All</button>
-        <button type="button" class="ux-chip" data-type="social" aria-pressed="false">Social</button>
-        <button type="button" class="ux-chip" data-type="email" aria-pressed="false">Email</button>
-        <button type="button" class="ux-chip" data-type="print" aria-pressed="false">Print</button>
-        <button type="button" class="ux-chip" data-type="speakers" aria-pressed="false">Speakers</button>
-      </div>
-    </div>
-    <div class="ux-row ux-row-bottom">
-      <button type="button" class="ux-btn ux-btn-filters" id="uxFiltersToggle" aria-pressed="false" aria-expanded="false" aria-controls="uxToolbarChips" title="Show filters">▾ Filters<span class="ux-active-dot" aria-hidden="true"></span></button>
-      <button type="button" class="ux-btn" id="uxExpandAll" title="Expand all divisions">▾ Expand all</button>
-      <button type="button" class="ux-btn" id="uxCollapseAll" title="Collapse all divisions">▸ Collapse all</button>
-      <button type="button" class="ux-btn ux-btn-density" id="uxDensity" aria-pressed="false" title="Toggle density">◐ Density</button>
-      <span class="ux-count" id="uxCount" aria-live="polite">Showing 0 of 0</span>
-    </div>
-  `;
-  divbar.insertAdjacentElement('afterend', toolbar);
 
-  // ---------- Mobile: Filters panel toggle ----------
-  const filtersBtn = toolbar.querySelector('#uxFiltersToggle');
-  if (filtersBtn) {
-    filtersBtn.addEventListener('click', () => {
-      const open = toolbar.classList.toggle('filters-open');
-      filtersBtn.setAttribute('aria-pressed', String(open));
-      filtersBtn.setAttribute('aria-expanded', String(open));
-    });
-  }
-  // Reflect active-filter state as a dot on the Filters button
-  function updateFiltersBtnState() {
-    if (!filtersBtn) return;
-    const anyActive = !!toolbar.querySelector('.ux-chip[aria-pressed="true"]:not([data-variant="all"]):not([data-type="all"])');
-    filtersBtn.classList.toggle('has-active', anyActive);
-  }
-  toolbar.addEventListener('click', (e) => {
-    if (e.target.closest('.ux-chip')) setTimeout(updateFiltersBtnState, 0);
-  });
 
   // ---------- Index rows ----------
   function inferType(text) {
@@ -5148,6 +5100,9 @@
   }
 
   function applyFilters() {
+    const countEl = document.getElementById('uxCount'); if (countEl) countEl.textContent = `Showing ${shown} of ${total}`;
+  }
+  function _origApplyFiltersUnused() {
     const q = state.q.trim().toLowerCase();
     let shown = 0;
     const total = rowIndex.length;
