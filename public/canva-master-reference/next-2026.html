@@ -4712,15 +4712,15 @@
     outline: none;
     transition: background .18s ease, color .18s ease, box-shadow .18s ease, transform .08s ease;
   }
-  .division-toggle:hover { background: rgba(var(--div-rgb), .10); color: rgb(var(--div-rgb)); }
+  .division-toggle:hover { background: rgba(var(--div-rgb), .10); color: rgb(var(--div-ink-rgb, var(--div-rgb))); }
   .division-toggle:focus-visible {
-    background: rgba(var(--div-rgb), .10); color: rgb(var(--div-rgb));
+    background: rgba(var(--div-rgb), .10); color: rgb(var(--div-ink-rgb, var(--div-rgb)));
     box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(var(--div-rgb), .35);
   }
   .division-toggle:active { transform: scale(.97); background: rgba(var(--div-rgb), .16); }
   .division-toggle .row-count-badge {
     background: rgba(var(--div-rgb), .14);
-    color: rgb(var(--div-rgb));
+    color: rgb(var(--div-ink-rgb, var(--div-rgb)));
     padding: 2px 8px;
     border-radius: 999px;
     font-size: 11px;
@@ -4739,7 +4739,7 @@
     color: var(--muted);
   }
   .division-toggle:hover .chevron,
-  .division-toggle:focus-visible .chevron { color: rgb(var(--div-rgb)); }
+  .division-toggle:focus-visible .chevron { color: rgb(var(--div-ink-rgb, var(--div-rgb))); }
 
   .division-block.is-collapsed .chevron { transform: rotate(-90deg); }
 
@@ -4757,17 +4757,17 @@
   .division-copy-link .dcl-icon { font-size: 12px; line-height: 1; }
   .division-copy-link:hover {
     background: rgba(var(--div-rgb), .10);
-    color: rgb(var(--div-rgb));
+    color: rgb(var(--div-ink-rgb, var(--div-rgb)));
   }
   .division-copy-link:focus-visible {
-    color: rgb(var(--div-rgb));
+    color: rgb(var(--div-ink-rgb, var(--div-rgb)));
     background: rgba(var(--div-rgb), .10);
     box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(var(--div-rgb), .35);
   }
   .division-copy-link:active { transform: scale(.97); }
   .division-copy-link.is-copied {
     background: rgba(var(--div-rgb), .16);
-    color: rgb(var(--div-rgb));
+    color: rgb(var(--div-ink-rgb, var(--div-rgb)));
   }
   @media (max-width: 640px) {
     .division-copy-link .dcl-text { display: none; }
