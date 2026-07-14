@@ -4949,7 +4949,7 @@
     // Header controls: copy-link + toggle badge/chevron
     const h3 = div.querySelector('h3');
     if (h3 && !h3.querySelector('.division-toggle')) {
-      const total = rows.length;
+      const total = rowIndex.filter((r) => r.division === div).length;
 
       const copy = document.createElement('button');
       copy.type = 'button';
