@@ -3404,12 +3404,8 @@
     .fv-mode-toggle button:hover:not([aria-pressed="true"]) { color: var(--navy); }
 
     @media (max-width: 640px) {
-      .fv-row { grid-template-columns: 28px 1fr; grid-template-areas: "n l" ". s" ". a"; row-gap: 4px; }
-      .fv-num { grid-area: n; }
-      .fv-label { grid-area: l; white-space: normal; }
-      .fv-size { grid-area: s; font-size: 10px; }
-      .fv-row > .btn-link:nth-of-type(1) { grid-area: a; justify-self: start; }
-      .fv-row > .btn-link:nth-of-type(2) { grid-area: a; justify-self: end; }
+      .fv-row { padding: 6px 8px; }
+      .fv-label { -webkit-line-clamp: 3; }
     }
   </style>
 
