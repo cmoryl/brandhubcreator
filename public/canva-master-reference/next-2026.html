@@ -3437,11 +3437,13 @@
       const divisionId = divBlock.id;
       const divisionName = DIVISION_MAP[divisionId] || '';
 
-      const rows = Array.from(table.querySelectorAll('tr')).slice(1); // skip header
+      const rows = Array.from(table.querySelectorAll('tr')).slice(1); // main table rows
+      // Also fold in general signage rows nested in the event-signage details
+      const signageRows = Array.from(divBlock.querySelectorAll(':scope > details.event-signage table tr')).slice(1);
 
       // Group rows by canonical folder
       const groups = Object.fromEntries(CANONICAL_ORDER.map(n => [n, []]));
-      rows.forEach(tr => {
+      function pushRow(tr, forceBucket) {
         const cells = tr.cells;
         if (!cells || cells.length < 5) return;
         const num = (cells[0].textContent || '').trim();
@@ -3449,9 +3451,12 @@
         const size = (cells[2].textContent || '').trim();
         const exCell = cells[3];
         const openCell = cells[4];
-        const bucket = folderFor(label);
+        const bucket = forceBucket || folderFor(label);
         groups[bucket].push({ num, label, size, exHTML: exCell ? exCell.innerHTML : '', openHTML: openCell ? openCell.innerHTML : '' });
-      });
+      }
+      rows.forEach(tr => pushRow(tr));
+      signageRows.forEach(tr => pushRow(tr, 'Signs'));
+
 
       const wrap = document.createElement('div');
       wrap.className = 'folder-view';
