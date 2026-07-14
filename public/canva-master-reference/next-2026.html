@@ -3427,38 +3427,43 @@
       letter-spacing: .06em;
     }
 
-    /* Folder card */
+    /* Folder card — neutral "liquid glass" frame; accent lives only in icon + Open button */
     .fv-card {
       --dsub-rgb: var(--div-rgb, 19,177,243);
+      --fv-frame-rgb: 15, 27, 61; /* off-black slate, neutral for all divisions */
       position: relative;
       border-radius: 12px;
       background:
-        linear-gradient(180deg, #ffffff 0%, rgba(var(--dsub-rgb), 0.03) 100%);
-      border: 1px solid rgba(var(--dsub-rgb), 0.28);
+        linear-gradient(180deg, rgba(255,255,255,0.72) 0%, rgba(var(--fv-frame-rgb), 0.045) 100%);
+      -webkit-backdrop-filter: blur(10px) saturate(1.05);
+      backdrop-filter: blur(10px) saturate(1.05);
+      border: 1px solid rgba(var(--fv-frame-rgb), 0.12);
       box-shadow:
-        0 1px 0 rgba(255,255,255,0.9) inset,
-        0 1px 2px rgba(15,27,61,0.04),
-        0 12px 30px -22px rgba(var(--dsub-rgb), 0.6);
+        0 1px 0 rgba(255,255,255,0.85) inset,
+        0 1px 2px rgba(var(--fv-frame-rgb), 0.04),
+        0 14px 30px -24px rgba(var(--fv-frame-rgb), 0.35);
       overflow: hidden;
-      transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
+      transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease, background .2s ease;
     }
     .fv-card:hover {
-      border-color: rgba(var(--dsub-rgb), 0.5);
+      border-color: rgba(var(--fv-frame-rgb), 0.22);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.82) 0%, rgba(var(--fv-frame-rgb), 0.06) 100%);
       box-shadow:
         0 1px 0 rgba(255,255,255,0.9) inset,
-        0 2px 6px rgba(15,27,61,0.05),
-        0 24px 50px -26px rgba(var(--dsub-rgb), 0.75);
+        0 2px 6px rgba(var(--fv-frame-rgb), 0.05),
+        0 24px 44px -26px rgba(var(--fv-frame-rgb), 0.45);
       transform: translateY(-1px);
     }
-    .fv-card[open] { border-color: rgba(var(--dsub-rgb), 0.55); }
+    .fv-card[open] { border-color: rgba(var(--fv-frame-rgb), 0.28); }
     .fv-card::before {
-      /* Tab-like accent along the top edge */
+      /* Neutral hairline along the top edge — a subtle glass highlight, not a division accent */
       content: "";
-      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      position: absolute; top: 0; left: 0; right: 0; height: 1px;
       background: linear-gradient(90deg,
-        rgba(var(--dsub-rgb), 0.9) 0%,
-        rgba(var(--dsub-rgb), 0.45) 60%,
-        rgba(var(--dsub-rgb), 0) 100%);
+        rgba(255,255,255,0) 0%,
+        rgba(255,255,255,0.85) 50%,
+        rgba(255,255,255,0) 100%);
     }
 
     /* Card header (details summary) */
@@ -3543,9 +3548,9 @@
 
     /* Body */
     .fv-body {
-      border-top: 1px dashed rgba(var(--dsub-rgb), 0.22);
+      border-top: 1px dashed rgba(var(--fv-frame-rgb, 15,27,61), 0.14);
       padding: 6px 6px 8px 6px;
-      background: linear-gradient(180deg, rgba(var(--dsub-rgb), 0.02), transparent 60%);
+      background: linear-gradient(180deg, rgba(var(--fv-frame-rgb, 15,27,61), 0.025), transparent 60%);
     }
     .fv-list { display: flex; flex-direction: column; gap: 2px; }
     .fv-row {
@@ -3560,7 +3565,7 @@
       border-radius: 8px;
       transition: background .15s ease;
     }
-    .fv-row:hover { background: rgba(var(--dsub-rgb), 0.08); }
+    .fv-row:hover { background: rgba(var(--fv-frame-rgb, 15,27,61), 0.05); }
     .fv-num { grid-area: num; padding-top: 1px; }
     .fv-label { grid-area: label; }
     .fv-actions {
