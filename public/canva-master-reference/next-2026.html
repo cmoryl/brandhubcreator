@@ -563,7 +563,7 @@
   /* ---------- Logo modal ---------- */
   .logo-modal {
     position: fixed; inset: 0; z-index: 9999;
-    background: rgba(4, 10, 24, 0.86);
+    background: rgba(15, 23, 42, 0.55);
     backdrop-filter: blur(6px);
     display: none;
     align-items: center; justify-content: center;
@@ -573,8 +573,8 @@
   .logo-modal.open { display: flex; }
   @keyframes logoFade { from { opacity: 0; } to { opacity: 1; } }
   .logo-modal-inner {
-    background: #0b1428;
-    border: 1px solid rgba(255,255,255,0.12);
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
     border-radius: 14px;
     padding: 28px 28px 22px;
     max-width: min(720px, 94vw);
@@ -582,25 +582,26 @@
     width: 100%;
     display: flex; flex-direction: column; align-items: center; gap: 18px;
     position: relative;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.55);
+    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
   }
   .logo-modal-close {
     position: absolute; top: 10px; right: 12px;
-    background: transparent; border: 0; color: #fff;
+    background: transparent; border: 0; color: #64748b;
     font-size: 22px; cursor: pointer; line-height: 1; padding: 6px 10px;
     border-radius: 6px;
   }
-  .logo-modal-close:hover { background: rgba(255,255,255,0.08); }
+  .logo-modal-close:hover { background: #f1f5f9; color: #0f1b3d; }
   .logo-modal-title {
     font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase;
-    color: rgba(255,255,255,0.7); margin: 0;
+    color: #64748b; margin: 0; font-weight: 600;
   }
   .logo-modal-img {
     max-width: 100%;
     max-height: 55vh;
     width: auto; height: auto;
     object-fit: contain;
-    background: #ffffff08;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
     border-radius: 8px;
     padding: 20px;
   }
@@ -620,11 +621,13 @@
   }
   .logo-modal-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(19,177,243,0.35); }
   .logo-modal-btn.secondary {
-    background: transparent;
-    border: 1px solid rgba(255,255,255,0.2);
+    background: #ffffff;
+    color: #0f1b3d;
+    border: 1px solid #cbd5e1;
   }
+  .logo-modal-btn.secondary:hover { background: #f8fafc; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08); }
   .logo-modal-hint {
-    font-size: 12px; color: rgba(255,255,255,0.55); text-align: center; margin: 0;
+    font-size: 12px; color: #64748b; text-align: center; margin: 0;
   }
   @media (max-width: 600px) {
     .logo-modal-inner { padding: 22px 16px 16px; }
