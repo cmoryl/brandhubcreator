@@ -4463,6 +4463,84 @@
   .ux-search input:focus ~ .ux-search-kbd,
   .ux-search input:not(:placeholder-shown) ~ .ux-search-kbd { display: none; }
 
+  /* Search results dropdown (popover under the input) */
+  .ux-search-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    max-height: 380px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(10, 18, 44, .18), 0 2px 6px rgba(10, 18, 44, .08);
+    z-index: 1000;
+    padding: 6px;
+  }
+  .ux-search-dropdown[hidden] { display: none; }
+  .ux-sd-header {
+    padding: 6px 10px 8px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+    font-weight: 700;
+    border-bottom: 1px solid rgba(10, 18, 44, .06);
+    margin-bottom: 4px;
+  }
+  .ux-sd-empty {
+    padding: 14px 10px;
+    color: var(--muted);
+    font-size: 13px;
+    text-align: center;
+  }
+  .ux-sd-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    width: 100%;
+    padding: 8px 10px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: left;
+    font: inherit;
+    color: var(--ink);
+    transition: background .12s ease;
+  }
+  .ux-sd-item:hover,
+  .ux-sd-item.is-active {
+    background: var(--accent-glow, rgba(58, 106, 245, .1));
+  }
+  .ux-sd-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.25;
+  }
+  .ux-sd-meta {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.2;
+  }
+  .ux-sd-item mark.ux-mark {
+    background: #fff2a8;
+    color: inherit;
+    padding: 0 1px;
+    border-radius: 2px;
+  }
+  /* Row-flash highlight when jumping from dropdown */
+  .ux-row-flash {
+    animation: uxRowFlash 1.6s ease-out;
+  }
+  @keyframes uxRowFlash {
+    0%   { background: rgba(255, 226, 120, .55); }
+    100% { background: transparent; }
+  }
+
   /* Segmented control for chip groups */
   .ux-chips {
     display: inline-flex; align-items: center; gap: 6px;
