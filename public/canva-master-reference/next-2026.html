@@ -3300,6 +3300,16 @@
     .division-block.folder-mode > table { display: none; }
     .division-block:not(.folder-mode) > .folder-view { display: none; }
 
+    /* Auxiliary cards (signage / screens / pillar) sit below the folder view */
+    .fv-card--aux { margin-top: 12px; }
+    .fv-card--aux .fv-open.is-badge {
+      pointer-events: none;
+      background: rgba(var(--dsub-rgb), 0.14);
+      border-color: rgba(var(--dsub-rgb), 0.35);
+      color: rgb(var(--dsub-rgb));
+      letter-spacing: .06em;
+    }
+
     /* Folder card */
     .fv-card {
       --dsub-rgb: var(--div-rgb, 19,177,243);
