@@ -5266,6 +5266,7 @@
       dropdown.innerHTML = `<div class="ux-sd-empty">No matches for "${escapeHtml(state.q)}"</div>`;
       dropdown.hidden = false;
       activeIdx = -1;
+      positionDropdown();
       return;
     }
     const header = `<div class="ux-sd-header">${matches.length} result${matches.length === 1 ? '' : 's'}${matches.length > currentResults.length ? ` · showing top ${currentResults.length}` : ''}</div>`;
@@ -5279,6 +5280,7 @@
     dropdown.innerHTML = header + body;
     dropdown.hidden = false;
     activeIdx = -1;
+    positionDropdown();
   }
 
   function setActive(i) {
