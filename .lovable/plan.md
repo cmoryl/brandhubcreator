@@ -1,84 +1,50 @@
-## NEXT 2026 Reference — UX Enhancements
 
-Scope: single file, `public/canva-master-reference/next-2026.html`. No app-level changes, no new routes, no backend.
+# 11 Division PPTX Variants from `GamesNEXT_Master_PPT_Template.pptx`
 
----
+## Inputs (verified)
+- **Master deck**: `GamesNEXT_Master_PPT_Template.pptx` — 10 slides, 23 media items (4 SVGs + PNG/JPEG). Master accent hex `#A6FA87` (Games).
+- **Logos**: Dropbox folder unzipped — every division has `Stacked/`, `Side by Side/` SVG variants in **color / white / white-color** trims. All 11 divisions present:
+  TransPerfect, GlobalLink, Games, Finance, Legal, Life Sci, Experience, Learn, Media, Digital, Dataforce.
+- **Palette**: already in-repo at `public/canva-master-reference/next-2026-color-palette.json` (per-division hex, RGB, HSV, Pantone).
 
-### 1. Search, filters & scroll progress
+## Deliverables
+- 11 output files: `NEXT2026_<Division>_PPT.pptx` (Games included = a re-emitted master).
+- Bundled `NEXT2026_Division_Decks.zip` for one-click download.
+- Written to `/mnt/documents/next2026-decks/`.
 
-**Toolbar** (new row directly under the sticky `.divbar`, also sticky, slightly shorter):
-- Live search input (`/` focuses it) that filters every `.division-block table` row by Format name, Size, and Example text. Non-matching rows hide; divisions with zero matches collapse to a "0 results" state.
-- Filter chips:
-  - Variant: All · Light/White · Dark/Navy (reuses the `variantKey()` logic already in the file)
-  - Type: All · Social · Email · Print · Web · Video (inferred from the Format text via keyword map)
-- "Clear" button resets search + chips.
-- Result counter: "Showing 42 of 187 formats".
+## Approach — a Python script that manipulates the PPTX zip directly
+No LibreOffice round-trip (preserves master slide layouts, fonts, animations, notes).
 
-**Scroll progress + active division:**
-- 3px progress bar pinned to the very top, filling left→right based on `scrollY / (scrollHeight - innerHeight)`.
-- `IntersectionObserver` watches each `.division-block`; the matching `.divbar` button gets an `[aria-current="true"]` style (filled background, stronger border) as it enters the viewport. Clicking still uses the existing smooth-scroll + `scroll-margin-top` behavior.
+For each of the 11 divisions:
+1. Copy `master.pptx` → `<Division>.pptx` staging dir.
+2. **Swap logo media**: Overwrite the 3 large SVG media entries in `ppt/media/` that correspond to the embedded Games logo (identified by size fingerprint — `image2.svg` / `image14.svg` / `image20.svg`, all 62938 bytes) with the division's equivalent SVG. Mapping:
+   - `Stacked/<Division> NEXT stacked color logo.svg` (color-on-light usage)
+   - `Stacked/<Division> NEXT stacked white color logo.svg` (color-on-dark usage)
+   - The small 5.5KB `image11.svg` looks like a shared mark (kept unless it also matches Games — will verify and swap if so).
+   - Each replacement SVG is inlined; the paired PNG raster (`image1.png`, `image13.png`) is also regenerated from the SVG at 4× using `cairosvg` so PowerPoint's fallback raster matches.
+3. **Recolor accent**:
+   - Rewrite the theme accent1 (`4F81BD`) mapping is unused; the real Games green appears as literal `A6FA87` in `slide1.xml` — swap that literal hex to the division hex across all slide/layout/master XML (case-insensitive).
+   - Also replace it inside SVGs where the Games green is stroked/filled.
+4. **Rename**: Update `docProps/core.xml` title + `app.xml` company to `<Division> NEXT 2026`.
+5. Repack as a valid `.pptx` (store `[Content_Types].xml` first, DEFLATE the rest).
 
----
+## QA loop (mandatory per PPTX skill)
+- `python -m markitdown <div>.pptx` — confirms text integrity.
+- Render slides 1–3 of one sample deck (Finance) to JPG via LibreOffice → `pdftoppm` → visually inspect that:
+  - Logo is the correct division mark.
+  - Accent green squares/arrows now show the division color.
+- Iterate fixes; re-render only if issues found.
 
-### 2. Collapsible divisions + density & dark mode
+## Technical Details
+- Script location: `/tmp/build_division_decks.py` (workspace scratch, not committed to project).
+- Deps: `python-pptx` not needed — pure zip/XML string ops keep the master fully intact. `cairosvg` for SVG→PNG raster fallback.
+- Hex swap is scoped: only replaces `A6FA87` / `a6fa87` (unique to Games in the deck), so it will not clobber unrelated colors.
+- Division→SVG resolution uses folder-name matching (`Life Sci` folder handled explicitly).
+- Output ZIP built with `zip -r` for user download.
 
-**Collapsible divisions:**
-- Each `.division-block` gets a header button (the existing h2 becomes the trigger) with a chevron and row count badge.
-- Clicking toggles a `.is-collapsed` class that hides the block's table/notes.
-- Global controls in the toolbar: "Expand all" / "Collapse all".
-- Collapsed state per division persisted in `localStorage` under `next2026:collapsed`.
-- Search auto-expands any division that has matching rows so results are never hidden.
+## Out of scope
+- Editing text content per division (I keep Games' copy verbatim; user can rename headings later).
+- Regenerating raster PNGs at custom sizes beyond 4× SVG rasterization.
+- Uploading anything back to Dropbox.
 
-**Density toggle:**
-- Two states: Comfortable (current) and Compact (tighter row padding, smaller font on desktop tables, tighter mobile card gaps).
-- Applied via `data-density="compact"` on `<html>`; persisted in `localStorage`.
-
-**Dark mode:**
-- Toggle in the toolbar (sun/moon). Applies `data-theme="dark"` on `<html>`; persisted in `localStorage`; defaults to `prefers-color-scheme`.
-- New dark palette added alongside the existing `:root` tokens — reuses existing CSS custom properties (`--bg`, `--surface`, `--border`, `--text`, `--muted`, `--accent`) so every existing rule picks it up without edits. Division accent colors keep their hues but shift lightness for AA contrast on dark surfaces.
-
----
-
-### Technical notes
-
-- All logic is vanilla JS appended to the existing inline `<script>` block; no new dependencies, no build step.
-- Search/filter runs on an in-memory index built once on `DOMContentLoaded` from the existing row DOM; each row gets a `data-search`, `data-variant`, `data-type` attribute so filtering is a single class toggle per row.
-- Sticky stacking order: progress bar (top: 0) → `.divbar` → toolbar. `scroll-margin-top` values updated to account for the added toolbar height (desktop ~150px, mobile ~120px). `matchMedia` handler updated to match.
-- All new controls are real `<button>` / `<input>` elements with `aria-label`, `aria-pressed`, and `aria-expanded` where appropriate; focus rings use the existing `--accent` token.
-- Mobile: toolbar wraps to two rows (search full-width on top, chips + toggles below). Density toggle hidden on mobile (mobile already uses the stacked card layout).
-
----
-
-### Layout sketch
-
-```text
-┌───────────────────────────────────────────────┐  progress bar (3px)
-├───────────────────────────────────────────────┤
-│  Divisions nav (existing .divbar)             │  sticky
-├───────────────────────────────────────────────┤
-│  🔍 search   [Light][Dark] [Social][Email]…   │  sticky toolbar
-│  Expand▾ Collapse▴  Density◐  Theme☾  42/187  │
-├───────────────────────────────────────────────┤
-│  ▼ TransPerfect                        (24)   │  collapsible
-│      … rows …                                  │
-│  ▶ GlobalLink                          (18)   │  collapsed
-│  ▼ DataForce                           (12)   │
-└───────────────────────────────────────────────┘
-```
-
----
-
-### Out of scope (deferred)
-
-- Copy-to-clipboard row actions and keyboard-shortcut jump menu.
-- Canva PNG thumbnails (already tracked in `.lovable/plan.md`).
-- Print/PDF stylesheet.
-
-### Verification
-
-Playwright on desktop (1280) and mobile (390):
-1. Type in search → only matching rows visible, counter updates, empty divisions show "0 results".
-2. Click Light chip → only light variants remain.
-3. Collapse a division → table hidden, chevron rotates, state survives reload.
-4. Toggle dark mode → all surfaces/text meet AA contrast; screenshot each state.
-5. Scroll through page → progress bar fills, active division button highlights in the nav.
+Reply "go" and I'll switch to build mode and produce all 11 decks + the zip.
