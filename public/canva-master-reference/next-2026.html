@@ -544,6 +544,39 @@
     border-radius: 4px;
   }
   .division-block h3 img.div-logo:hover { transform: scale(1.04); filter: drop-shadow(0 0 6px rgba(19,177,243,0.35)); }
+  /* Inline live Canva subfolder chips shown under each division h3 */
+  .division-subfolders {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    margin: 0 0 14px 0;
+    padding: 8px 10px;
+    background: rgba(var(--div-rgb, 19,177,243), 0.06);
+    border: 1px solid rgba(var(--div-rgb, 19,177,243), 0.22);
+    border-radius: 8px;
+  }
+  .division-subfolders:empty { display: none; }
+  .division-subfolders::before {
+    content: "Canva subfolders";
+    font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--muted); align-self: center; margin-right: 4px;
+  }
+  .div-sub-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 9px; border-radius: 999px;
+    background: #ffffff;
+    border: 1px solid rgba(var(--div-rgb, 19,177,243), 0.35);
+    color: var(--navy);
+    font-size: 12px; font-weight: 600;
+    text-decoration: none; line-height: 1.2;
+    transition: background .15s ease, border-color .15s ease, transform .15s ease;
+  }
+  .div-sub-chip:hover {
+    background: rgba(var(--div-rgb, 19,177,243), 0.12);
+    border-color: rgba(var(--div-rgb, 19,177,243), 0.6);
+    transform: translateY(-1px);
+  }
+  .div-sub-chip.is-empty { opacity: .55; cursor: default; }
+  .div-sub-arrow { font-size: 10px; color: var(--muted); }
+  .div-sub-chip:hover .div-sub-arrow { color: var(--navy); }
   td .div-logo-inline {
     height: 30px;
     width: auto;
