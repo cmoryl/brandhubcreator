@@ -3313,14 +3313,33 @@
     .fv-list { display: flex; flex-direction: column; gap: 2px; }
     .fv-row {
       display: grid;
-      grid-template-columns: 26px minmax(0, 1fr) auto auto auto;
-      align-items: center;
-      gap: 8px;
+      grid-template-columns: 26px minmax(0, 1fr);
+      grid-template-areas:
+        "num label"
+        ".   actions";
+      align-items: start;
+      gap: 4px 8px;
       padding: 8px 10px;
       border-radius: 8px;
       transition: background .15s ease;
     }
     .fv-row:hover { background: rgba(var(--dsub-rgb), 0.08); }
+    .fv-num { grid-area: num; padding-top: 1px; }
+    .fv-label { grid-area: label; }
+    .fv-actions {
+      grid-area: actions;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px 10px;
+      min-width: 0;
+    }
+    .fv-actions .fv-size { margin-right: 4px; }
+    .fv-actions .btn-link,
+    .fv-actions .coming-soon,
+    .fv-actions a { white-space: nowrap; }
+    .fv-actions .btn-link[target="_blank"] + .btn-link[target="_blank"]::before,
+    .fv-actions a + a::before { content: none; }
     .fv-num {
       font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
       font-size: 10.5px; font-weight: 700;
