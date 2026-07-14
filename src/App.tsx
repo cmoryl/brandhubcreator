@@ -132,7 +132,14 @@ const queryClient = new QueryClient({
       staleTime: 1000 * 60 * 5, // 5 minutes
       gcTime: 1000 * 60 * 30, // 30 minutes (formerly cacheTime)
       retry: 1,
+      retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 15000),
       refetchOnWindowFocus: false,
+      refetchOnReconnect: 'always', // recover cleanly after offline / flaky Wi-Fi
+      networkMode: 'offlineFirst', // serve cache while offline instead of hanging
+    },
+    mutations: {
+      retry: 0,
+      networkMode: 'offlineFirst',
     },
   },
 });
