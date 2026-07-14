@@ -3129,17 +3129,29 @@
         const list = store[division] || [];
         strip.innerHTML = '';
         if (list.length === 0) return;
-        list.forEach(item => {
+        const track = document.createElement('div');
+        track.className = 'div-sub-track';
+        list.forEach((item, idx) => {
           const url = folderUrl((item.id || '').trim());
           const chip = document.createElement(url ? 'a' : 'span');
           chip.className = 'div-sub-chip' + (url ? '' : ' is-empty');
+          chip.setAttribute('data-num', String(idx + 1).padStart(2, '0'));
+          chip.setAttribute('data-folder', item.name || '');
           if (url) { chip.href = url; chip.target = '_blank'; chip.rel = 'noopener noreferrer'; }
           chip.title = item.name + (item.id ? ' — ' + item.id : '');
-          chip.innerHTML = '<span class="div-sub-name">' + (item.name || '—') + '</span>' + (url ? '<span class="div-sub-arrow" aria-hidden="true">↗</span>' : '');
-          strip.appendChild(chip);
+          chip.innerHTML =
+            '<span class="div-sub-name">' + (item.name || '—') + '</span>' +
+            (url ? '<span class="div-sub-arrow" aria-hidden="true">↗</span>' : '');
+          track.appendChild(chip);
         });
+        strip.appendChild(track);
+        const meta = document.createElement('div');
+        meta.className = 'div-sub-meta';
+        meta.innerHTML = list.length + ' folders <span class="div-sub-canva" aria-hidden="true">C</span>';
+        strip.appendChild(meta);
       });
     }
+
     renderDivisionStrips();
     // Re-render strips whenever the directory changes in section 9
     const _origSave = save;
