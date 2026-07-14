@@ -3595,8 +3595,8 @@
         const card = document.createElement('details');
         card.className = 'fv-card';
         card.setAttribute('role', 'listitem');
-        // Open the first two folders by default so users see content immediately
-        if (idx < 2) card.open = true;
+        // All folder shelves start closed on load
+        card.open = false;
 
         const folderUrl = divisionName ? folderUrlFor(divisionName, folderName) : '';
 
