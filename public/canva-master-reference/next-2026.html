@@ -3423,14 +3423,15 @@
     .fv-card--aux .fv-open.is-badge {
       pointer-events: none;
       background: rgba(var(--dsub-rgb), 0.14);
-      border-color: rgba(var(--dsub-rgb), 0.35);
-      color: rgb(var(--dsub-rgb));
+      border-color: rgba(var(--dsub-ink-rgb), 0.45);
+      color: rgb(var(--dsub-ink-rgb));
       letter-spacing: .06em;
     }
 
     /* Folder card — neutral "liquid glass" frame; accent lives only in icon + Open button */
     .fv-card {
       --dsub-rgb: var(--div-rgb, 19,177,243);
+      --dsub-ink-rgb: var(--div-ink-rgb, 6,128,189);
       --fv-frame-rgb: 15, 27, 61; /* off-black slate, neutral for all divisions */
       position: relative;
       border-radius: 12px;
