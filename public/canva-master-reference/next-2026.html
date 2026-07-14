@@ -4712,6 +4712,9 @@
   }
   .division-block.no-matches .ux-empty { display: block; }
   .division-block.no-matches table { display: none; }
+  /* Dim sub-group headers (screens / printables / pillars) with no matches */
+  details.ux-details-empty > summary { opacity: .35; }
+  details.ux-details-empty > table   { display: none; }
 
   mark.ux-mark {
     background: rgba(0,194,168,.28); color: inherit; padding: 0 1px; border-radius: 3px;
