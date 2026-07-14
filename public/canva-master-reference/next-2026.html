@@ -4874,7 +4874,7 @@
   // Reflect active-filter state as a dot on the Filters button
   function updateFiltersBtnState() {
     if (!filtersBtn) return;
-    const anyActive = !!toolbar.querySelector('.ux-chip[aria-pressed="true"]:not([data-variant="all"]):not([data-type="all"]):not([data-arrange="default"])');
+    const anyActive = !!toolbar.querySelector('.ux-chip[aria-pressed="true"]:not([data-variant="all"]):not([data-type="all"])');
     filtersBtn.classList.toggle('has-active', anyActive);
   }
   toolbar.addEventListener('click', (e) => {
