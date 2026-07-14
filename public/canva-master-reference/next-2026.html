@@ -5216,7 +5216,29 @@
   dropdown.className = 'ux-search-dropdown';
   dropdown.setAttribute('role', 'listbox');
   dropdown.hidden = true;
-  searchWrap.appendChild(dropdown);
+  document.body.appendChild(dropdown);
+
+  function positionDropdown() {
+    if (dropdown.hidden) return;
+    const r = searchWrap.getBoundingClientRect();
+    const gap = 6;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const spaceBelow = vh - r.bottom - gap;
+    const spaceAbove = r.top - gap;
+    const openUp = spaceBelow < 240 && spaceAbove > spaceBelow;
+    const maxH = Math.max(200, Math.min(Math.round(vh * 0.6), (openUp ? spaceAbove : spaceBelow) - 8));
+    dropdown.style.maxHeight = maxH + 'px';
+    dropdown.style.left = Math.max(8, Math.min(r.left, vw - r.width - 8)) + 'px';
+    dropdown.style.width = r.width + 'px';
+    if (openUp) {
+      dropdown.style.top = Math.max(8, r.top - gap - maxH) + 'px';
+    } else {
+      dropdown.style.top = (r.bottom + gap) + 'px';
+    }
+  }
+  window.addEventListener('scroll', positionDropdown, { passive: true });
+  window.addEventListener('resize', positionDropdown);
 
   let activeIdx = -1;
   let currentResults = [];
