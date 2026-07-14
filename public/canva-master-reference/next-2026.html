@@ -4920,10 +4920,16 @@
         // become searchable, not just the first three columns.
         const cellText = Array.from(row.cells || []).map((c) => c.textContent || '').join(' ');
         const fmt = row.cells[1]?.textContent || '';
+        const size = row.cells[2]?.textContent || '';
         const variant = inferVariant(fmt + ' ' + cellText);
+        const divisionName = (div.querySelector('h3')?.firstChild?.textContent || div.id.replace(/^div-/, '')).trim();
         rowIndex.push({
           row,
           division: div,
+          divisionName,
+          label: fmt.trim(),
+          size: size.trim(),
+          groupLabel: groupLabel.trim(),
           details,       // parent <details> if any — auto-opened on match
           table,
           text: (groupLabel + ' ' + cellText).toLowerCase(),
