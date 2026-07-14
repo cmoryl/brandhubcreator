@@ -5153,39 +5153,8 @@
       applyFilters();
     });
   });
-  toolbar.querySelectorAll('.ux-chip[data-arrange]').forEach((chip) => {
-    chip.addEventListener('click', () => {
-      const v = chip.getAttribute('data-arrange');
-      state.arrange = v;
-      toolbar.querySelectorAll('.ux-chip[data-arrange]').forEach((c) => {
-        c.setAttribute('aria-pressed', String(c === chip));
-      });
-      applyArrange();
-    });
-  });
 
-  // ---------- Arrange (reorder rows by variant) ----------
-  function applyArrange() {
-    // Ranks for sort: lower = earlier. Ties preserve original order.
-    const RANK = {
-      default: () => ({ light: 0, neutral: 0, dark: 0 }),
-      light:   () => ({ light: 0, neutral: 1, dark: 2 }),
-      dark:    () => ({ dark: 0,  neutral: 1, light: 2 }),
-      group:   () => ({ light: 0, dark: 1,    neutral: 2 }),
-    };
-    const rank = (RANK[state.arrange] || RANK.default)();
-    divisionRows.forEach(({ tbody, entries }) => {
-      const sorted = entries.slice().sort((a, b) => {
-        if (state.arrange === 'default') return a.originalIndex - b.originalIndex;
-        const ra = rank[a.variant] ?? 9;
-        const rb = rank[b.variant] ?? 9;
-        if (ra !== rb) return ra - rb;
-        return a.originalIndex - b.originalIndex;
-      });
-      // Re-append in sorted order (append moves existing nodes)
-      sorted.forEach(({ row }) => tbody.appendChild(row));
-    });
-  }
+
 
 
   document.getElementById('uxExpandAll').addEventListener('click', () => {
