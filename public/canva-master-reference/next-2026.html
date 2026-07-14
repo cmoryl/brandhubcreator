@@ -544,6 +544,39 @@
     border-radius: 4px;
   }
   .division-block h3 img.div-logo:hover { transform: scale(1.04); filter: drop-shadow(0 0 6px rgba(19,177,243,0.35)); }
+  /* Inline live Canva subfolder chips shown under each division h3 */
+  .division-subfolders {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    margin: 0 0 14px 0;
+    padding: 8px 10px;
+    background: rgba(var(--div-rgb, 19,177,243), 0.06);
+    border: 1px solid rgba(var(--div-rgb, 19,177,243), 0.22);
+    border-radius: 8px;
+  }
+  .division-subfolders:empty { display: none; }
+  .division-subfolders::before {
+    content: "Canva subfolders";
+    font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--muted); align-self: center; margin-right: 4px;
+  }
+  .div-sub-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 9px; border-radius: 999px;
+    background: #ffffff;
+    border: 1px solid rgba(var(--div-rgb, 19,177,243), 0.35);
+    color: var(--navy);
+    font-size: 12px; font-weight: 600;
+    text-decoration: none; line-height: 1.2;
+    transition: background .15s ease, border-color .15s ease, transform .15s ease;
+  }
+  .div-sub-chip:hover {
+    background: rgba(var(--div-rgb, 19,177,243), 0.12);
+    border-color: rgba(var(--div-rgb, 19,177,243), 0.6);
+    transform: translateY(-1px);
+  }
+  .div-sub-chip.is-empty { opacity: .55; cursor: default; }
+  .div-sub-arrow { font-size: 10px; color: var(--muted); }
+  .div-sub-chip:hover .div-sub-arrow { color: var(--navy); }
   td .div-logo-inline {
     height: 30px;
     width: auto;
@@ -1070,6 +1103,7 @@
 
   <div class="division-block" id="div-transperfect">
     <h3><img class="div-logo" src="TP-NEXT-Color-Logo.png" alt="TransPerfectNEXT color logo">TransPerfect</h3>
+    <div class="division-subfolders" data-division="TransPerfect" aria-label="Canva subfolders for TransPerfect"></div>
     <div class="quickref">
       <span class="swatch-lg" style="background:#13B1F3"></span>
       <div class="quickref-info">
@@ -1154,6 +1188,7 @@
 
   <div class="division-block" id="div-games">
     <h3><img class="div-logo" src="Games-NEXT-color-logo.png" alt="GamesNEXT color logo">Games</h3>
+    <div class="division-subfolders" data-division="Games" aria-label="Canva subfolders for Games"></div>
     <div class="quickref">
       <span class="swatch-lg" style="background:#A6FA87"></span>
       <div class="quickref-info">
@@ -1238,6 +1273,7 @@
 
   <div class="division-block" id="div-globallink">
     <h3><img class="div-logo" src="GlobalLink-NEXT-Color-Logo.png" alt="GlobalLinkNEXT color logo">GlobalLink</h3>
+    <div class="division-subfolders" data-division="GlobalLink" aria-label="Canva subfolders for GlobalLink"></div>
     <div class="quickref">
       <span class="swatch-lg" style="background:#13B1F3"></span>
       <div class="quickref-info">
@@ -1322,6 +1358,7 @@
 
   <div class="division-block" id="div-finance">
     <h3><img class="div-logo" src="Finance-NEXT-color-logo.png" alt="FinanceNEXT color logo">Finance</h3>
+    <div class="division-subfolders" data-division="Finance" aria-label="Canva subfolders for Finance"></div>
     <div class="quickref">
       <span class="swatch-lg" style="background:#FF9B70"></span>
       <div class="quickref-info">
@@ -1406,6 +1443,7 @@
 
   <div class="division-block" id="div-legal">
     <h3><img class="div-logo" src="Legal-NEXT-color-logo.png" alt="LegalNEXT color logo">Legal</h3>
+    <div class="division-subfolders" data-division="Legal" aria-label="Canva subfolders for Legal"></div>
     <div class="quickref">
       <span class="swatch-lg" style="background:#3BBEB6"></span>
       <div class="quickref-info">
@@ -1490,6 +1528,7 @@
 
   <div class="division-block" id="div-lifesci">
     <h3><img class="div-logo" src="Life-Sci-NEXT-color-logo.png" alt="Life SciNEXT color logo">Life Sci</h3>
+    <div class="division-subfolders" data-division="Life Sci" aria-label="Canva subfolders for Life Sci"></div>
     <div class="quickref">
       <span class="swatch-lg" style="background:#58ED21"></span>
       <div class="quickref-info">
@@ -1575,6 +1614,7 @@
 
   <div class="division-block" id="div-experience">
     <h3><img class="div-logo" src="Experience-NEXT-color-logo.png" alt="ExperienceNEXT color logo">Experience</h3>
+    <div class="division-subfolders" data-division="Experience" aria-label="Canva subfolders for Experience"></div>
     <div class="quickref">
       <span class="swatch-lg" style="background:#FF5757"></span>
       <div class="quickref-info">
@@ -1659,6 +1699,7 @@
 
   <div class="division-block" id="div-learn">
     <h3><img class="div-logo" src="Learn-NEXT-color-logo.png" alt="LearnNEXT color logo">Learn</h3>
+    <div class="division-subfolders" data-division="Learn" aria-label="Canva subfolders for Learn"></div>
     <div class="quickref">
       <span class="swatch-lg" style="background:#FFEB66"></span>
       <div class="quickref-info">
@@ -1743,6 +1784,7 @@
 
   <div class="division-block" id="div-media">
     <h3><img class="div-logo" src="Media-NEXT-color-logo.png" alt="MediaNEXT color logo">Media</h3>
+    <div class="division-subfolders" data-division="Media" aria-label="Canva subfolders for Media"></div>
     <div class="quickref">
       <span class="swatch-lg" style="background:#EC388A"></span>
       <div class="quickref-info">
@@ -1827,6 +1869,7 @@
 
   <div class="division-block" id="div-digital">
     <h3><img class="div-logo" src="Digital-NEXT-color-logo.png" alt="DigitalNEXT color logo">Digital</h3>
+    <div class="division-subfolders" data-division="Digital" aria-label="Canva subfolders for Digital"></div>
     <div class="quickref">
       <span class="swatch-lg" style="background:#C2A3FF"></span>
       <div class="quickref-info">
@@ -1911,6 +1954,7 @@
 
   <div class="division-block" id="div-dataforce">
     <h3><img class="div-logo" src="Dataforce-NEXT-color-Logo.png" alt="DataforceNEXT color logo">Dataforce</h3>
+    <div class="division-subfolders" data-division="Dataforce" aria-label="Canva subfolders for Dataforce"></div>
     <div class="quickref">
       <span class="swatch-lg" style="background:#5CE1E6"></span>
       <div class="quickref-info">
@@ -2948,6 +2992,35 @@
         renderSubList(list, division);
       });
     });
+
+    // Render inline subfolder strips on each division block in section 3
+    function renderDivisionStrips(){
+      document.querySelectorAll('.division-subfolders').forEach(strip => {
+        const division = strip.getAttribute('data-division');
+        const list = store[division] || [];
+        strip.innerHTML = '';
+        if (list.length === 0) return;
+        list.forEach(item => {
+          const url = folderUrl((item.id || '').trim());
+          const chip = document.createElement(url ? 'a' : 'span');
+          chip.className = 'div-sub-chip' + (url ? '' : ' is-empty');
+          if (url) { chip.href = url; chip.target = '_blank'; chip.rel = 'noopener noreferrer'; }
+          chip.title = item.name + (item.id ? ' — ' + item.id : '');
+          chip.innerHTML = '<span class="div-sub-name">' + (item.name || '—') + '</span>' + (url ? '<span class="div-sub-arrow" aria-hidden="true">↗</span>' : '');
+          strip.appendChild(chip);
+        });
+      });
+    }
+    renderDivisionStrips();
+    // Re-render strips whenever the directory changes in section 9
+    const _origSave = save;
+    window.addEventListener('storage', e => { if (e.key === LS_KEY) { Object.assign(store, load()); renderDivisionStrips(); } });
+    // Patch save() so in-page edits also refresh strips
+    (function(){
+      const orig = save;
+      // eslint-disable-next-line no-func-assign
+      save = function(d){ orig(d); renderDivisionStrips(); };
+    })();
   })();
   </script>
 
