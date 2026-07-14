@@ -4712,6 +4712,9 @@
   }
   .division-block.no-matches .ux-empty { display: block; }
   .division-block.no-matches table { display: none; }
+  /* Dim sub-group headers (screens / printables / pillars) with no matches */
+  details.ux-details-empty > summary { opacity: .35; }
+  details.ux-details-empty > table   { display: none; }
 
   mark.ux-mark {
     background: rgba(0,194,168,.28); color: inherit; padding: 0 1px; border-radius: 3px;
@@ -4906,24 +4909,37 @@
   const rowIndex = []; // {row, division, search, variant, type}
   const divisionRows = new Map(); // division -> { tbody, entries: [{row, variant, originalIndex}] }
   divisions.forEach((div) => {
-    const table = div.querySelector('table');
-    if (!table) return;
-    const rows = Array.from(table.querySelectorAll('tr')).slice(1); // skip header
-    const tbody = rows[0]?.parentNode || table.querySelector('tbody') || table;
+    const tables = Array.from(div.querySelectorAll('table'));
+    if (!tables.length) return;
+    // Primary table (main format list) drives ARRANGE reordering; sub-tables
+    // (S-series screens, G-series printables, P-series pillars inside <details>)
+    // are still indexed for search/filter but not re-sorted.
+    const primary = tables[0];
+    const primaryRows = Array.from(primary.querySelectorAll('tr')).slice(1);
+    const tbody = primaryRows[0]?.parentNode || primary.querySelector('tbody') || primary;
     const entries = [];
-    rows.forEach((row, i) => {
-      const fmt = row.cells[1]?.textContent || '';
-      const size = row.cells[2]?.textContent || '';
-      const ex = row.cells[3]?.textContent || '';
-      const variant = inferVariant(fmt);
-      rowIndex.push({
-        row,
-        division: div,
-        text: (fmt + ' ' + size + ' ' + ex).toLowerCase(),
-        variant,
-        type: inferType(fmt),
+
+    tables.forEach((table, tIdx) => {
+      const details = table.closest('details');
+      const groupLabel = details ? (details.querySelector('summary')?.textContent || '') : '';
+      const rows = Array.from(table.querySelectorAll('tr')).slice(1);
+      rows.forEach((row, i) => {
+        // Collect ALL cell text so codes like "S3", "G7", "P1" and sign names
+        // become searchable, not just the first three columns.
+        const cellText = Array.from(row.cells || []).map((c) => c.textContent || '').join(' ');
+        const fmt = row.cells[1]?.textContent || '';
+        const variant = inferVariant(fmt + ' ' + cellText);
+        rowIndex.push({
+          row,
+          division: div,
+          details,       // parent <details> if any — auto-opened on match
+          table,
+          text: (groupLabel + ' ' + cellText).toLowerCase(),
+          variant,
+          type: inferType(fmt + ' ' + groupLabel),
+        });
+        if (tIdx === 0) entries.push({ row, variant, originalIndex: i });
       });
-      entries.push({ row, variant, originalIndex: i });
     });
     divisionRows.set(div, { tbody, entries });
 
@@ -4936,7 +4952,7 @@
     // Header controls: copy-link + toggle badge/chevron
     const h3 = div.querySelector('h3');
     if (h3 && !h3.querySelector('.division-toggle')) {
-      const total = rows.length;
+      const total = rowIndex.filter((r) => r.division === div).length;
 
       const copy = document.createElement('button');
       copy.type = 'button';
@@ -5063,8 +5079,10 @@
     let shown = 0;
     const total = rowIndex.length;
     const perDivision = new Map();
+    const detailsMatchCount = new Map(); // <details> -> visible row count
+    const filterActive = !!q || state.variant !== 'all' || state.type !== 'all';
 
-    rowIndex.forEach(({ row, division, text, variant, type }) => {
+    rowIndex.forEach(({ row, division, details, text, variant, type }) => {
       const matchQ = !q || text.includes(q);
       const matchV = state.variant === 'all' || variant === state.variant;
       const matchT = state.type === 'all' || type === state.type;
@@ -5072,7 +5090,21 @@
       row.classList.toggle('is-filtered-out', !visible);
       if (visible) shown++;
       perDivision.set(division, (perDivision.get(division) || 0) + (visible ? 1 : 0));
+      if (details) {
+        detailsMatchCount.set(details, (detailsMatchCount.get(details) || 0) + (visible ? 1 : 0));
+      }
       highlightRow(row, q);
+    });
+
+    // Auto-open <details> groups (screens / printables / pillars) that contain
+    // matching rows; collapse them back when a search clears no rows there.
+    detailsMatchCount.forEach((count, details) => {
+      if (filterActive) {
+        if (count > 0) details.setAttribute('open', '');
+        details.classList.toggle('ux-details-empty', count === 0);
+      } else {
+        details.classList.remove('ux-details-empty');
+      }
     });
 
     // Update per-division badge and auto-expand on active search
@@ -5081,13 +5113,11 @@
       const badge = d.querySelector('.row-count-badge');
       if (badge) {
         const totalRows = parseInt(badge.getAttribute('data-total') || '0', 10);
-        badge.textContent = (q || state.variant !== 'all' || state.type !== 'all')
-          ? `${count}/${totalRows}`
-          : String(totalRows);
+        badge.textContent = filterActive ? `${count}/${totalRows}` : String(totalRows);
       }
       d.classList.toggle('no-matches', count === 0);
       // Auto-expand any division with matches when a filter is active
-      if ((q || state.variant !== 'all' || state.type !== 'all') && count > 0) {
+      if (filterActive && count > 0) {
         d.classList.remove('is-collapsed');
         const t = d.querySelector('.division-toggle');
         if (t) t.setAttribute('aria-expanded', 'true');
