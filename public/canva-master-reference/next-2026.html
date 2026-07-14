@@ -2650,23 +2650,23 @@
   <div class="canva-dir-grid">
     <div class="canva-dir-card">
       <h4>Division subfolders (11)</h4>
-      <table class="canva-dir-table">
-        <thead><tr><th>Division</th><th>Folder ID</th></tr></thead>
+      <table class="canva-dir-table canva-dir-divisions">
+        <thead><tr><th style="width:28px"></th><th>Division</th><th>Folder ID</th><th style="width:110px; text-align:right">Subfolders</th></tr></thead>
         <tbody>
-          <tr><td>TransPerfect</td><td><code>FAHPRyXS61o</code></td></tr>
-          <tr><td>GlobalLink</td><td><code>FAHPR3ow2Cs</code></td></tr>
-          <tr><td>Games</td><td><code>FAHPR1_6UFk</code></td></tr>
-          <tr><td>Finance</td><td><code>FAHPR0J0H6g</code></td></tr>
-          <tr><td>Legal</td><td><code>FAHPR0S6RHI</code></td></tr>
-          <tr><td>Life Sci</td><td><code>FAHPR7s4kbY</code></td></tr>
-          <tr><td>Experience</td><td><code>FAHPRwWEGAY</code></td></tr>
-          <tr><td>Learn</td><td><code>FAHPR_sFxuw</code></td></tr>
-          <tr><td>Media</td><td><code>FAHPR6djzeQ</code></td></tr>
-          <tr><td>Digital</td><td><code>FAHPR8xaydI</code></td></tr>
-          <tr><td>Dataforce</td><td><code>FAHPR8HkLkY</code></td></tr>
+          <tr data-division="TransPerfect" data-folder-id="FAHPRyXS61o"><td class="cdt-toggle">▸</td><td>TransPerfect</td><td><code>FAHPRyXS61o</code></td><td class="cdt-count">0</td></tr>
+          <tr data-division="GlobalLink"  data-folder-id="FAHPR3ow2Cs"><td class="cdt-toggle">▸</td><td>GlobalLink</td><td><code>FAHPR3ow2Cs</code></td><td class="cdt-count">0</td></tr>
+          <tr data-division="Games"       data-folder-id="FAHPR1_6UFk"><td class="cdt-toggle">▸</td><td>Games</td><td><code>FAHPR1_6UFk</code></td><td class="cdt-count">0</td></tr>
+          <tr data-division="Finance"     data-folder-id="FAHPR0J0H6g"><td class="cdt-toggle">▸</td><td>Finance</td><td><code>FAHPR0J0H6g</code></td><td class="cdt-count">0</td></tr>
+          <tr data-division="Legal"       data-folder-id="FAHPR0S6RHI"><td class="cdt-toggle">▸</td><td>Legal</td><td><code>FAHPR0S6RHI</code></td><td class="cdt-count">0</td></tr>
+          <tr data-division="Life Sci"    data-folder-id="FAHPR7s4kbY"><td class="cdt-toggle">▸</td><td>Life Sci</td><td><code>FAHPR7s4kbY</code></td><td class="cdt-count">0</td></tr>
+          <tr data-division="Experience"  data-folder-id="FAHPRwWEGAY"><td class="cdt-toggle">▸</td><td>Experience</td><td><code>FAHPRwWEGAY</code></td><td class="cdt-count">0</td></tr>
+          <tr data-division="Learn"       data-folder-id="FAHPR_sFxuw"><td class="cdt-toggle">▸</td><td>Learn</td><td><code>FAHPR_sFxuw</code></td><td class="cdt-count">0</td></tr>
+          <tr data-division="Media"       data-folder-id="FAHPR6djzeQ"><td class="cdt-toggle">▸</td><td>Media</td><td><code>FAHPR6djzeQ</code></td><td class="cdt-count">0</td></tr>
+          <tr data-division="Digital"     data-folder-id="FAHPR8xaydI"><td class="cdt-toggle">▸</td><td>Digital</td><td><code>FAHPR8xaydI</code></td><td class="cdt-count">0</td></tr>
+          <tr data-division="Dataforce"   data-folder-id="FAHPR8HkLkY"><td class="cdt-toggle">▸</td><td>Dataforce</td><td><code>FAHPR8HkLkY</code></td><td class="cdt-count">0</td></tr>
         </tbody>
       </table>
-      <p class="kb-hint">Each division folder contains the canonical 7-subfolder set: Social Ads, Content Social Banners, Email Banners, Advocacy, Speakers, Signs, Sponsorship Packet.</p>
+      <p class="kb-hint">Click any division row to expand its subfolder listing. Canonical 7-subfolder set per division: Social Ads, Content Social Banners, Email Banners, Advocacy, Speakers, Signs, Sponsorship Packet. Add IDs as folders are created — entries save locally in your browser.</p>
     </div>
 
     <div class="canva-dir-card canva-dir-card--new">
@@ -2690,7 +2690,136 @@
     .canva-dir-table th, .canva-dir-table td { text-align: left; padding: 6px 8px; border-bottom: 1px solid rgba(19,177,243,0.12); }
     .canva-dir-table th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.03em; }
     .canva-dir-table code { font-size: 12px; }
+
+    /* Expandable division rows */
+    .canva-dir-divisions tbody tr[data-division] { cursor: pointer; transition: background .15s; }
+    .canva-dir-divisions tbody tr[data-division]:hover { background: rgba(19,177,243,0.06); }
+    .canva-dir-divisions tr.cdt-open .cdt-toggle { transform: rotate(90deg); }
+    .canva-dir-divisions .cdt-toggle { display: inline-block; transition: transform .18s; color: var(--muted); font-size: 11px; }
+    .canva-dir-divisions .cdt-count { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; font-size: 12px; }
+    .cdt-subrow > td { background: rgba(15,23,42,0.02); padding: 10px 12px 14px !important; border-bottom: 1px solid rgba(19,177,243,0.18); }
+    .cdt-sub-wrap { display: flex; flex-direction: column; gap: 8px; }
+    .cdt-sub-list { display: flex; flex-direction: column; gap: 6px; }
+    .cdt-sub-item { display: grid; grid-template-columns: 1fr 200px 26px; gap: 8px; align-items: center; }
+    .cdt-sub-item input { width: 100%; padding: 6px 9px; border: 1px solid #e2e8f0; border-radius: 6px; background: #fff; color: #0f1b3d; font-size: 12px; font-family: inherit; }
+    .cdt-sub-item input.cdt-sub-id { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; }
+    .cdt-sub-item input:focus { outline: none; border-color: #13B1F3; box-shadow: 0 0 0 3px rgba(19,177,243,0.15); }
+    .cdt-sub-remove { width: 26px; height: 26px; border: 1px solid #e2e8f0; background: #fff; color: #64748b; border-radius: 6px; cursor: pointer; font-size: 14px; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
+    .cdt-sub-remove:hover { background: #fef2f2; border-color: #fecaca; color: #dc2626; }
+    .cdt-sub-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 4px; }
+    .cdt-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid #e2e8f0; background: #fff; color: #0f1b3d; font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; }
+    .cdt-btn:hover { border-color: #13B1F3; color: #13B1F3; }
+    .cdt-btn--primary { background: #13B1F3; border-color: #13B1F3; color: #fff; }
+    .cdt-btn--primary:hover { background: #0d8fd0; border-color: #0d8fd0; color: #fff; }
+    .cdt-sub-head { display: grid; grid-template-columns: 1fr 200px 26px; gap: 8px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; padding: 0 2px; }
+    .cdt-empty { font-size: 12px; color: var(--muted); font-style: italic; padding: 4px 2px; }
   </style>
+
+  <script>
+  (function(){
+    const LS_KEY = 'next2026.canvaDirSubfolders.v1';
+    const CANONICAL = ['Social Ads','Content Social Banners','Email Banners','Advocacy','Speakers','Signs','Sponsorship Packet'];
+    function load(){ try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch(e){ return {}; } }
+    function save(data){ try { localStorage.setItem(LS_KEY, JSON.stringify(data)); } catch(e){} }
+    const store = load();
+
+    const table = document.querySelector('.canva-dir-divisions');
+    if (!table) return;
+    const rows = Array.from(table.querySelectorAll('tbody tr[data-division]'));
+
+    function updateCount(row, division){
+      const list = store[division] || [];
+      const cell = row.querySelector('.cdt-count');
+      if (cell) cell.textContent = String(list.length);
+    }
+
+    function renderSubList(container, division){
+      const list = store[division] || [];
+      container.innerHTML = '';
+      if (list.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'cdt-empty';
+        empty.textContent = 'No subfolders added yet. Click "Add subfolder" or "Seed canonical 7" below.';
+        container.appendChild(empty);
+        return;
+      }
+      const head = document.createElement('div');
+      head.className = 'cdt-sub-head';
+      head.innerHTML = '<span>Subfolder name</span><span>Canva folder ID</span><span></span>';
+      container.appendChild(head);
+      list.forEach((item, idx) => {
+        const row = document.createElement('div');
+        row.className = 'cdt-sub-item';
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text'; nameInput.value = item.name || ''; nameInput.placeholder = 'e.g. Social Ads';
+        nameInput.addEventListener('input', e => { list[idx].name = e.target.value; store[division] = list; save(store); });
+        const idInput = document.createElement('input');
+        idInput.type = 'text'; idInput.value = item.id || ''; idInput.placeholder = 'FAHP…'; idInput.className = 'cdt-sub-id';
+        idInput.addEventListener('input', e => { list[idx].id = e.target.value.trim(); store[division] = list; save(store); });
+        const rm = document.createElement('button');
+        rm.type = 'button'; rm.className = 'cdt-sub-remove'; rm.textContent = '×'; rm.title = 'Remove';
+        rm.addEventListener('click', () => {
+          list.splice(idx, 1); store[division] = list; save(store);
+          renderSubList(container, division);
+          const parentRow = table.querySelector('tr[data-division="'+division.replace(/"/g,'\\"')+'"]');
+          if (parentRow) updateCount(parentRow, division);
+        });
+        row.appendChild(nameInput); row.appendChild(idInput); row.appendChild(rm);
+        container.appendChild(row);
+      });
+    }
+
+    rows.forEach(row => {
+      const division = row.getAttribute('data-division');
+      updateCount(row, division);
+      row.addEventListener('click', (e) => {
+        // Avoid toggling when clicking a code element (for select/copy)
+        if (e.target.tagName === 'CODE') return;
+        const existing = row.nextElementSibling;
+        if (existing && existing.classList.contains('cdt-subrow')) {
+          existing.remove();
+          row.classList.remove('cdt-open');
+          return;
+        }
+        row.classList.add('cdt-open');
+        const tr = document.createElement('tr');
+        tr.className = 'cdt-subrow';
+        const td = document.createElement('td');
+        td.colSpan = 4;
+        const wrap = document.createElement('div');
+        wrap.className = 'cdt-sub-wrap';
+        const list = document.createElement('div');
+        list.className = 'cdt-sub-list';
+        wrap.appendChild(list);
+        const actions = document.createElement('div');
+        actions.className = 'cdt-sub-actions';
+        const add = document.createElement('button');
+        add.type = 'button'; add.className = 'cdt-btn cdt-btn--primary'; add.textContent = '+ Add subfolder';
+        add.addEventListener('click', () => {
+          store[division] = store[division] || [];
+          store[division].push({ name: '', id: '' });
+          save(store); renderSubList(list, division); updateCount(row, division);
+        });
+        const seed = document.createElement('button');
+        seed.type = 'button'; seed.className = 'cdt-btn'; seed.textContent = 'Seed canonical 7';
+        seed.addEventListener('click', () => {
+          const existingList = store[division] || [];
+          const have = new Set(existingList.map(x => (x.name || '').trim().toLowerCase()));
+          CANONICAL.forEach(name => { if (!have.has(name.toLowerCase())) existingList.push({ name, id: '' }); });
+          store[division] = existingList; save(store);
+          renderSubList(list, division); updateCount(row, division);
+        });
+        actions.appendChild(add); actions.appendChild(seed);
+        wrap.appendChild(actions);
+        td.appendChild(wrap);
+        tr.appendChild(td);
+        row.parentNode.insertBefore(tr, row.nextSibling);
+        renderSubList(list, division);
+      });
+    });
+  })();
+  </script>
+
 
 
 
