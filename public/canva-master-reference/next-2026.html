@@ -809,6 +809,47 @@
     border-radius: 8px;
     padding: 20px;
   }
+  /* Dual-variant grid: horizontal + stacked side by side */
+  .logo-modal-variants {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    width: 100%;
+  }
+  .logo-variant-tile {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    padding: 16px 14px 14px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(15,27,61,0.04);
+  }
+  .logo-variant-label {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+    color: #64748b;
+  }
+  .logo-variant-frame {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    display: flex; align-items: center; justify-content: center;
+    background: #ffffff;
+    border: 1px solid #eef2f7;
+    border-radius: 8px;
+    padding: 14px;
+  }
+  .logo-variant-frame img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .logo-variant-download {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px;
+    border-radius: 7px;
+    font-size: 11.5px; font-weight: 600; letter-spacing: .04em;
+    text-decoration: none;
+    background: #ffffff; color: #0f1b3d;
+    border: 1px solid #cbd5e1;
+    transition: background .15s ease, box-shadow .15s ease, transform .15s ease;
+  }
+  .logo-variant-download:hover { background: #f1f5f9; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(15,23,42,0.08); }
   .logo-modal-actions {
     display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
   }
@@ -836,6 +877,7 @@
   @media (max-width: 600px) {
     .logo-modal-inner { padding: 22px 16px 16px; }
     .logo-modal-img { max-height: 45vh; padding: 12px; }
+    .logo-modal-variants { grid-template-columns: 1fr; }
   }
   .coming-soon {
     display: inline-block;
@@ -4012,15 +4054,29 @@
   <div class="logo-modal-inner">
     <button class="logo-modal-close" type="button" aria-label="Close">×</button>
     <h4 class="logo-modal-title" id="logoModalTitle">Logo preview</h4>
-    <img class="logo-modal-img" id="logoModalImg" alt="">
+
+    <div class="logo-modal-variants" id="logoModalVariants">
+      <div class="logo-variant-tile">
+        <span class="logo-variant-label">Horizontal · Side&nbsp;by&nbsp;Side</span>
+        <div class="logo-variant-frame">
+          <img id="logoVariantHorizontalImg" alt="">
+        </div>
+        <a class="logo-variant-download" id="logoVariantHorizontalDl" href="#" download>⬇ Download PNG</a>
+      </div>
+      <div class="logo-variant-tile">
+        <span class="logo-variant-label">Stacked</span>
+        <div class="logo-variant-frame">
+          <img id="logoVariantStackedImg" alt="">
+        </div>
+        <a class="logo-variant-download" id="logoVariantStackedDl" href="#" download>⬇ Download PNG</a>
+      </div>
+    </div>
+
     <div class="logo-modal-actions">
       <a class="logo-modal-btn" id="logoModalDropbox"
          href="https://www.dropbox.com/scl/fo/34fnuuaavzogym4ghdfah/AD2j6gHeEEAj-Z260jfOWps?rlkey=36fqno2jixjjgb4l3wslrwpb8&dl=0"
          target="_blank" rel="noopener">
-        ⬇ Download logo variations (Dropbox)
-      </a>
-      <a class="logo-modal-btn secondary" id="logoModalDirect" href="#" download>
-        Download this file
+        ⬇ Download full logo set (Dropbox)
       </a>
     </div>
     <p class="logo-modal-hint" id="logoModalHint">Color, reversed, stacked &amp; horizontal variations for this division.</p>
@@ -4030,12 +4086,14 @@
 (function(){
   const modal = document.getElementById('logoModal');
   if (!modal) return;
-  const imgEl = document.getElementById('logoModalImg');
   const titleEl = document.getElementById('logoModalTitle');
-  const directBtn = document.getElementById('logoModalDirect');
   const dropboxBtn = document.getElementById('logoModalDropbox');
   const hintEl = document.getElementById('logoModalHint');
   const closeBtn = modal.querySelector('.logo-modal-close');
+  const hImg = document.getElementById('logoVariantHorizontalImg');
+  const sImg = document.getElementById('logoVariantStackedImg');
+  const hDl  = document.getElementById('logoVariantHorizontalDl');
+  const sDl  = document.getElementById('logoVariantStackedDl');
 
   // Per-division Dropbox subfolder URLs (each contains that division's full logo set)
   const SHARED_DROPBOX = 'https://www.dropbox.com/scl/fo/34fnuuaavzogym4ghdfah/AD2j6gHeEEAj-Z260jfOWps?rlkey=36fqno2jixjjgb4l3wslrwpb8&dl=0';
@@ -4053,6 +4111,21 @@
     'dataforce':    'https://www.dropbox.com/scl/fo/34fnuuaavzogym4ghdfah/AGJhwGq1RWNQNDQgx7B2M1c/Dataforce?rlkey=36fqno2jixjjgb4l3wslrwpb8&dl=0'
   };
 
+  // Local PNG paths for the two lockup styles per division (same folder as this HTML)
+  const DIVISION_LOGOS = {
+    'transperfect': { horizontal: 'TP-NEXT-Color-Logo.png',        stacked: 'TP-NEXT-stacked-color-Logo.png' },
+    'games':        { horizontal: 'Games-NEXT-color-logo.png',     stacked: 'Games-NEXT-stacked-color-logo.png' },
+    'globallink':   { horizontal: 'GlobalLink-NEXT-Color-Logo.png',stacked: 'GlobalLink-NEXT-Stacked-Color-Logo.png' },
+    'finance':      { horizontal: 'Finance-NEXT-color-logo.png',   stacked: 'Finance-NEXT-stacked-color-logo.png' },
+    'legal':        { horizontal: 'Legal-NEXT-color-logo.png',     stacked: 'Legal-NEXT-stacked-color-logo.png' },
+    'life sci':     { horizontal: 'Life-Sci-NEXT-color-logo.png',  stacked: 'Life-Sci-NEXT-stacked-color-logo.png' },
+    'experience':   { horizontal: 'Experience-NEXT-color-logo.png',stacked: 'Experience-NEXT-stacked-color-Logo.png' },
+    'learn':        { horizontal: 'Learn-NEXT-color-logo.png',     stacked: 'Learn-NEXT-stacked-color-logo.png' },
+    'media':        { horizontal: 'Media-NEXT-color-logo.png',     stacked: 'Media-NEXT-stacked-color-logo.png' },
+    'digital':      { horizontal: 'Digital-NEXT-color-logo.png',   stacked: 'Digital-NEXT-stacked-color-logo.png' },
+    'dataforce':    { horizontal: 'Dataforce-NEXT-color-Logo.png', stacked: 'Dataforce-NEXT-stacked-color-Logo.png' }
+  };
+
   function detectDivision(alt, src) {
     const hay = ((alt || '') + ' ' + (src || '')).toLowerCase();
     // Order matters: "life sci" and "globallink" must be checked before generic tokens
@@ -4064,60 +4137,25 @@
     return null;
   }
 
-  // Attach zoom behavior to every inline division logo in the registry table (section 2)
-  const registry = document.getElementById('sec-2');
-  if (registry) {
-    let node = registry.nextElementSibling;
-    while (node && node.tagName !== 'TABLE') node = node.nextElementSibling;
-    if (node) {
-      node.querySelectorAll('img.div-logo-inline').forEach(img => {
-        img.classList.add('clickable');
-        img.setAttribute('tabindex', '0');
-        img.setAttribute('role', 'button');
-        img.setAttribute('title', 'Click to enlarge & download variations');
-        const open = () => {
-          const division = detectDivision(img.alt, img.src);
-          const label = division
-            ? division.replace(/\b\w/g, c => c.toUpperCase())
-            : (img.alt || 'Logo').replace(/color logo/i, '').trim();
-          imgEl.src = img.src;
-          imgEl.alt = img.alt || 'Division logo';
-          titleEl.textContent = label + ' logo';
-          directBtn.href = img.src;
-          if (division && DIVISION_DROPBOX[division]) {
-            dropboxBtn.href = DIVISION_DROPBOX[division];
-            dropboxBtn.textContent = '⬇ Download ' + label + ' logo set (Dropbox)';
-            hintEl.textContent = 'Opens the ' + label + ' subfolder in the shared NEXT 2026 logo Dropbox.';
-          } else {
-            dropboxBtn.href = SHARED_DROPBOX;
-            dropboxBtn.textContent = '⬇ Download logo variations (Dropbox)';
-            hintEl.textContent = 'Opens the shared NEXT 2026 logo Dropbox folder.';
-          }
-          modal.classList.add('open');
-          document.body.style.overflow = 'hidden';
-        };
-        img.addEventListener('click', open);
-        img.addEventListener('keydown', e => {
-          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
-        });
-      });
-    }
-  }
-
-  // Attach logo download actions to every division-block header (h3)
   function openLogoModal(img, divisionKey) {
     const division = divisionKey || detectDivision(img.alt, img.src);
     const label = division
       ? division.replace(/\b\w/g, c => c.toUpperCase())
       : (img.alt || 'Logo').replace(/color logo/i, '').trim();
-    imgEl.src = img.src;
-    imgEl.alt = img.alt || 'Division logo';
     titleEl.textContent = label + ' logo';
-    directBtn.href = img.src;
+
+    const files = (division && DIVISION_LOGOS[division]) || null;
+    const horizontalSrc = files ? files.horizontal : img.src;
+    const stackedSrc    = files ? files.stacked    : img.src;
+    hImg.src = horizontalSrc; hImg.alt = label + ' horizontal color logo';
+    sImg.src = stackedSrc;    sImg.alt = label + ' stacked color logo';
+    hDl.href = horizontalSrc; hDl.setAttribute('download', horizontalSrc.split('/').pop());
+    sDl.href = stackedSrc;    sDl.setAttribute('download', stackedSrc.split('/').pop());
+
     if (division && DIVISION_DROPBOX[division]) {
       dropboxBtn.href = DIVISION_DROPBOX[division];
       dropboxBtn.textContent = '⬇ Download ' + label + ' logo set (Dropbox)';
-      hintEl.textContent = 'Opens the ' + label + ' subfolder in the shared NEXT 2026 logo Dropbox.';
+      hintEl.textContent = 'Horizontal (side-by-side) & stacked lockups shown above. Dropbox contains the full ' + label + ' variation set (color, reversed, mono, SVG/PNG).';
     } else {
       dropboxBtn.href = SHARED_DROPBOX;
       dropboxBtn.textContent = '⬇ Download logo variations (Dropbox)';
@@ -4127,8 +4165,29 @@
     document.body.style.overflow = 'hidden';
   }
 
+  function wireLogoTrigger(img) {
+    img.classList.add('clickable');
+    img.setAttribute('tabindex', '0');
+    img.setAttribute('role', 'button');
+    img.setAttribute('title', 'Click to view horizontal & stacked lockups + download');
+    img.style.cursor = 'zoom-in';
+    const open = (e) => { e && e.preventDefault && e.preventDefault(); openLogoModal(img); };
+    img.addEventListener('click', open);
+    img.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLogoModal(img); }
+    });
+  }
 
+  // Registry table (section 2) — inline stacked logos
+  const registry = document.getElementById('sec-2');
+  if (registry) {
+    let node = registry.nextElementSibling;
+    while (node && node.tagName !== 'TABLE') node = node.nextElementSibling;
+    if (node) node.querySelectorAll('img.div-logo-inline').forEach(wireLogoTrigger);
+  }
 
+  // Every division-block header (h3) logo
+  document.querySelectorAll('.division-block h3 img.div-logo').forEach(wireLogoTrigger);
 
   const close = () => {
     modal.classList.remove('open');
