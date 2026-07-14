@@ -4467,19 +4467,18 @@
   .ux-search input:focus ~ .ux-search-kbd,
   .ux-search input:not(:placeholder-shown) ~ .ux-search-kbd { display: none; }
 
-  /* Search results dropdown (popover under the input) */
+  /* Search results dropdown (popover under the input) — fixed so it
+     escapes any ancestor overflow/stacking context and always floats
+     above other UI while the user scrolls. Position is synced in JS. */
   .ux-search-dropdown {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
-    right: 0;
-    max-height: 380px;
+    position: fixed;
+    max-height: 60vh;
     overflow-y: auto;
     background: #fff;
     border: 1px solid var(--border);
     border-radius: 12px;
     box-shadow: 0 12px 32px rgba(10, 18, 44, .18), 0 2px 6px rgba(10, 18, 44, .08);
-    z-index: 1000;
+    z-index: 2147483000;
     padding: 6px;
   }
   .ux-search-dropdown[hidden] { display: none; }
@@ -5217,7 +5216,29 @@
   dropdown.className = 'ux-search-dropdown';
   dropdown.setAttribute('role', 'listbox');
   dropdown.hidden = true;
-  searchWrap.appendChild(dropdown);
+  document.body.appendChild(dropdown);
+
+  function positionDropdown() {
+    if (dropdown.hidden) return;
+    const r = searchWrap.getBoundingClientRect();
+    const gap = 6;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const spaceBelow = vh - r.bottom - gap;
+    const spaceAbove = r.top - gap;
+    const openUp = spaceBelow < 240 && spaceAbove > spaceBelow;
+    const maxH = Math.max(200, Math.min(Math.round(vh * 0.6), (openUp ? spaceAbove : spaceBelow) - 8));
+    dropdown.style.maxHeight = maxH + 'px';
+    dropdown.style.left = Math.max(8, Math.min(r.left, vw - r.width - 8)) + 'px';
+    dropdown.style.width = r.width + 'px';
+    if (openUp) {
+      dropdown.style.top = Math.max(8, r.top - gap - maxH) + 'px';
+    } else {
+      dropdown.style.top = (r.bottom + gap) + 'px';
+    }
+  }
+  window.addEventListener('scroll', positionDropdown, { passive: true });
+  window.addEventListener('resize', positionDropdown);
 
   let activeIdx = -1;
   let currentResults = [];
@@ -5245,6 +5266,7 @@
       dropdown.innerHTML = `<div class="ux-sd-empty">No matches for "${escapeHtml(state.q)}"</div>`;
       dropdown.hidden = false;
       activeIdx = -1;
+      positionDropdown();
       return;
     }
     const header = `<div class="ux-sd-header">${matches.length} result${matches.length === 1 ? '' : 's'}${matches.length > currentResults.length ? ` · showing top ${currentResults.length}` : ''}</div>`;
@@ -5258,6 +5280,7 @@
     dropdown.innerHTML = header + body;
     dropdown.hidden = false;
     activeIdx = -1;
+    positionDropdown();
   }
 
   function setActive(i) {
