@@ -5150,70 +5150,16 @@
   }
 
 
-  // ---------- Wire up controls ----------
-
-
-  toolbar.querySelectorAll('.ux-chip[data-variant]').forEach((chip) => {
-    chip.addEventListener('click', () => {
-      const v = chip.getAttribute('data-variant');
-      state.variant = v;
-      toolbar.querySelectorAll('.ux-chip[data-variant]').forEach((c) => {
-        c.setAttribute('aria-pressed', String(c === chip));
-      });
-      applyFilters();
-    });
-  });
-  toolbar.querySelectorAll('.ux-chip[data-type]').forEach((chip) => {
-    chip.addEventListener('click', () => {
-      const v = chip.getAttribute('data-type');
-      state.type = v;
-      toolbar.querySelectorAll('.ux-chip[data-type]').forEach((c) => {
-        c.setAttribute('aria-pressed', String(c === chip));
-      });
-      applyFilters();
-    });
-  });
-
-
-
-
-  document.getElementById('uxExpandAll').addEventListener('click', () => {
-    divisions.forEach((d) => {
-      d.classList.remove('is-collapsed');
-      const t = d.querySelector('.division-toggle');
-      if (t) t.setAttribute('aria-expanded', 'true');
-    });
-    persistCollapsed();
-  });
-  document.getElementById('uxCollapseAll').addEventListener('click', () => {
-    divisions.forEach((d) => {
-      d.classList.add('is-collapsed');
-      const t = d.querySelector('.division-toggle');
-      if (t) t.setAttribute('aria-expanded', 'false');
-    });
-    persistCollapsed();
-  });
-
-  // Density
-  const densityBtn = document.getElementById('uxDensity');
-  const setDensity = (mode) => {
-    document.documentElement.setAttribute('data-density', mode);
-    densityBtn.setAttribute('aria-pressed', String(mode === 'compact'));
-    densityBtn.innerHTML = mode === 'compact' ? '● Compact' : '◐ Density';
-    try { localStorage.setItem(LS_DENSITY, mode); } catch {}
-  };
-  densityBtn.addEventListener('click', () => {
-    const cur = document.documentElement.getAttribute('data-density') === 'compact' ? 'comfortable' : 'compact';
-    setDensity(cur);
-  });
+  // ---------- Wire up controls (toolbar removed; keep density persistence only) ----------
   try {
     const saved = localStorage.getItem(LS_DENSITY);
-    if (saved === 'compact') setDensity('compact');
+    if (saved === 'compact') document.documentElement.setAttribute('data-density', 'compact');
   } catch {}
 
   // Theme: locked to light
   document.documentElement.setAttribute('data-theme', 'light');
   try { localStorage.removeItem(LS_THEME); } catch {}
+
 
 
 
