@@ -3178,6 +3178,17 @@
     const store = load();
     // Merge seed for divisions that have no local edits yet
     Object.keys(SEED).forEach(div => { if (!store[div] || store[div].length === 0) store[div] = SEED[div].map(x => ({ ...x })); });
+    // Migration (2026-07-14): ensure "Screen Images" subfolder is present for existing local snapshots.
+    Object.keys(SEED).forEach(div => {
+      const list = store[div]; if (!Array.isArray(list)) return;
+      const has = list.some(x => (x && x.name || '').trim().toLowerCase() === 'screen images');
+      if (has) return;
+      const seedEntry = SEED[div].find(x => x.name === 'Screen Images');
+      if (!seedEntry) return;
+      const spIdx = list.findIndex(x => (x && x.name || '').trim().toLowerCase() === 'sponsorship packet');
+      const insertAt = spIdx >= 0 ? spIdx : list.length;
+      list.splice(insertAt, 0, { ...seedEntry });
+    });
     save(store);
 
     const table = document.querySelector('.canva-dir-divisions');
