@@ -3129,17 +3129,29 @@
         const list = store[division] || [];
         strip.innerHTML = '';
         if (list.length === 0) return;
-        list.forEach(item => {
+        const track = document.createElement('div');
+        track.className = 'div-sub-track';
+        list.forEach((item, idx) => {
           const url = folderUrl((item.id || '').trim());
           const chip = document.createElement(url ? 'a' : 'span');
           chip.className = 'div-sub-chip' + (url ? '' : ' is-empty');
+          chip.setAttribute('data-num', String(idx + 1).padStart(2, '0'));
+          chip.setAttribute('data-folder', item.name || '');
           if (url) { chip.href = url; chip.target = '_blank'; chip.rel = 'noopener noreferrer'; }
           chip.title = item.name + (item.id ? ' — ' + item.id : '');
-          chip.innerHTML = '<span class="div-sub-name">' + (item.name || '—') + '</span>' + (url ? '<span class="div-sub-arrow" aria-hidden="true">↗</span>' : '');
-          strip.appendChild(chip);
+          chip.innerHTML =
+            '<span class="div-sub-name">' + (item.name || '—') + '</span>' +
+            (url ? '<span class="div-sub-arrow" aria-hidden="true">↗</span>' : '');
+          track.appendChild(chip);
         });
+        strip.appendChild(track);
+        const meta = document.createElement('div');
+        meta.className = 'div-sub-meta';
+        meta.innerHTML = list.length + ' folders <span class="div-sub-canva" aria-hidden="true">C</span>';
+        strip.appendChild(meta);
       });
     }
+
     renderDivisionStrips();
     // Re-render strips whenever the directory changes in section 9
     const _origSave = save;
@@ -3152,6 +3164,449 @@
     })();
   })();
   </script>
+
+  <!-- ============================================================
+       FOLDER VIEW — presents each division's format registry as
+       7 canonical Canva folders (Social Ads, Content Social
+       Banners, Email Banners, Advocacy, Speakers, Signs,
+       Sponsorship Packet). Cards are tinted per division via
+       --div-rgb, and each folder header links to the live Canva
+       folder (URL sourced from the same store used by the shelf).
+       ============================================================ -->
+  <style>
+    .division-block .folder-view {
+      --dsub-rgb: var(--div-rgb, 19,177,243);
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin: 10px 0 6px 0;
+    }
+    @media (min-width: 1080px) {
+      .division-block .folder-view { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 640px) {
+      .division-block .folder-view { grid-template-columns: 1fr; }
+    }
+    .division-block.folder-mode > table { display: none; }
+    .division-block:not(.folder-mode) > .folder-view { display: none; }
+
+    /* Folder card */
+    .fv-card {
+      --dsub-rgb: var(--div-rgb, 19,177,243);
+      position: relative;
+      border-radius: 12px;
+      background:
+        linear-gradient(180deg, #ffffff 0%, rgba(var(--dsub-rgb), 0.03) 100%);
+      border: 1px solid rgba(var(--dsub-rgb), 0.28);
+      box-shadow:
+        0 1px 0 rgba(255,255,255,0.9) inset,
+        0 1px 2px rgba(15,27,61,0.04),
+        0 12px 30px -22px rgba(var(--dsub-rgb), 0.6);
+      overflow: hidden;
+      transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
+    }
+    .fv-card:hover {
+      border-color: rgba(var(--dsub-rgb), 0.5);
+      box-shadow:
+        0 1px 0 rgba(255,255,255,0.9) inset,
+        0 2px 6px rgba(15,27,61,0.05),
+        0 24px 50px -26px rgba(var(--dsub-rgb), 0.75);
+      transform: translateY(-1px);
+    }
+    .fv-card[open] { border-color: rgba(var(--dsub-rgb), 0.55); }
+    .fv-card::before {
+      /* Tab-like accent along the top edge */
+      content: "";
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg,
+        rgba(var(--dsub-rgb), 0.9) 0%,
+        rgba(var(--dsub-rgb), 0.45) 60%,
+        rgba(var(--dsub-rgb), 0) 100%);
+    }
+
+    /* Card header (details summary) */
+    .fv-summary {
+      list-style: none;
+      display: grid;
+      grid-template-columns: auto 1fr auto auto;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px 14px 16px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .fv-summary::-webkit-details-marker { display: none; }
+    .fv-icon {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 36px; height: 30px;
+      border-radius: 6px;
+      background: rgba(var(--dsub-rgb), 0.12);
+      color: rgb(var(--dsub-rgb));
+      position: relative;
+      flex: 0 0 auto;
+    }
+    .fv-icon svg { width: 20px; height: 20px; }
+    .fv-title {
+      display: flex; flex-direction: column; gap: 2px; min-width: 0;
+    }
+    .fv-name {
+      font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+      font-weight: 700; font-size: 14px; color: var(--navy);
+      letter-spacing: -.005em; line-height: 1.15;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .fv-meta {
+      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+      color: rgba(15,27,61,0.55);
+    }
+    .fv-count {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 28px; height: 22px; padding: 0 8px;
+      border-radius: 999px;
+      background: #ffffff;
+      border: 1px solid rgba(var(--dsub-rgb), 0.35);
+      color: rgb(var(--dsub-rgb));
+      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px; font-weight: 700;
+    }
+    .fv-open {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(var(--dsub-rgb), 0.1);
+      border: 1px solid rgba(var(--dsub-rgb), 0.3);
+      color: rgb(var(--dsub-rgb));
+      font-family: 'Poppins', system-ui, sans-serif;
+      font-size: 11px; font-weight: 700; letter-spacing: .01em; text-transform: uppercase;
+      text-decoration: none;
+      transition: background .15s ease, border-color .15s ease, transform .15s ease;
+    }
+    .fv-open:hover {
+      background: rgb(var(--dsub-rgb));
+      border-color: rgb(var(--dsub-rgb));
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+    .fv-open.is-disabled { pointer-events: none; opacity: .35; }
+    .fv-chev {
+      grid-column: 1 / -1;
+      display: none;
+    }
+    /* Chevron moves inline on wider cards via absolute placement */
+    .fv-summary::after {
+      content: "▸";
+      position: absolute;
+      right: 14px; top: 14px;
+      color: rgba(15,27,61,0.35);
+      font-size: 10px;
+      transition: transform .2s ease, color .2s ease;
+      display: none; /* keep quiet; header actions carry weight */
+    }
+
+    /* Body */
+    .fv-body {
+      border-top: 1px dashed rgba(var(--dsub-rgb), 0.22);
+      padding: 6px 6px 8px 6px;
+      background: linear-gradient(180deg, rgba(var(--dsub-rgb), 0.02), transparent 60%);
+    }
+    .fv-list { display: flex; flex-direction: column; gap: 2px; }
+    .fv-row {
+      display: grid;
+      grid-template-columns: 26px minmax(0, 1fr);
+      grid-template-areas:
+        "num label"
+        ".   actions";
+      align-items: start;
+      gap: 4px 8px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      transition: background .15s ease;
+    }
+    .fv-row:hover { background: rgba(var(--dsub-rgb), 0.08); }
+    .fv-num { grid-area: num; padding-top: 1px; }
+    .fv-label { grid-area: label; }
+    .fv-actions {
+      grid-area: actions;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px 10px;
+      min-width: 0;
+    }
+    .fv-actions .fv-size { margin-right: 4px; }
+    .fv-actions .btn-link,
+    .fv-actions .coming-soon,
+    .fv-actions a { white-space: nowrap; }
+    .fv-actions .btn-link[target="_blank"] + .btn-link[target="_blank"]::before,
+    .fv-actions a + a::before { content: none; }
+    .fv-num {
+      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 10.5px; font-weight: 700;
+      color: rgba(15,27,61,0.42);
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    .fv-label {
+      font-family: 'Poppins', system-ui, sans-serif;
+      font-size: 12.5px; font-weight: 600; color: var(--navy);
+      line-height: 1.3;
+      min-width: 0;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    .fv-size {
+      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 10.5px; font-weight: 600;
+      color: rgba(15,27,61,0.55);
+      white-space: nowrap;
+    }
+    .fv-row .btn-link { font-size: 11px; padding: 4px 9px; }
+    .fv-row .coming-soon {
+      font-family: 'Poppins', sans-serif;
+      font-size: 9.5px; font-weight: 800; letter-spacing: .08em;
+      color: #d94848; padding: 3px 8px; border-radius: 999px;
+      background: rgba(217,72,72,0.08); border: 1px solid rgba(217,72,72,0.25);
+    }
+    .fv-empty {
+      padding: 14px 12px;
+      text-align: center;
+      font-family: 'Poppins', sans-serif;
+      font-size: 12px; color: rgba(15,27,61,0.45);
+      font-style: italic;
+    }
+
+    /* Per-division view mode toggle */
+    .fv-mode-toggle {
+      display: inline-flex; align-items: center; gap: 0;
+      margin: 0 0 12px 0;
+      padding: 3px;
+      border-radius: 999px;
+      background: rgba(15,27,61,0.05);
+      border: 1px solid rgba(15,27,61,0.1);
+    }
+    .fv-mode-toggle button {
+      appearance: none; border: 0; background: transparent; cursor: pointer;
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-family: 'Poppins', system-ui, sans-serif;
+      font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+      color: rgba(15,27,61,0.55);
+      transition: background .15s ease, color .15s ease;
+    }
+    .fv-mode-toggle button[aria-pressed="true"] {
+      background: #ffffff;
+      color: var(--navy);
+      box-shadow: 0 1px 3px rgba(15,27,61,0.08);
+    }
+    .fv-mode-toggle button:hover:not([aria-pressed="true"]) { color: var(--navy); }
+
+    @media (max-width: 640px) {
+      .fv-row { padding: 6px 8px; }
+      .fv-label { -webkit-line-clamp: 3; }
+    }
+  </style>
+
+  <script>
+  (function(){
+    // Categorize a format label into one of the 7 canonical Canva subfolders.
+    function folderFor(text) {
+      const t = (text || '').toLowerCase();
+      if (/sponsorship\s*packet|sponsors?\s*grid|powerpoint|packet|deck/.test(t)) return 'Sponsorship Packet';
+      if (/advocacy/.test(t)) return 'Advocacy';
+      if (/speakers?|keynote/.test(t)) return 'Speakers';
+      if (/email\s*header|email\s*banner/.test(t)) return 'Email Banners';
+      if (/linkedin\s*post|linkedin\s*callout|square\s*post|square\s*graphic|square\s*banner/.test(t)) return 'Content Social Banners';
+      if (/linkedin\s*ad|social\s*ad/.test(t)) return 'Social Ads';
+      if (/welcome|registration|check\-?in|wayfind|directions?|restroom|now\s*playing|be\s*right\s*back|break|thank\s*you|farewell|networking|meet\s*&\s*greet|photo\s*op|step\s*&\s*repeat|menu|catering|sign/.test(t)) return 'Signs';
+      return 'Sponsorship Packet';
+    }
+
+    const CANONICAL_ORDER = ['Social Ads','Content Social Banners','Email Banners','Advocacy','Speakers','Signs','Sponsorship Packet'];
+    const FOLDER_ICONS = {
+      'Social Ads': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v12H4z"/><path d="M8 9h8M8 13h5"/><circle cx="18.5" cy="19" r="1.5" fill="currentColor" stroke="none"/></svg>',
+      'Content Social Banners': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="1.5"/><path d="M3 10h18"/></svg>',
+      'Email Banners': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="1.5"/><path d="M3 8l9 6 9-6"/></svg>',
+      'Advocacy': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l6-6 4 4-6 6H4z"/><path d="M14 5l5 5"/><path d="M4 20h16"/></svg>',
+      'Speakers': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c1.2-3.6 4-5.5 7-5.5s5.8 1.9 7 5.5"/></svg>',
+      'Signs': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3"/><path d="M5 6h14l-2 3 2 3H5z"/><path d="M12 12v9"/></svg>',
+      'Sponsorship Packet': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l8-4 8 4-8 4z"/><path d="M4 12l8 4 8-4"/><path d="M4 17l8 4 8-4"/></svg>',
+    };
+    const LS_KEY = 'next2026.canvaDirSubfolders.v2';
+    const DIVISION_MAP = {
+      'div-transperfect':'TransPerfect','div-games':'Games','div-globallink':'GlobalLink',
+      'div-finance':'Finance','div-legal':'Legal','div-lifesci':'Life Sci',
+      'div-experience':'Experience','div-learn':'Learn','div-media':'Media',
+      'div-digital':'Digital','div-dataforce':'Dataforce',
+    };
+    function readStore(){ try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch(e){ return {}; } }
+    function folderUrlFor(division, folderName){
+      const list = (readStore()[division] || []);
+      const match = list.find(x => (x.name || '').trim().toLowerCase() === folderName.toLowerCase());
+      return match && match.id ? 'https://www.canva.com/folder/' + match.id : '';
+    }
+
+    // Build the folder-view for a single .division-block
+    function buildFolderView(divBlock){
+      const table = divBlock.querySelector(':scope > table');
+      if (!table) return null;
+      const divisionId = divBlock.id;
+      const divisionName = DIVISION_MAP[divisionId] || '';
+
+      const rows = Array.from(table.querySelectorAll('tr')).slice(1); // main table rows
+      // Also fold in general signage rows nested in the event-signage details
+      const signageRows = Array.from(divBlock.querySelectorAll(':scope > details.event-signage table tr')).slice(1);
+
+      // Group rows by canonical folder
+      const groups = Object.fromEntries(CANONICAL_ORDER.map(n => [n, []]));
+      function pushRow(tr, forceBucket) {
+        const cells = tr.cells;
+        if (!cells || cells.length < 5) return;
+        const num = (cells[0].textContent || '').trim();
+        const label = (cells[1].textContent || '').trim();
+        const size = (cells[2].textContent || '').trim();
+        const exCell = cells[3];
+        const openCell = cells[4];
+        const bucket = forceBucket || folderFor(label);
+        groups[bucket].push({ num, label, size, exHTML: exCell ? exCell.innerHTML : '', openHTML: openCell ? openCell.innerHTML : '' });
+      }
+      rows.forEach(tr => pushRow(tr));
+      signageRows.forEach(tr => pushRow(tr, 'Signs'));
+
+
+      const wrap = document.createElement('div');
+      wrap.className = 'folder-view';
+      wrap.setAttribute('role', 'list');
+
+      CANONICAL_ORDER.forEach((folderName, idx) => {
+        const items = groups[folderName] || [];
+        const card = document.createElement('details');
+        card.className = 'fv-card';
+        card.setAttribute('role', 'listitem');
+        // Open the first two folders by default so users see content immediately
+        if (idx < 2) card.open = true;
+
+        const folderUrl = divisionName ? folderUrlFor(divisionName, folderName) : '';
+
+        const summary = document.createElement('summary');
+        summary.className = 'fv-summary';
+        summary.innerHTML =
+          '<span class="fv-icon" aria-hidden="true">' + (FOLDER_ICONS[folderName] || '') + '</span>' +
+          '<span class="fv-title">' +
+            '<span class="fv-name">' + folderName + '</span>' +
+            '<span class="fv-meta">' + String(idx+1).padStart(2,'0') + ' / 07 · Canva folder</span>' +
+          '</span>' +
+          '<span class="fv-count" title="' + items.length + ' formats in this folder">' + items.length + '</span>' +
+          (folderUrl
+            ? '<a class="fv-open" href="' + folderUrl + '" target="_blank" rel="noopener noreferrer" title="Open ' + folderName + ' folder in Canva">Open ↗</a>'
+            : '<span class="fv-open is-disabled" title="Live folder ID not yet mapped">Open ↗</span>');
+        card.appendChild(summary);
+
+        const body = document.createElement('div');
+        body.className = 'fv-body';
+        if (items.length === 0) {
+          body.innerHTML = '<div class="fv-empty">No formats mapped to this folder yet.</div>';
+        } else {
+          const list = document.createElement('div');
+          list.className = 'fv-list';
+          items.forEach(it => {
+            const row = document.createElement('div');
+            row.className = 'fv-row';
+            row.innerHTML =
+              '<span class="fv-num">' + it.num + '</span>' +
+              '<span class="fv-label" title="' + it.label.replace(/"/g,'&quot;') + '">' + it.label + '</span>' +
+              '<span class="fv-actions">' +
+                '<span class="fv-size">' + it.size + '</span>' +
+                '<span class="fv-example">' + it.exHTML + '</span>' +
+                '<span class="fv-openbtn">' + it.openHTML + '</span>' +
+              '</span>';
+            list.appendChild(row);
+          });
+          body.appendChild(list);
+        }
+        card.appendChild(body);
+        wrap.appendChild(card);
+      });
+
+      return wrap;
+    }
+
+    // Insert per-division view toggle + folder view
+    function initDivision(divBlock){
+      // Skip divisions that don't have a main table (e.g. sub sections)
+      const table = divBlock.querySelector(':scope > table');
+      if (!table) return;
+
+      // Toggle control
+      const toggle = document.createElement('div');
+      toggle.className = 'fv-mode-toggle';
+      toggle.setAttribute('role', 'group');
+      toggle.setAttribute('aria-label', 'View mode');
+      toggle.innerHTML =
+        '<button type="button" data-mode="folders" aria-pressed="true">📁 Folders</button>' +
+        '<button type="button" data-mode="table" aria-pressed="false">☰ Table</button>';
+      table.parentNode.insertBefore(toggle, table);
+
+      const view = buildFolderView(divBlock);
+      if (view) table.parentNode.insertBefore(view, table);
+
+      divBlock.classList.add('folder-mode');
+
+      toggle.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-mode]');
+        if (!btn) return;
+        const mode = btn.getAttribute('data-mode');
+        toggle.querySelectorAll('button[data-mode]').forEach(b => {
+          b.setAttribute('aria-pressed', String(b === btn));
+        });
+        if (mode === 'folders') divBlock.classList.add('folder-mode');
+        else divBlock.classList.remove('folder-mode');
+      });
+    }
+
+    function rebuildFolderViews(){
+      document.querySelectorAll('.division-block').forEach(div => {
+        const existing = div.querySelector(':scope > .folder-view');
+        if (!existing) return;
+        const fresh = buildFolderView(div);
+        if (fresh) existing.replaceWith(fresh);
+      });
+    }
+
+    // Wire subfolder shelf chips to their matching folder card in the folder view
+    document.addEventListener('click', (e) => {
+      const chip = e.target && e.target.closest && e.target.closest('.division-subfolders .div-sub-chip');
+      // Chips are anchors that open Canva — don't hijack default. Just also expand the card.
+      if (!chip) return;
+      const strip = chip.closest('.division-subfolders');
+      const divBlock = chip.closest('.division-block');
+      if (!strip || !divBlock) return;
+      if (!divBlock.classList.contains('folder-mode')) return;
+      const name = (chip.getAttribute('title') || '').split(' — ')[0].trim();
+      const cards = divBlock.querySelectorAll('.folder-view .fv-card');
+      cards.forEach(card => {
+        const n = card.querySelector('.fv-name');
+        if (n && n.textContent.trim().toLowerCase() === name.toLowerCase()) {
+          card.open = true;
+        }
+      });
+    });
+
+    // Boot
+    function boot(){
+      document.querySelectorAll('.division-block').forEach(initDivision);
+      // Refresh folder-view Open ↗ links when the shelf store changes
+      window.addEventListener('storage', e => { if (e.key === LS_KEY) rebuildFolderViews(); });
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', boot);
+    } else { boot(); }
+  })();
+  </script>
+
+
 
 
 
@@ -3460,10 +3915,11 @@
     }
     lastInvoker = null;
   };
-  document.querySelectorAll('.example-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      open(btn.getAttribute('data-example'), btn.getAttribute('data-example-title'), btn);
-    });
+  // Delegated so cloned/rebuilt example buttons (e.g. Folder view) also work
+  document.addEventListener('click', (e) => {
+    const btn = e.target && e.target.closest && e.target.closest('.example-btn');
+    if (!btn) return;
+    open(btn.getAttribute('data-example'), btn.getAttribute('data-example-title'), btn);
   });
   closeBtn.addEventListener('click', close);
   modal.addEventListener('click', e => { if (e.target === modal) close(); });
