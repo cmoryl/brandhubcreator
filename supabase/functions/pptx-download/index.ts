@@ -70,13 +70,17 @@ Deno.serve(async (req) => {
   }
 
   const filename = path.split("/").pop()!;
+  // disposition=inline is used by the Office Online preview viewer; default to attachment for Download links.
+  const disposition = (url.searchParams.get("disposition") || "attachment").toLowerCase() === "inline"
+    ? "inline"
+    : "attachment";
   return new Response(data, {
     status: 200,
     headers: {
       ...corsHeaders,
       "Content-Type":
         "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-      "Content-Disposition": `attachment; filename="${filename}"`,
+      "Content-Disposition": `${disposition}; filename="${filename}"`,
       "Cache-Control": "public, max-age=3600",
     },
   });
