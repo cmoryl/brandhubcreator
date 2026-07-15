@@ -4135,16 +4135,55 @@
 <div class="note">Every deck passed structural validation against the source master, and accent colors were confirmed by rendering each deck to PDF and sampling actual pixel colors against the brand registry hex values (section 2) &mdash; not just checked in the source XML.</div>
 
 <!-- ============ PPTX PREVIEW MODAL (Office Online viewer) ============ -->
-<div id="pptxPreviewModal" role="dialog" aria-modal="true" aria-labelledby="pptxPreviewTitle" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.82);align-items:center;justify-content:center;padding:24px;">
-  <div style="background:#fff;width:100%;max-width:1280px;height:100%;max-height:90vh;border-radius:8px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #e5e7eb;background:#f9fafb;">
-      <strong id="pptxPreviewTitle" style="font-size:15px;color:#111827;">Preview</strong>
-      <div style="display:flex;gap:12px;align-items:center;">
-        <a id="pptxPreviewDownload" href="#" style="font-size:13px;color:#2563eb;text-decoration:none;">Download .pptx</a>
-        <button type="button" id="pptxPreviewClose" aria-label="Close preview" style="border:0;background:transparent;font-size:22px;line-height:1;cursor:pointer;color:#374151;padding:4px 8px;">&times;</button>
+<style>
+  #pptxPreviewModal .pptx-shell{background:#010409;border:1px solid rgba(255,255,255,0.10);border-radius:14px;box-shadow:0 30px 80px rgba(0,0,0,0.7),0 0 0 1px rgba(19,157,216,0.06);overflow:hidden;display:flex;flex-direction:column;width:100%;max-width:1280px;height:100%;max-height:92vh;}
+  #pptxPreviewModal .pptx-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:#003b71;border-bottom:1px solid rgba(255,255,255,0.10);box-shadow:0 4px 10px rgba(0,0,0,0.3);}
+  #pptxPreviewModal .pptx-header-left{display:flex;align-items:center;gap:14px;min-width:0;}
+  #pptxPreviewModal .pptx-icon-badge{display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;background:rgba(19,157,216,0.20);border:1px solid rgba(19,157,216,0.40);flex-shrink:0;}
+  #pptxPreviewModal .pptx-icon-badge svg{width:22px;height:22px;color:#139dd8;}
+  #pptxPreviewModal .pptx-title-wrap{min-width:0;display:flex;flex-direction:column;line-height:1.15;}
+  #pptxPreviewModal #pptxPreviewTitle{color:#fff;font-family:'Poppins',sans-serif;font-weight:600;font-size:17px;letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  #pptxPreviewModal .pptx-subtitle{color:#139dd8;font-family:'Montserrat',sans-serif;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:0.2em;margin-top:3px;}
+  #pptxPreviewModal .pptx-actions{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+  #pptxPreviewModal .pptx-dl{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;background:#139dd8;color:#fff;font-family:'Poppins',sans-serif;font-size:13px;font-weight:600;text-decoration:none;border-radius:8px;box-shadow:0 4px 14px rgba(19,157,216,0.35);transition:background .15s ease, transform .1s ease;}
+  #pptxPreviewModal .pptx-dl:hover{background:#0e83b5;}
+  #pptxPreviewModal .pptx-dl:active{transform:scale(0.97);}
+  #pptxPreviewModal .pptx-dl svg{width:15px;height:15px;}
+  #pptxPreviewModal .pptx-divider{width:1px;height:28px;background:rgba(255,255,255,0.12);margin:0 4px;}
+  #pptxPreviewModal .pptx-close{border:0;background:transparent;padding:8px;border-radius:999px;cursor:pointer;color:rgba(255,255,255,0.6);display:flex;align-items:center;justify-content:center;transition:background .15s ease, color .15s ease;}
+  #pptxPreviewModal .pptx-close:hover{background:rgba(239,68,68,0.15);color:#f87171;}
+  #pptxPreviewModal .pptx-close svg{width:20px;height:20px;}
+  #pptxPreviewModal .pptx-frame-wrap{position:relative;flex:1;background:#0a0a0a;display:flex;align-items:stretch;}
+  #pptxPreviewModal #pptxPreviewFrame{flex:1;width:100%;border:0;background:#0a0a0a;}
+  #pptxPreviewModal .pptx-accent{height:2px;width:100%;background:linear-gradient(90deg,transparent,rgba(19,157,216,0.55),transparent);opacity:0.55;}
+</style>
+<div id="pptxPreviewModal" role="dialog" aria-modal="true" aria-labelledby="pptxPreviewTitle" style="display:none;position:fixed;inset:0;z-index:9999;background:radial-gradient(ellipse at center, rgba(0,59,113,0.35) 0%, rgba(2,6,23,0.92) 60%, rgba(0,0,0,0.95) 100%);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:24px;">
+  <div class="pptx-shell">
+    <header class="pptx-header">
+      <div class="pptx-header-left">
+        <div class="pptx-icon-badge" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h14a2 2 0 0 0 2-2V7.5L14.5 2H6a2 2 0 0 0-2 2v4"/><polyline points="14 2 14 8 20 8"/><path d="M2 15h10"/><path d="m9 18 3-3-3-3"/></svg>
+        </div>
+        <div class="pptx-title-wrap">
+          <strong id="pptxPreviewTitle">Preview</strong>
+          <span id="pptxPreviewSubtitle" class="pptx-subtitle">Presentation Preview</span>
+        </div>
       </div>
+      <div class="pptx-actions">
+        <a id="pptxPreviewDownload" class="pptx-dl" href="#" download>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+          Download Deck
+        </a>
+        <span class="pptx-divider" aria-hidden="true"></span>
+        <button type="button" id="pptxPreviewClose" class="pptx-close" aria-label="Close preview">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </header>
+    <div class="pptx-frame-wrap">
+      <iframe id="pptxPreviewFrame" title="PowerPoint preview" src="about:blank" allowfullscreen></iframe>
     </div>
-    <iframe id="pptxPreviewFrame" title="PowerPoint preview" style="flex:1;width:100%;border:0;background:#f3f4f6;" src="about:blank"></iframe>
+    <div class="pptx-accent" aria-hidden="true"></div>
   </div>
 </div>
 <script>
@@ -4152,16 +4191,29 @@
   var modal = document.getElementById('pptxPreviewModal');
   var frame = document.getElementById('pptxPreviewFrame');
   var titleEl = document.getElementById('pptxPreviewTitle');
+  var subtitleEl = document.getElementById('pptxPreviewSubtitle');
   var dl = document.getElementById('pptxPreviewDownload');
   var closeBtn = document.getElementById('pptxPreviewClose');
+  function titleCase(s){ return s.replace(/(^|\s|-)([a-z])/g, function(_,p,c){ return p + c.toUpperCase(); }); }
   function openPreview(division, kind, label){
     var base = 'https://nhxaijbyqfkkhhoornzy.supabase.co/functions/v1/pptx-download';
-    // Append a .pptx-looking path so the Office Online viewer recognizes the file type.
-    var fname = encodeURIComponent(division + '-' + (kind || 'canva') + '.pptx');
-    var src = base + '/' + fname + '?division=' + encodeURIComponent(division) + '&kind=' + encodeURIComponent(kind || 'canva') + '&disposition=inline';
+    var k = (kind || 'canva').toLowerCase();
+    var fname = encodeURIComponent(division + '-' + k + '.pptx');
+    var src = base + '/' + fname + '?division=' + encodeURIComponent(division) + '&kind=' + encodeURIComponent(k) + '&disposition=inline';
     var viewer = 'https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(src);
-    titleEl.textContent = label || (division + ' — ' + (kind === 'native' ? 'Native Master' : 'Canva Export'));
-    dl.href = base + '?division=' + encodeURIComponent(division) + '&kind=' + encodeURIComponent(kind || 'canva');
+    var kindLabel = k === 'native' ? 'Native Master Template' : 'Canva Export';
+    var titleText, subtitleText;
+    if (label && label.indexOf('—') !== -1) {
+      var parts = label.split('—').map(function(s){ return s.trim(); });
+      titleText = parts[0];
+      subtitleText = parts.slice(1).join(' — ') || kindLabel;
+    } else {
+      titleText = label || titleCase(division.replace(/-/g,' '));
+      subtitleText = kindLabel;
+    }
+    titleEl.textContent = titleText;
+    subtitleEl.textContent = subtitleText;
+    dl.href = base + '?division=' + encodeURIComponent(division) + '&kind=' + encodeURIComponent(k);
     frame.src = viewer;
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
