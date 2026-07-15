@@ -3701,7 +3701,8 @@
     // Categorize a format label into one of the 7 canonical Canva subfolders.
     function folderFor(text) {
       const t = (text || '').toLowerCase();
-      if (/sponsorship\s*packet|sponsors?\s*grid|powerpoint|packet|deck/.test(t)) return 'Sponsorship Packet';
+      if (/powerpoint|\bppt\b/.test(t)) return 'PowerPoints';
+      if (/sponsorship\s*packet|sponsors?\s*grid|packet|deck/.test(t)) return 'Sponsorship Packet';
       if (/advocacy/.test(t)) return 'Advocacy';
       if (/speakers?|keynote/.test(t)) return 'Speakers';
       if (/email\s*header|email\s*banner/.test(t)) return 'Email Banners';
