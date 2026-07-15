@@ -3245,6 +3245,16 @@
       list.splice(insertAt, 0, { ...seedEntry });
     });
     save(store);
+    // Migration (2026-07-14): ensure "PowerPoints" subfolder is present for existing local snapshots.
+    Object.keys(SEED).forEach(div => {
+      const list = store[div]; if (!Array.isArray(list)) return;
+      const has = list.some(x => (x && x.name || '').trim().toLowerCase() === 'powerpoints');
+      if (has) return;
+      const seedEntry = SEED[div].find(x => x.name === 'PowerPoints');
+      if (!seedEntry) return;
+      list.push({ ...seedEntry });
+    });
+    save(store);
 
     const table = document.querySelector('.canva-dir-divisions');
     if (!table) return;
