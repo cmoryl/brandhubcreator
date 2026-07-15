@@ -4105,21 +4105,21 @@
 <h2 id="sec-10">10. Native PowerPoint Master Templates</h2>
 <div class="note">A second, separate PowerPoint deliverable from the one tracked in sections 4/7 (which is exported from Canva). This one is a genuine native <code>.pptx</code> built directly from a PowerPoint Slide Master — one master, 18 slide layouts, 18 slides — editable natively in PowerPoint without touching Canva at all. Source master was branded for GlobalLink; delivered 2026-07-15 via a Claude session, fanned out to the other 10 divisions by recoloring the accent graphics and swapping in each division's logo, using logo files from <code>TP NEXT 2026 Logo Set.zip</code> (the same Side&nbsp;by&nbsp;Side / Stacked / color / white-color logo variants used elsewhere in this doc).</div>
 
-<div class="note"><strong>Status: delivered but not yet hosted.</strong> The 10 finished <code>.pptx</code> files exist from the Claude session but haven't been uploaded anywhere permanent yet, so there are no live download links below. Once Chris uploads them somewhere (Canva, Drive, Supabase, etc.), update the "Link" column below.</div>
+<div class="note"><strong>Status: hosted in this project's database.</strong> All 10 finished <code>.pptx</code> files were uploaded 2026-07-15 to the private <code>next2026-pptx</code> storage bucket under <code>native-masters/&lt;division&gt;/</code>, tracked in the <code>next2026_pptx_files</code> table (division suffixed with <code>-native</code> to distinguish from the Canva-exported decks in sections 4/7), and streamed publicly via the <code>pptx-download</code> edge function using <code>?kind=native</code>.</div>
 
 <table>
   <tr><th>Division</th><th>File</th><th>Link</th></tr>
-  <tr><td>Games</td><td><code>Games_NEXT_Master_PPT_Template.pptx</code></td><td><span class="status open">Pending upload</span></td></tr>
-  <tr><td>TransPerfect</td><td><code>TransPerfect_NEXT_Master_PPT_Template.pptx</code></td><td><span class="status open">Pending upload</span></td></tr>
+  <tr><td>Games</td><td><code>Games_NEXT_Master_PPT_Template.pptx</code></td><td><a href="https://nhxaijbyqfkkhhoornzy.supabase.co/functions/v1/pptx-download?division=games&amp;kind=native">Download</a></td></tr>
+  <tr><td>TransPerfect</td><td><code>TransPerfect_NEXT_Master_PPT_Template.pptx</code></td><td><a href="https://nhxaijbyqfkkhhoornzy.supabase.co/functions/v1/pptx-download?division=transperfect&amp;kind=native">Download</a></td></tr>
   <tr><td>GlobalLink <em>(source/master — already exists, not regenerated)</em></td><td>&mdash;</td><td class="noid">&mdash;</td></tr>
-  <tr><td>Finance</td><td><code>Finance_NEXT_Master_PPT_Template.pptx</code></td><td><span class="status open">Pending upload</span></td></tr>
-  <tr><td>Legal</td><td><code>Legal_NEXT_Master_PPT_Template.pptx</code></td><td><span class="status open">Pending upload</span></td></tr>
-  <tr><td>Life Sci</td><td><code>Life_Sci_NEXT_Master_PPT_Template.pptx</code></td><td><span class="status open">Pending upload</span></td></tr>
-  <tr><td>Experience</td><td><code>Experience_NEXT_Master_PPT_Template.pptx</code></td><td><span class="status open">Pending upload</span></td></tr>
-  <tr><td>Learn</td><td><code>Learn_NEXT_Master_PPT_Template.pptx</code></td><td><span class="status open">Pending upload</span></td></tr>
-  <tr><td>Media</td><td><code>Media_NEXT_Master_PPT_Template.pptx</code></td><td><span class="status open">Pending upload</span></td></tr>
-  <tr><td>Digital</td><td><code>Digital_NEXT_Master_PPT_Template.pptx</code></td><td><span class="status open">Pending upload</span></td></tr>
-  <tr><td>Dataforce</td><td><code>Dataforce_NEXT_Master_PPT_Template.pptx</code></td><td><span class="status open">Pending upload</span></td></tr>
+  <tr><td>Finance</td><td><code>Finance_NEXT_Master_PPT_Template.pptx</code></td><td><a href="https://nhxaijbyqfkkhhoornzy.supabase.co/functions/v1/pptx-download?division=finance&amp;kind=native">Download</a></td></tr>
+  <tr><td>Legal</td><td><code>Legal_NEXT_Master_PPT_Template.pptx</code></td><td><a href="https://nhxaijbyqfkkhhoornzy.supabase.co/functions/v1/pptx-download?division=legal&amp;kind=native">Download</a></td></tr>
+  <tr><td>Life Sci</td><td><code>Life_Sci_NEXT_Master_PPT_Template.pptx</code></td><td><a href="https://nhxaijbyqfkkhhoornzy.supabase.co/functions/v1/pptx-download?division=lifesci&amp;kind=native">Download</a></td></tr>
+  <tr><td>Experience</td><td><code>Experience_NEXT_Master_PPT_Template.pptx</code></td><td><a href="https://nhxaijbyqfkkhhoornzy.supabase.co/functions/v1/pptx-download?division=experience&amp;kind=native">Download</a></td></tr>
+  <tr><td>Learn</td><td><code>Learn_NEXT_Master_PPT_Template.pptx</code></td><td><a href="https://nhxaijbyqfkkhhoornzy.supabase.co/functions/v1/pptx-download?division=learn&amp;kind=native">Download</a></td></tr>
+  <tr><td>Media</td><td><code>Media_NEXT_Master_PPT_Template.pptx</code></td><td><a href="https://nhxaijbyqfkkhhoornzy.supabase.co/functions/v1/pptx-download?division=media&amp;kind=native">Download</a></td></tr>
+  <tr><td>Digital</td><td><code>Digital_NEXT_Master_PPT_Template.pptx</code></td><td><a href="https://nhxaijbyqfkkhhoornzy.supabase.co/functions/v1/pptx-download?division=digital&amp;kind=native">Download</a></td></tr>
+  <tr><td>Dataforce</td><td><code>Dataforce_NEXT_Master_PPT_Template.pptx</code></td><td><a href="https://nhxaijbyqfkkhhoornzy.supabase.co/functions/v1/pptx-download?division=dataforce&amp;kind=native">Download</a></td></tr>
 </table>
 
 <h3 style="margin-top:28px;">What was changed per division</h3>
