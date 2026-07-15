@@ -3779,6 +3779,8 @@
         card.open = false;
 
         const folderUrl = divisionName ? folderUrlFor(divisionName, folderName) : '';
+        const divisionKey = (divisionId || '').replace(/^div-/, '');
+        const isPptx = folderName === 'PowerPoints';
 
         const summary = document.createElement('summary');
         summary.className = 'fv-summary';
@@ -3786,12 +3788,14 @@
           '<span class="fv-icon" aria-hidden="true">' + (FOLDER_ICONS[folderName] || '') + '</span>' +
           '<span class="fv-title">' +
             '<span class="fv-name">' + folderName + '</span>' +
-            '<span class="fv-meta">' + String(idx+1).padStart(2,'0') + ' / 08 · Canva folder</span>' +
+            '<span class="fv-meta">' + String(idx+1).padStart(2,'0') + ' / 08 · ' + (isPptx ? 'PowerPoint deck' : 'Canva folder') + '</span>' +
           '</span>' +
           '<span class="fv-count" title="' + items.length + ' formats in this folder">' + items.length + '</span>' +
-          (folderUrl
-            ? '<a class="fv-open" href="' + folderUrl + '" target="_blank" rel="noopener noreferrer" title="Open ' + folderName + ' folder in Canva">Open ↗</a>'
-            : '<span class="fv-open is-disabled" title="Live folder ID not yet mapped">Open ↗</span>');
+          (isPptx
+            ? '<a class="fv-open pptx-preview-link" href="#" data-division="' + divisionKey + '" data-kind="canva" data-label="' + (divisionName || folderName) + ' — PowerPoint Export" title="Preview PowerPoint deck">Preview ▶</a>'
+            : (folderUrl
+              ? '<a class="fv-open" href="' + folderUrl + '" target="_blank" rel="noopener noreferrer" title="Open ' + folderName + ' folder in Canva">Open ↗</a>'
+              : '<span class="fv-open is-disabled" title="Live folder ID not yet mapped">Open ↗</span>'));
         card.appendChild(summary);
 
         const body = document.createElement('div');
