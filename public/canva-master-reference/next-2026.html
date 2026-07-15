@@ -4155,10 +4155,13 @@
   var dl = document.getElementById('pptxPreviewDownload');
   var closeBtn = document.getElementById('pptxPreviewClose');
   function openPreview(division, kind, label){
-    var src = 'https://nhxaijbyqfkkhhoornzy.supabase.co/functions/v1/pptx-download?division=' + encodeURIComponent(division) + '&kind=' + encodeURIComponent(kind || 'canva');
+    var base = 'https://nhxaijbyqfkkhhoornzy.supabase.co/functions/v1/pptx-download';
+    // Append a .pptx-looking path so the Office Online viewer recognizes the file type.
+    var fname = encodeURIComponent(division + '-' + (kind || 'canva') + '.pptx');
+    var src = base + '/' + fname + '?division=' + encodeURIComponent(division) + '&kind=' + encodeURIComponent(kind || 'canva') + '&disposition=inline';
     var viewer = 'https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(src);
     titleEl.textContent = label || (division + ' — ' + (kind === 'native' ? 'Native Master' : 'Canva Export'));
-    dl.href = src;
+    dl.href = base + '?division=' + encodeURIComponent(division) + '&kind=' + encodeURIComponent(kind || 'canva');
     frame.src = viewer;
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
