@@ -3701,7 +3701,8 @@
     // Categorize a format label into one of the 7 canonical Canva subfolders.
     function folderFor(text) {
       const t = (text || '').toLowerCase();
-      if (/sponsorship\s*packet|sponsors?\s*grid|powerpoint|packet|deck/.test(t)) return 'Sponsorship Packet';
+      if (/powerpoint|\bppt\b/.test(t)) return 'PowerPoints';
+      if (/sponsorship\s*packet|sponsors?\s*grid|packet|deck/.test(t)) return 'Sponsorship Packet';
       if (/advocacy/.test(t)) return 'Advocacy';
       if (/speakers?|keynote/.test(t)) return 'Speakers';
       if (/email\s*header|email\s*banner/.test(t)) return 'Email Banners';
@@ -3711,7 +3712,7 @@
       return 'Sponsorship Packet';
     }
 
-    const CANONICAL_ORDER = ['Social Ads','Content Social Banners','Email Banners','Advocacy','Speakers','Signs','Sponsorship Packet'];
+    const CANONICAL_ORDER = ['Social Ads','Content Social Banners','Email Banners','Advocacy','Speakers','Signs','Sponsorship Packet','PowerPoints'];
     const FOLDER_ICONS = {
       'Social Ads': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v12H4z"/><path d="M8 9h8M8 13h5"/><circle cx="18.5" cy="19" r="1.5" fill="currentColor" stroke="none"/></svg>',
       'Content Social Banners': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="1.5"/><path d="M3 10h18"/></svg>',
@@ -3720,6 +3721,7 @@
       'Speakers': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c1.2-3.6 4-5.5 7-5.5s5.8 1.9 7 5.5"/></svg>',
       'Signs': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3"/><path d="M5 6h14l-2 3 2 3H5z"/><path d="M12 12v9"/></svg>',
       'Sponsorship Packet': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l8-4 8 4-8 4z"/><path d="M4 12l8 4 8-4"/><path d="M4 17l8 4 8-4"/></svg>',
+      'PowerPoints': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/></svg>',
     };
     const LS_KEY = 'next2026.canvaDirSubfolders.v2';
     const DIVISION_MAP = {
@@ -3783,7 +3785,7 @@
           '<span class="fv-icon" aria-hidden="true">' + (FOLDER_ICONS[folderName] || '') + '</span>' +
           '<span class="fv-title">' +
             '<span class="fv-name">' + folderName + '</span>' +
-            '<span class="fv-meta">' + String(idx+1).padStart(2,'0') + ' / 07 · Canva folder</span>' +
+            '<span class="fv-meta">' + String(idx+1).padStart(2,'0') + ' / 08 · Canva folder</span>' +
           '</span>' +
           '<span class="fv-count" title="' + items.length + ' formats in this folder">' + items.length + '</span>' +
           (folderUrl
