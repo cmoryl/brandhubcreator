@@ -270,3 +270,6 @@ verify_jwt = false
 
 [functions.analyze-canva-audit]
 verify_jwt = false
+
+[functions.pptx-download]
+verify_jwt = false
