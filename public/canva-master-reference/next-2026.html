@@ -4134,6 +4134,53 @@
 </table>
 <div class="note">Every deck passed structural validation against the source master, and accent colors were confirmed by rendering each deck to PDF and sampling actual pixel colors against the brand registry hex values (section 2) &mdash; not just checked in the source XML.</div>
 
+<!-- ============ PPTX PREVIEW MODAL (Office Online viewer) ============ -->
+<div id="pptxPreviewModal" role="dialog" aria-modal="true" aria-labelledby="pptxPreviewTitle" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.82);align-items:center;justify-content:center;padding:24px;">
+  <div style="background:#fff;width:100%;max-width:1280px;height:100%;max-height:90vh;border-radius:8px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #e5e7eb;background:#f9fafb;">
+      <strong id="pptxPreviewTitle" style="font-size:15px;color:#111827;">Preview</strong>
+      <div style="display:flex;gap:12px;align-items:center;">
+        <a id="pptxPreviewDownload" href="#" style="font-size:13px;color:#2563eb;text-decoration:none;">Download .pptx</a>
+        <button type="button" id="pptxPreviewClose" aria-label="Close preview" style="border:0;background:transparent;font-size:22px;line-height:1;cursor:pointer;color:#374151;padding:4px 8px;">&times;</button>
+      </div>
+    </div>
+    <iframe id="pptxPreviewFrame" title="PowerPoint preview" style="flex:1;width:100%;border:0;background:#f3f4f6;" src="about:blank"></iframe>
+  </div>
+</div>
+<script>
+(function(){
+  var modal = document.getElementById('pptxPreviewModal');
+  var frame = document.getElementById('pptxPreviewFrame');
+  var titleEl = document.getElementById('pptxPreviewTitle');
+  var dl = document.getElementById('pptxPreviewDownload');
+  var closeBtn = document.getElementById('pptxPreviewClose');
+  function openPreview(division, kind, label){
+    var src = 'https://nhxaijbyqfkkhhoornzy.supabase.co/functions/v1/pptx-download?division=' + encodeURIComponent(division) + '&kind=' + encodeURIComponent(kind || 'canva');
+    var viewer = 'https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(src);
+    titleEl.textContent = label || (division + ' — ' + (kind === 'native' ? 'Native Master' : 'Canva Export'));
+    dl.href = src;
+    frame.src = viewer;
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+  function closePreview(){
+    modal.style.display = 'none';
+    frame.src = 'about:blank';
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('click', function(e){
+    var link = e.target.closest && e.target.closest('.pptx-preview-link');
+    if (link) {
+      e.preventDefault();
+      openPreview(link.dataset.division, link.dataset.kind, link.dataset.label);
+    }
+  });
+  closeBtn.addEventListener('click', closePreview);
+  modal.addEventListener('click', function(e){ if (e.target === modal) closePreview(); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && modal.style.display === 'flex') closePreview(); });
+})();
+</script>
+
 <!-- ============ LOGO ZOOM + DROPBOX DOWNLOAD MODAL ============ -->
 <div class="logo-modal" id="logoModal" role="dialog" aria-modal="true" aria-labelledby="logoModalTitle">
   <div class="logo-modal-inner">
