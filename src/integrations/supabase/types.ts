@@ -4663,6 +4663,42 @@ export type Database = {
           },
         ]
       }
+      next2026_pptx_files: {
+        Row: {
+          design_id: string
+          division: string
+          fetched_at: string
+          file_size_bytes: number | null
+          filename: string
+          id: string
+          public_url: string
+          source_canva_export_url: string | null
+          storage_path: string
+        }
+        Insert: {
+          design_id: string
+          division: string
+          fetched_at?: string
+          file_size_bytes?: number | null
+          filename: string
+          id?: string
+          public_url: string
+          source_canva_export_url?: string | null
+          storage_path: string
+        }
+        Update: {
+          design_id?: string
+          division?: string
+          fetched_at?: string
+          file_size_bytes?: number | null
+          filename?: string
+          id?: string
+          public_url?: string
+          source_canva_export_url?: string | null
+          storage_path?: string
+        }
+        Relationships: []
+      }
       oracle_intelligence: {
         Row: {
           bias_awareness_insights: Json | null
