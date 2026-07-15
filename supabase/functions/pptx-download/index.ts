@@ -1,5 +1,11 @@
 // Streams a Next 2026 division .pptx from the private `next2026-pptx` bucket.
 // Public endpoint — no auth required. Uses service role internally.
+//
+// Query params:
+//   division: one of the keys below (required)
+//   kind:     "canva" (default) | "native"
+//             - "canva"  = Canva-exported deck (sections 4/7)
+//             - "native" = Native PowerPoint Slide Master deliverable (section 10)
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
@@ -8,7 +14,7 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "GET, OPTIONS",
 };
 
-const DIVISIONS: Record<string, string> = {
+const CANVA_DIVISIONS: Record<string, string> = {
   transperfect: "transperfect/transperfect-next-master-ppt.pptx",
   globallink: "globallink/globallink-next-master-ppt.pptx",
   dataforce: "dataforce/dataforce-next-master-ppt.pptx",
@@ -22,14 +28,29 @@ const DIVISIONS: Record<string, string> = {
   experience: "experience/experience-next-master-ppt.pptx",
 };
 
+const NATIVE_DIVISIONS: Record<string, string> = {
+  transperfect: "native-masters/transperfect/TransPerfect_NEXT_Master_PPT_Template.pptx",
+  dataforce: "native-masters/dataforce/Dataforce_NEXT_Master_PPT_Template.pptx",
+  games: "native-masters/games/Games_NEXT_Master_PPT_Template.pptx",
+  lifesci: "native-masters/lifesci/Life_Sci_NEXT_Master_PPT_Template.pptx",
+  legal: "native-masters/legal/Legal_NEXT_Master_PPT_Template.pptx",
+  finance: "native-masters/finance/Finance_NEXT_Master_PPT_Template.pptx",
+  media: "native-masters/media/Media_NEXT_Master_PPT_Template.pptx",
+  learn: "native-masters/learn/Learn_NEXT_Master_PPT_Template.pptx",
+  digital: "native-masters/digital/Digital_NEXT_Master_PPT_Template.pptx",
+  experience: "native-masters/experience/Experience_NEXT_Master_PPT_Template.pptx",
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   const url = new URL(req.url);
   const division = (url.searchParams.get("division") || "").toLowerCase();
-  const path = DIVISIONS[division];
+  const kind = (url.searchParams.get("kind") || "canva").toLowerCase();
+  const map = kind === "native" ? NATIVE_DIVISIONS : CANVA_DIVISIONS;
+  const path = map[division];
   if (!path) {
-    return new Response(JSON.stringify({ error: "unknown division" }), {
+    return new Response(JSON.stringify({ error: "unknown division or kind" }), {
       status: 404,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
