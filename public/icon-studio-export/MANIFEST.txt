@@ -1,0 +1,129 @@
+ICON STUDIO EXPORT — file manifest
+Paths are relative to project root. The target project's agent should pull each
+of these via cross_project--read_project_file / cross_project--copy_project_asset
+from BrandHub Creator.
+
+=== PAGES ===
+src/pages/IconStudioPage.tsx
+src/pages/BrandIconHubPage.tsx
+
+=== COMPONENTS: icon-studio shell ===
+src/components/icon-studio/AbTestedIcon.tsx
+src/components/icon-studio/IconDetailDialog.tsx
+src/components/icon-studio/IconSetWizard.tsx
+src/components/icon-studio/IconSvgRender.tsx
+src/components/icon-studio/shell/BundledIconLadder.tsx
+src/components/icon-studio/shell/IconSetDetailDialog.tsx
+src/components/icon-studio/shell/IconSetPreview.tsx
+src/components/icon-studio/shell/IconSetsView.tsx
+src/components/icon-studio/shell/ImportedIconPreview.tsx
+src/components/icon-studio/shell/ImportedIconsView.tsx
+src/components/icon-studio/shell/LibraryIconPreview.tsx
+src/components/icon-studio/shell/ReplaceIconDialog.tsx
+src/components/icon-studio/shell/iconPreviewMap.ts
+src/components/icon-studio/shell/useIconLibraryRowActions.tsx
+
+=== COMPONENTS: brand/iconography (Icon Studio 7-tab hub) ===
+src/components/brand/iconography/HierarchicalIconDisplay.tsx
+src/components/brand/iconography/IconLibraryBrandLinker.tsx
+src/components/brand/iconography/IconLibraryManager.tsx
+src/components/brand/iconography/IconLibraryPicker.tsx
+src/components/brand/iconography/IconPreviewDialog.tsx
+src/components/brand/iconography/IconStudio.tsx
+src/components/brand/iconography/IconUsageGuidelines.tsx
+src/components/brand/iconography/LinkedIconStudioLibraries.tsx
+src/components/brand/iconography/SuggestedIconsRail.tsx
+src/components/brand/iconography/TrendingIconsRail.tsx
+src/components/brand/iconography/manager/IconPreviewGrid.tsx
+src/components/brand/iconography/studio/IconAdvancedFeatures.tsx
+src/components/brand/iconography/studio/IconBrandHierarchy.tsx
+src/components/brand/iconography/studio/IconBrowser.tsx
+src/components/brand/iconography/studio/IconStudioAIGenerator.tsx
+src/components/brand/iconography/studio/IconStudioAppIcons.tsx
+src/components/brand/iconography/studio/IconStudioColorizer.tsx
+src/components/brand/iconography/studio/IconStudioCreator.tsx
+src/components/brand/iconography/studio/IconStudioExport.tsx
+src/components/brand/iconography/studio/IconStudioLibrary.tsx
+src/components/brand/iconography/studio/IconStudioStepper.tsx
+src/components/brand/iconography/studio/IconStudioTabs.tsx
+src/components/brand/iconography/studio/IconStylizer.tsx
+src/components/brand/iconography/studio/VisualIconGenerator.tsx
+src/components/brand/iconography/studio/creator/AiIconSuggestions.tsx
+src/components/brand/iconography/studio/creator/LucideIconPicker.tsx
+
+=== HELP UI ===
+src/components/help/IconKitGuides.tsx
+src/components/help/IconKitSection.tsx
+src/components/help/IconKitTooltip.tsx
+src/data/iconKitGuides.ts
+src/data/iconKitHelp.ts
+
+=== HOOKS ===
+src/hooks/iconSystemHooks.ts
+src/hooks/useBundledIconLibraries.ts
+src/hooks/useIconAbTest.ts
+src/hooks/useIconBatchProcessor.ts
+src/hooks/useIconHierarchy.ts
+src/hooks/useIconLibraries.ts
+src/hooks/useIconLibraryBrandLinks.ts
+src/hooks/useIconOptimizer.ts
+src/hooks/useIconStateSystem.ts
+src/hooks/useImportedIcons.ts
+src/hooks/useResponsiveIcon.ts
+
+=== LIB: iconStudio ===
+src/lib/iconStudio/brandIconPdf.ts
+src/lib/iconStudio/exportIcon.ts
+src/lib/iconStudio/exportSystem.ts
+src/lib/iconStudio/generationClient.ts
+src/lib/iconStudio/industryMapping.ts
+src/lib/iconStudio/industryPresets.ts
+src/lib/iconStudio/perceptualHash.ts
+src/lib/iconStudio/qa.ts
+src/lib/iconStudio/recipe.ts
+
+=== LIB: iconLibrary ===
+src/lib/iconLibrary/categorization.ts
+src/lib/iconLibrary/enrichLibrary.ts
+src/lib/iconLibrary/kits.ts
+src/lib/iconLibrary/loader.ts
+src/lib/iconLibrary/restyle.ts
+src/lib/iconLibrary/semanticSearch.ts
+src/lib/iconLibrary/suggestions.ts
+src/lib/iconLibrary/types.ts
+src/lib/iconLibrary/usageTracking.ts
+
+=== ICONIFY API CLIENT ===
+src/lib/api/iconify.ts
+
+=== STATIC ICON LIBRARY ===
+public/icon-library/LICENSES.md
+public/icon-library/manifest.json
+public/icon-library/index/*.json           (per-pack index files)
+public/icon-library/packs/*.json           (~98MB total; large packs like fluent.json 12MB, twemoji.json 11MB)
+scripts/build-icon-library.mjs              (regenerates the packs from Iconify)
+
+=== EDGE FUNCTIONS (Supabase) ===
+supabase/functions/commit-icon-from-url/index.ts
+supabase/functions/deep-icon-fetch/index.ts
+supabase/functions/derive-mono-icons/index.ts
+supabase/functions/generate-icon/index.ts
+supabase/functions/generate-icon-colors/index.ts
+supabase/functions/generate-icon-set/index.ts
+supabase/functions/generate-icon-visual/index.ts
+supabase/functions/icon-semantic-search/index.ts
+supabase/functions/resource-icons-libs/index.ts
+supabase/functions/stylize-icon/index.ts
+supabase/functions/suggest-icons/index.ts
+(and matching [functions.<name>] blocks in supabase/config.toml)
+
+=== DATABASE ===
+public/icon-studio-export/db/schema.txt                       (columns for all 6 icon tables)
+public/icon-studio-export/db/policies.txt                     (RLS policies)
+public/icon-studio-export/db/organization_icon_libraries.schema.txt
+public/icon-studio-export/db/icon_library_brand_links.jsonl   (112 seed rows)
+Tables involved:
+  - organization_icon_libraries    (main icon store — schema only, 41MB of SVG data not bundled)
+  - icon_library_brand_links       (brand ↔ library mapping — seeded)
+  - icon_ab_tests / icon_ab_variants / icon_ab_events
+  - icon_usage_events
