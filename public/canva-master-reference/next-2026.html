@@ -3929,6 +3929,21 @@
       background: linear-gradient(180deg, rgba(var(--fv-frame-rgb, 15,27,61), 0.025), transparent 60%);
     }
     .fv-list { display: flex; flex-direction: column; gap: 2px; }
+    .fv-group-label {
+      margin: 12px 4px 4px;
+      padding: 6px 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--navy);
+      background: rgba(var(--fv-frame-rgb, 15,27,61), 0.06);
+      border-left: 3px solid rgba(var(--fv-frame-rgb, 15,27,61), 0.45);
+      border-radius: 4px;
+    }
+    .fv-list > .fv-group-label:first-child { margin-top: 2px; }
+
     .fv-row {
       display: grid;
       grid-template-columns: 26px minmax(0, 1fr);
