@@ -1,0 +1,1286 @@
+{
+  "exported_at": "2026-07-16T15:05:12.641Z",
+  "oracle_intelligence": [
+    {
+      "id": "07e51f78-d604-4952-a163-1d3ced16152a",
+      "organization_id": "ec180296-dfe8-4345-869e-66b524e0a12c",
+      "org_summary": "TransPerfect operates as a high-velocity global orchestrator, leveraging a dominant market position in legal technology and life sciences to drive enterprise-scale communication solutions. While core brand readiness remains high (80-95%), the 'Reef' product suite and 'GlobalLink' ecosystem show a significant readiness gap (50%) in terms of unified AI governance and EAA 2025 compliance. The organization is transitioning from a collection of specialized entities into a consolidated AI-powered infrastructure provider.",
+      "portfolio_analysis": {
+        "gaps": [
+          "Lack of a unified 'Inclusive Design' standard across the Reef product suite.",
+          "Inconsistent application of the 'Sage' vs 'Hero' archetypes between DataForce and Games.",
+          "Absence of cross-entity data lineage tracing for AI-generated content."
+        ],
+        "conflicts": [
+          "The 'First-to-Market' speed of ReefExhibit may conflict with the 'Security-First' and 'EAA Compliance' requirements if not governed by Policy-as-Code."
+        ],
+        "synergies": [
+          "DataForce's ethical AI training feeds directly into GlobalLink's automated translation accuracy.",
+          "Legal's forensic expertise complements Life Sciences' regulatory compliance requirements.",
+          "ReefStream's data orchestration speed enhances the throughput of DigitalReef's big data processing.",
+          "G3 Translate's human-centric approach provides a quality safety net for Games and Media localization."
+        ],
+        "recommendations": [
+          "Implement a unified 'GlobalLink' accessibility layer to standardize WCAG 2.2 compliance across all 21 products.",
+          "Consolidate the 'Reef' suite under a single 'Legal Control' interface to reduce UX density.",
+          "Deploy the 'Stop/Go' Imagery Framework to move Media and Games brands toward photojournalistic authenticity."
+        ]
+      },
+      "market_landscape": {
+        "threats": [
+          "Regulatory penalties (up to €3M) for non-compliance with the European Accessibility Act.",
+          "Commoditization of basic translation services by generic, non-specialized AI models."
+        ],
+        "overall_position": "TransPerfect maintains a 'Leader' archetype, dominating through scale and infrastructure, yet faces 'Challenger' pressure from agile, AI-native startups in the self-service eDiscovery space.",
+        "market_opportunities": [
+          "EAA 2025 compliance as a competitive differentiator for banking and transport clients.",
+          "Multimodal LLM training for regulated industries via DataForce's ethical network.",
+          "Digital continuity for remote litigation as a permanent market shift."
+        ]
+      },
+      "strategic_recommendations": [
+        {
+          "impact": "Mitigates €3M penalty risk and secures EU market access.",
+          "priority": "high",
+          "rationale": "Enforcement begins 2025-06-28; current product readiness for Reef/GlobalLink is only 50%.",
+          "recommendation": "EAA 2025 Governance Sprint"
+        },
+        {
+          "impact": "Increases long-term sales by 16.26% through inclusive representation.",
+          "priority": "medium",
+          "rationale": "Ensures AI-generated imagery across Media and Games avoids bias and meets the 'Stop/Go' framework.",
+          "recommendation": "Unified Inclusive Prompting Heuristics"
+        },
+        {
+          "impact": "Improves operational efficiency and user retention.",
+          "priority": "low",
+          "rationale": "Reduces cognitive load for 'Sage' archetype users managing complex data in ReefCentral.",
+          "recommendation": "Multi-Sensory UX Integration"
+        }
+      ],
+      "cross_entity_patterns": {
+        "audience_overlap": "High overlap between Legal and Life Sciences in regulatory and compliance-heavy personas.",
+        "visual_coherence": "High color consistency (#139dd8) but inconsistent use of white space and navigation logic.",
+        "voice_consistency": "Strongly authoritative and professional ('The Sage'), though occasionally veering into 'The Hero' in Games/Media."
+      },
+      "unified_voice_profile": {
+        "primary_tone": "Authoritative Expert",
+        "secondary_tones": [
+          "Urgent",
+          "Ethical",
+          "Innovative"
+        ],
+        "personality_traits": [
+          "Reliable",
+          "Sophisticated",
+          "Global-minded",
+          "Accountable"
+        ],
+        "communication_style": "Direct, data-driven, and focused on global orchestration."
+      },
+      "unified_audience_map": {
+        "primary_segment": "Enterprise decision-makers in highly regulated global industries (Legal, Pharma, Tech).",
+        "secondary_segments": [
+          "Boutique law firms (ReefExpress)",
+          "AAA Game Developers",
+          "Clinical Trial Managers"
+        ],
+        "underserved_segments": [
+          "Users with cognitive or motor disabilities (WCAG 2.2 focus)",
+          "Non-technical legal staff requiring self-service tools"
+        ]
+      },
+      "competitive_overview": {
+        "key_competitors": [
+          "Relativity",
+          "Keywords Studios",
+          "Deluxe"
+        ],
+        "market_position": "The dominant 'Global Integrator' with unparalleled infrastructure.",
+        "competitive_moat": "The combination of 17TB/day processing power (DigitalReef) with a 200+ language human-in-the-loop network."
+      },
+      "cultural_readiness": {
+        "overall_score": 85,
+        "strongest_markets": [
+          "North America",
+          "EMEA",
+          "APAC (Localization)"
+        ],
+        "governance_posture": {
+          "eaa_readiness": "medium",
+          "inclusive_ai_maturity": "low",
+          "regulatory_action_items": [
+            "Audit all hardware/software UIs for EAA 2025 compliance by Q1 2025.",
+            "Implement Policy-as-Code for Disparate Impact Ratio monitoring in DataForce.",
+            "Update all event checklists to the 2026 Universal Accessibility Framework."
+          ],
+          "recommended_sprint_activities": [
+            "Computer Trust Exercise",
+            "Interaction Diary"
+          ]
+        },
+        "photography_strategy": {
+          "current_style": "generic_corporate",
+          "credibility_gaps": [
+            "Over-reliance on 'corporate happy people' in Life Sciences.",
+            "Artificial diversity staging in Brand: TransPerfect.",
+            "Lack of behind-the-scenes 'expertise in action' imagery."
+          ],
+          "authenticity_score": 45,
+          "evolution_recommendations": [
+            "Shift to photojournalistic captures of linguists and engineers in real environments.",
+            "Prioritize natural lighting and unscripted interactions for ReefCentral marketing.",
+            "Show real-world equipment aids in DataForce contributor spotlights."
+          ],
+          "emotional_connection_score": 55
+        },
+        "expansion_opportunities": [
+          "Ethical AI training data for emerging markets",
+          "Globalized clinical trial patient recruitment",
+          "Digital deposition services in civil law jurisdictions"
+        ],
+        "persona_design_maturity": {
+          "gaps": [
+            "Information density in GlobalLink/Reef navigation.",
+            "Lack of haptic/auditory cues in high-speed data tools.",
+            "Inconsistent 'Consistent Help' (WCAG 3.2.6) across brands."
+          ],
+          "overall_score": 60,
+          "recommendations": [
+            "Apply the 'Curb-Cut Effect' by simplifying navigation for cognitive accessibility, benefiting all users.",
+            "Implement CamelCase hashtags for all event social media.",
+            "Standardize 24x24px minimum target sizes across mobile apps."
+          ],
+          "speech_coverage": "GlobalLink Scribe addresses multilingual speech, but situational foreign language needs are high.",
+          "vision_coverage": "Good use of high-contrast brand colors; needs WCAG 2.2 'Focus Not Obscured' audit.",
+          "hearing_coverage": "Media brand excels in subtitling; Reef suite lacks auditory redundancy for critical alerts.",
+          "mobility_coverage": "Strong focus on remote digital access, but physical event standards (32in+ doors) need verification.",
+          "cognitive_coverage": "Current 'dense' navigation is a major barrier for users with ADHD or information overload."
+        },
+        "patient_research_integration": {
+          "recommendations": [
+            "Establish a 'Cross-Entity Inclusive Design Council' to share patient/user research insights.",
+            "Systematize the feedback loop between localization teams and product UX designers.",
+            "Use 'Interaction Diaries' from clinical trial participants to inform ReefCentral's operational intelligence."
+          ],
+          "cross_entity_learning": [
+            "Life Sciences' regulatory rigor being applied to DataForce's ethical sourcing.",
+            "Media's Dolby-certified quality standards informing ReefStream's data integrity checks.",
+            "GlobalLink's modularity being adopted by the Reef suite."
+          ],
+          "localization_insights": [
+            "Cultural nuances in 'urgency' from Games localization informing ReefStream's UI feedback loops.",
+            "Linguistic heritage from G3 Translate improving LLM training data diversity in DataForce.",
+            "Regional accessibility variants in EU media markets driving EAA readiness."
+          ],
+          "curb_cut_opportunities": [
+            "Plain-language medical instructions (Life Sciences) adapted for ReefExpress self-service onboarding.",
+            "High-contrast clinical labels aiding low-vision patients and legal reviewers in 'bright sunlight' mobile scenarios.",
+            "Patient journey mapping used to streamline 'witness prep' in ReefExhibit."
+          ],
+          "feedback_loop_maturity": "developing",
+          "research_utilization_score": 65
+        }
+      },
+      "knowledge_entry_count": 29,
+      "entity_brain_count": 16,
+      "last_synthesis_at": "2026-06-17T00:06:28.634+00:00",
+      "synthesis_count": 9,
+      "confidence_scores": {},
+      "synthesis_history": [],
+      "created_at": "2026-02-13T20:53:36.28569+00:00",
+      "updated_at": "2026-07-07T14:27:55.512272+00:00",
+      "bias_awareness_insights": {
+        "last_updated": "2026-07-07T14:27:55.452Z",
+        "entity_scores": {
+          "05bda916-da57-4257-9ba6-c3377618020a": {
+            "dimensions": {
+              "visual": 70,
+              "language": 85,
+              "accessibility": 65,
+              "ai_governance": 72
+            },
+            "scanned_at": "2026-07-06T17:26:38.287Z",
+            "entity_name": "Learn NEXT",
+            "entity_type": "event",
+            "inclusion_score": 76
+          },
+          "0a7a2532-4b57-4890-8c1f-bea5ae6b6ca4": {
+            "dimensions": {
+              "visual": 75,
+              "language": 85,
+              "accessibility": 70,
+              "ai_governance": 70
+            },
+            "scanned_at": "2026-02-22T00:36:23.260Z",
+            "entity_name": "Trial Interactive",
+            "entity_type": "product",
+            "inclusion_score": 78
+          },
+          "0b6d1876-fd2b-4c52-9609-9a18962933d2": {
+            "dimensions": {
+              "visual": 78,
+              "language": 88,
+              "accessibility": 74,
+              "ai_governance": 80
+            },
+            "scanned_at": "2026-07-07T14:22:09.409Z",
+            "entity_name": "TransPerfect NEXT",
+            "entity_type": "event",
+            "inclusion_score": 79
+          },
+          "0c1700d5-fb66-4a7c-8d6f-192e44e8dc4b": {
+            "dimensions": {
+              "visual": 80,
+              "language": 85,
+              "accessibility": 70,
+              "ai_governance": 75
+            },
+            "scanned_at": "2026-04-23T18:21:24.251Z",
+            "entity_name": "C3 Summit London",
+            "entity_type": "event",
+            "inclusion_score": 78
+          },
+          "0d6d5a5f-0dd0-4e62-9ac2-285a4095de84": {
+            "dimensions": {
+              "visual": 97,
+              "language": 98,
+              "accessibility": 96,
+              "ai_governance": 95
+            },
+            "scanned_at": "2026-07-06T16:18:39.285Z",
+            "entity_name": "TransPerfect",
+            "entity_type": "brand",
+            "inclusion_score": 96.2
+          },
+          "1114d604-db86-4d0b-98d2-888dd33cdeaa": {
+            "dimensions": {
+              "visual": 80,
+              "language": 85,
+              "accessibility": 70,
+              "ai_governance": 75
+            },
+            "scanned_at": "2026-04-07T17:04:49.480Z",
+            "entity_name": "GlobalLink TMS",
+            "entity_type": "product",
+            "inclusion_score": 78
+          },
+          "1f62efd4-9c21-41e7-9682-18efa5c1c437": {
+            "dimensions": {
+              "visual": 80,
+              "language": 85,
+              "accessibility": 70,
+              "ai_governance": 75
+            },
+            "scanned_at": "2026-04-07T16:36:35.449Z",
+            "entity_name": "GlobalLink CCMS",
+            "entity_type": "product",
+            "inclusion_score": 78
+          },
+          "2ac1cbe5-9848-4683-9095-5fef80558af7": {
+            "dimensions": {
+              "visual": 83,
+              "language": 88,
+              "accessibility": 80,
+              "ai_governance": 85
+            },
+            "scanned_at": "2026-04-07T16:51:18.499Z",
+            "entity_name": "GlobalLink NOW",
+            "entity_type": "product",
+            "inclusion_score": 85.5
+          },
+          "2e44007b-194a-4a1a-afe2-6b0d5517d3cd": {
+            "dimensions": {
+              "visual": 80,
+              "language": 85,
+              "accessibility": 70,
+              "ai_governance": 75
+            },
+            "scanned_at": "2026-04-07T16:54:41.659Z",
+            "entity_name": "GlobalLink Share",
+            "entity_type": "product",
+            "inclusion_score": 78
+          },
+          "43eef2d7-2560-4405-8369-6c03d49153e4": {
+            "dimensions": {
+              "visual": 82,
+              "language": 85,
+              "accessibility": 70,
+              "ai_governance": 75
+            },
+            "scanned_at": "2026-03-18T16:20:11.429Z",
+            "entity_name": "GlobalLink NEXT USA",
+            "entity_type": "event",
+            "inclusion_score": 77.5
+          },
+          "447ef21d-1189-4a99-a97d-b43ac78eaeb8": {
+            "dimensions": {
+              "visual": 72,
+              "language": 85,
+              "accessibility": 68,
+              "ai_governance": 70
+            },
+            "scanned_at": "2026-07-06T21:07:08.566Z",
+            "entity_name": "Digital NEXT",
+            "entity_type": "event",
+            "inclusion_score": 76
+          },
+          "63e1cbc5-fcc8-4ae5-a547-55a9bc1af863": {
+            "dimensions": {
+              "visual": 88,
+              "language": 93,
+              "accessibility": 91,
+              "ai_governance": 95
+            },
+            "scanned_at": "2026-04-17T20:08:46.813Z",
+            "entity_name": "DataForce",
+            "entity_type": "product",
+            "inclusion_score": 89.5
+          },
+          "6798835c-191c-4f41-8f32-ea1d15b160db": {
+            "dimensions": {
+              "visual": 88,
+              "language": 92,
+              "accessibility": 85,
+              "ai_governance": 80
+            },
+            "scanned_at": "2026-04-07T16:41:28.341Z",
+            "entity_name": "GlobalLink Live",
+            "entity_type": "product",
+            "inclusion_score": 85.2
+          },
+          "725d5397-a2bc-4cba-8764-18c218015ed0": {
+            "dimensions": {
+              "visual": 92,
+              "language": 95,
+              "accessibility": 90,
+              "ai_governance": 85
+            },
+            "scanned_at": "2026-04-17T17:54:46.728Z",
+            "entity_name": "Life Sciences",
+            "entity_type": "brand",
+            "inclusion_score": 88.5
+          },
+          "73c9ecc0-45a8-4daa-94f9-2dad8708f16b": {
+            "dimensions": {
+              "visual": 80,
+              "language": 85,
+              "accessibility": 70,
+              "ai_governance": 75
+            },
+            "scanned_at": "2026-04-07T17:01:06.959Z",
+            "entity_name": "GlobalLink Strings",
+            "entity_type": "product",
+            "inclusion_score": 78.5
+          },
+          "816429fd-d974-4313-8e3a-0e9439cbe5f4": {
+            "dimensions": {
+              "visual": 85,
+              "language": 85,
+              "accessibility": 70,
+              "ai_governance": 75
+            },
+            "scanned_at": "2026-02-23T23:00:09.360Z",
+            "entity_name": "GlobalLink Media",
+            "entity_type": "product",
+            "inclusion_score": 78
+          },
+          "8931ae39-1aba-47c5-8f12-1dc4bc86a310": {
+            "dimensions": {
+              "visual": 75,
+              "language": 85,
+              "accessibility": 45,
+              "ai_governance": 50
+            },
+            "scanned_at": "2026-03-05T21:54:46.459Z",
+            "entity_name": "GlobalLink NEXT EMEA",
+            "entity_type": "event",
+            "inclusion_score": 68
+          },
+          "8fc920f1-1d83-4e61-b173-34c26ea24070": {
+            "dimensions": {
+              "visual": 74,
+              "language": 82,
+              "accessibility": 70,
+              "ai_governance": 72
+            },
+            "scanned_at": "2026-07-07T14:27:55.451Z",
+            "entity_name": "DataForce NEXT",
+            "entity_type": "event",
+            "inclusion_score": 77
+          },
+          "9d4e323a-aee9-4b15-b84d-609762010691": {
+            "dimensions": {
+              "visual": 70,
+              "language": 85,
+              "accessibility": 65,
+              "ai_governance": 72
+            },
+            "scanned_at": "2026-07-06T21:44:34.080Z",
+            "entity_name": "LifeSci NEXT",
+            "entity_type": "event",
+            "inclusion_score": 76
+          },
+          "a1b2c3d4-e5f6-7890-abcd-ef1234567890": {
+            "dimensions": {
+              "visual": 88,
+              "language": 90,
+              "accessibility": 85,
+              "ai_governance": 80
+            },
+            "scanned_at": "2026-03-19T20:57:14.046Z",
+            "entity_name": "GlobalLink NEXT",
+            "entity_type": "event",
+            "inclusion_score": 82.5
+          },
+          "af4c1015-def2-4bb4-befc-8054c1cffb62": {
+            "dimensions": {
+              "visual": 92,
+              "language": 95,
+              "accessibility": 88,
+              "ai_governance": 93
+            },
+            "scanned_at": "2026-04-17T14:36:42.039Z",
+            "entity_name": "Games",
+            "entity_type": "brand",
+            "inclusion_score": 88.5
+          },
+          "b418831d-d8b4-4de1-889c-12b4eb3cf83d": {
+            "dimensions": {
+              "visual": 90,
+              "language": 94,
+              "accessibility": 87,
+              "ai_governance": 92
+            },
+            "scanned_at": "2026-04-06T12:48:36.073Z",
+            "entity_name": "GlobalLink Web",
+            "entity_type": "product",
+            "inclusion_score": 89.5
+          },
+          "bbdeaaae-b756-4c7e-8537-1c854ed2cb27": {
+            "dimensions": {
+              "visual": 88,
+              "language": 96,
+              "accessibility": 93,
+              "ai_governance": 87
+            },
+            "scanned_at": "2026-04-17T17:04:06.451Z",
+            "entity_name": "Legal",
+            "entity_type": "brand",
+            "inclusion_score": 89.5
+          },
+          "c2dc8292-0ec8-4b81-9313-0a6e5e9c76ff": {
+            "dimensions": {
+              "visual": 72,
+              "language": 85,
+              "accessibility": 68,
+              "ai_governance": 70
+            },
+            "scanned_at": "2026-07-06T19:20:06.610Z",
+            "entity_name": "Media NEXT",
+            "entity_type": "event",
+            "inclusion_score": 76
+          },
+          "cb0f36e6-e533-44d1-a56f-6baf4a5eb2c2": {
+            "dimensions": {
+              "visual": 85,
+              "language": 95,
+              "accessibility": 97,
+              "ai_governance": 85
+            },
+            "scanned_at": "2026-04-17T20:29:51.274Z",
+            "entity_name": "Media",
+            "entity_type": "brand",
+            "inclusion_score": 89
+          },
+          "d1b75a75-8f66-4fe7-a4ae-e044f3298986": {
+            "dimensions": {
+              "visual": 72,
+              "language": 85,
+              "accessibility": 68,
+              "ai_governance": 70
+            },
+            "scanned_at": "2026-07-06T21:08:57.361Z",
+            "entity_name": "Legal NEXT",
+            "entity_type": "event",
+            "inclusion_score": 76
+          },
+          "d4cc286f-1047-4bda-80a1-888e158e1244": {
+            "dimensions": {
+              "visual": 87,
+              "language": 92,
+              "accessibility": 93,
+              "ai_governance": 90
+            },
+            "scanned_at": "2026-04-17T20:15:48.154Z",
+            "entity_name": "GlobalLink",
+            "entity_type": "product",
+            "inclusion_score": 88.5
+          },
+          "d96e9ccd-385e-464f-b69d-3ffff0ef8ea6": {
+            "dimensions": {
+              "visual": 70,
+              "language": 95,
+              "accessibility": 80,
+              "ai_governance": 75
+            },
+            "scanned_at": "2026-02-18T19:23:19.194Z",
+            "entity_name": "G3 Translate",
+            "entity_type": "brand",
+            "inclusion_score": 85
+          },
+          "f9d5eb38-1ba4-47b4-a08e-a933dbb28f06": {
+            "dimensions": {
+              "visual": 75,
+              "language": 85,
+              "accessibility": 70,
+              "ai_governance": 72
+            },
+            "scanned_at": "2026-07-06T21:51:10.227Z",
+            "entity_name": "Experience NEXT",
+            "entity_type": "event",
+            "inclusion_score": 79
+          }
+        },
+        "entities_scanned": 29,
+        "org_inclusion_score": 81.53
+      },
+      "longitudinal_trends": {
+        "regressions": [
+          "Product readiness scores for the Reef suite have plateaued at 50%, indicating a lag between strategic positioning and technical/governance execution.",
+          "User Experience (UX) density remains a recurring issue, with navigation menus becoming increasingly 'overwhelming' as service portfolios expand."
+        ],
+        "improvements": [
+          "Legal ecosystem cohesion has solidified, moving from fragmented products to a unified 'Control Center' narrative (ReefCentral).",
+          "Brand consistency in visual identity (primary colors #139dd8, #003b71) has stabilized across Life Sciences and G3 Translate.",
+          "Strategic alignment with AI-powered localization trends is now explicitly articulated in product summaries (DataForce, GlobalLink)."
+        ],
+        "stagnant_areas": [
+          "Centralized AI governance and inclusive design frameworks remain in 'strategic stasis' despite looming EAA 2025 deadlines.",
+          "Event accessibility (GlobalLink NEXT) lacks documented progress beyond 'market participant' status."
+        ],
+        "cycle_over_cycle_insight": "The organization has successfully moved from 'Legal Ecosystem Cohesion' (2024) to 'Global Orchestration' (2026), but technical debt in accessibility and AI policy-as-code is now a critical risk factor."
+      }
+    }
+  ],
+  "oracle_knowledge_base": [
+    {
+      "id": "cf1afa22-1a14-4e98-9be9-b57b82e10c6c",
+      "organization_id": "ec180296-dfe8-4345-869e-66b524e0a12c",
+      "title": "📄 The History of Successful Global Brands",
+      "content": "Successful global brands are best understood as compounding systems, built on an enduring promise (positioning) consistently delivered through operations and amplified by go-to-market strategies. This aligns with customer-based brand equity and modern valuation studies. Three historical dynamics drive brand durability: defining the category with distinctive assets, operational proof of the promise to build trust, and renewal through innovation cycles while preserving continuity. Common turning points include refounding moments after drift or crisis, trust shocks followed by corrective action, and distribution step-changes like franchising or platform network effects. The Brand Operating System (Brand OS) framework encompasses a North Star promise, proof architecture, distinctive asset system, distribution logic, renewal cadence, drift detection, and crisis protocol. A crisis recovery playbook involves naming failures, reversing harm, making fixes visible, and simplifying until reliability returns. Analysis of 20 global brands reveals scaling patterns such as franchise systems, portfolio houses, platform networks, and ecosystems.\n\nKey Findings:\n• Successful brands are compounding systems, not just marketing veneers, requiring consistent delivery of an enduring promise through operations and amplified by go-to-market strategies.\n• Brand durability is driven by three historical dynamics: category definition with distinctive assets, operational proof of the promise, and renewal through innovation cycles while maintaining continuity.\n• The Brand Operating System (Brand OS) framework provides a structured approach to managing brands, including elements like North Star promise, proof architecture, distinctive assets, distribution logic, renewal cadence, drift detection, and crisis protocols.\n• Crisis recovery requires clear naming of failures, swift containment of harm, visible corrective actions, and simplification to restore reliability.\n• Scaling patterns for successful brands include franchise systems, portfolio houses, platform networks, and ecosystems.\n• Positioning theory suggests owning clear mental territory or competing on price/novelty, with the former being more conducive to compounding.\n\nStrategic Implications:\n• Organizations should focus on building brands as integrated systems where promise, operations, and go-to-market are tightly aligned and consistently delivered.\n• Invest in developing and maintaining distinctive assets that make the brand easily recognizable and difficult to confuse with competitors.\n• Establish robust operational processes that continuously prove the brand's promise to build and maintain customer trust; implement drift detection mechanisms.\n• Develop a proactive strategy for innovation and renewal that balances continuity with necessary evolution to maintain long-term relevance and durability.",
+      "content_type": "document",
+      "source_type": "document_import",
+      "source_entity_id": null,
+      "source_entity_type": null,
+      "tags": [
+        "brand-history",
+        "global-brands",
+        "brand-equity",
+        "brand-strategy",
+        "crisis-recovery",
+        "brand-os-framework",
+        "positioning",
+        "innovation-cycles",
+        "Brand Management",
+        "Brand Strategy",
+        "Customer Equity",
+        "Brand Valuation",
+        "Crisis Management"
+      ],
+      "metadata": {
+        "findings_count": 6,
+        "original_length": 2249
+      },
+      "embedding_hash": null,
+      "is_active": true,
+      "created_by": "c579657c-aec3-497d-b24e-802ea5af348a",
+      "created_at": "2026-02-13T21:09:37.603666+00:00",
+      "updated_at": "2026-02-13T21:09:37.603666+00:00",
+      "category": "brand_theory"
+    },
+    {
+      "id": "f1f5f806-7bf7-41a3-9e21-c9113e870543",
+      "organization_id": "ec180296-dfe8-4345-869e-66b524e0a12c",
+      "title": "🧠 Brand Intelligence: TransPerfect",
+      "content": "TransPerfect positions itself as a leader in global business communication, offering comprehensive language and technology solutions powered by expertise and innovation. Its brand is built on delivering success across diverse markets and languages, emphasizing reliability and a results-driven approach.\nMarket Position: A dominant force in global communication, challenging in specialized legal tech and AI data solutions.\nKey Advantages: Extensive language and technology service portfolio, Global infrastructure and ethical principles, AI-driven solutions across legal tech, communication, and data",
+      "content_type": "intelligence",
+      "source_type": "entity_brain",
+      "source_entity_id": "0d6d5a5f-0dd0-4e62-9ac2-285a4095de84",
+      "source_entity_type": "brand",
+      "tags": [
+        "brand",
+        "auto-generated",
+        "brain-insight"
+      ],
+      "metadata": {},
+      "embedding_hash": null,
+      "is_active": true,
+      "created_by": null,
+      "created_at": "2026-02-13T23:12:44.412146+00:00",
+      "updated_at": "2026-02-13T23:12:44.412146+00:00",
+      "category": "entity_insights"
+    },
+    {
+      "id": "6a0fd0d8-2588-44d0-a68a-ad44bf17d754",
+      "organization_id": "ec180296-dfe8-4345-869e-66b524e0a12c",
+      "title": "🧠 Brand Intelligence: Life Sciences",
+      "content": "Life Sciences by TransPerfect offers comprehensive global content solutions for the pharmaceutical, biotech, and medical device industries, simplifying the journey from lab to launch. It leverages TransPerfect's extensive infrastructure and expertise to provide precise, efficient, and cost-effective services.\nMarket Position: Life Sciences positions itself as a specialized, end-to-end solution provider within the broader TransPerfect ecosystem, focusing on accelerating product commercialization for regulated industries.\nKey Advantages: End-to-end content solutions from R&D to commercialization., Leverages TransPerfect's global infrastructure and technology., Industry-specific expertise and certified linguists.",
+      "content_type": "intelligence",
+      "source_type": "entity_brain",
+      "source_entity_id": "725d5397-a2bc-4cba-8764-18c218015ed0",
+      "source_entity_type": "brand",
+      "tags": [
+        "brand",
+        "auto-generated",
+        "brain-insight"
+      ],
+      "metadata": {},
+      "embedding_hash": null,
+      "is_active": true,
+      "created_by": null,
+      "created_at": "2026-02-13T23:29:56.289015+00:00",
+      "updated_at": "2026-02-13T23:29:56.289015+00:00",
+      "category": "entity_insights"
+    },
+    {
+      "id": "acb87092-8a23-4e1e-b2c1-19dc6db285c1",
+      "organization_id": "ec180296-dfe8-4345-869e-66b524e0a12c",
+      "title": "Foundations of Inclusive Architecture: Bias Awareness & Accessibility in 2026 Brand Ecosystems",
+      "content": "WCAG 2.2 COMPLIANCE FRAMEWORK: Nine new success criteria beyond WCAG 2.1s 77 criteria. Key criteria: Focus Not Obscured (2.4.11 AA, 2.4.12 AAA), Focus Appearance (2.4.13 AAA), Dragging Movements (2.5.7 AA), Target Size Minimum 24x24px (2.5.8 AA), Consistent Help (3.2.6 A), Redundant Entry (3.3.7 A), Accessible Authentication (3.3.8 AA, 3.3.9 AAA). European Accessibility Act (EAA) compliance required.\n\nBIAS MITIGATION FRAMEWORK (WFA 12 Areas): Business Challenge (audience exclusion), Insight Generation (avoid pen portraits/mood boards that generalize), Creative Briefing (interrogate assumptions for gender/race/ability stereotyping), Production (representation audit), Media Planning (equitable reach). Gold standard: Nothing About Us Without Us.\n\nCOMMERCIAL IMPACT: 70% Gen Z trust increase from authentic diversity. 3.46% short-term sales increase. 16.26% long-term sales increase. 33% higher brand consideration. 62% higher first-choice likelihood.\n\nMICROSOFT PERSONA SPECTRUM: Permanent (one arm, blind, deaf, non-speaking) → Temporary (arm injury, cataracts, ear infection, laryngitis) → Situational (new parent, distracted driver, noisy cafe, heavy accent). Extended to cognitive/neurodiverse: ADHD focus respect, anxiety pattern minimization.\n\nAI GOVERNANCE (2026): Policy-as-Code frameworks for real-time monitoring. Disparate impact ratio thresholds (80% rule). Data journey traceability. DAM systems as Governance-First platforms with diversity metadata tagging. Agentic AI requires verticalized domain knowledge with human-in-the-loop approval gates.\n\nINCLUSIVE LANGUAGE LEXICON: Asset-based framing over deficit-focused. Person-first vs identity-first (respect community preference). Avoid: minority/non-white, handicapped/invalid, blackbox/master-slave. Prefer: people of color, disabled person, opaque model/primary-secondary. Plain language mandate for cognitive accessibility.\n\nMULTI-SENSORY UX: Strategic Redundancy across visual (high-contrast hierarchy), auditory (earcons), haptic (tactile feedback), gesture (single-point alternatives). Affordances must match signifiers. Negative affordances with plain language explanations. Minimize cognitive tax.\n\nEVENT INCLUSION: 32-inch door width, 64-inch pathways, distributed wheelchair seating, stage ramps. Digital: CART captions, sign language visibility, roving mics, visual fire alarms. Registration must include accommodation requests.\n\nORACLE BRAIN PILLARS: (1) Technical Standard Tracker (WCAG 2.2/3.0), (2) Bias Identification Logic (WFA 12 areas + custom filters), (3) Persona Ecosystems (permanent/temporary/situational libraries), (4) Inclusive Prompt Library (bias-free imagery/copy frameworks), (5) Governance Policy-as-Code (automated compliance rules).",
+      "content_type": "text",
+      "source_type": "manual",
+      "source_entity_id": null,
+      "source_entity_type": null,
+      "tags": [
+        "bias-awareness",
+        "accessibility",
+        "wcag",
+        "inclusion",
+        "dei",
+        "persona-spectrum",
+        "ai-governance",
+        "inclusive-language",
+        "event-accessibility",
+        "multi-sensory-ux"
+      ],
+      "metadata": {},
+      "embedding_hash": null,
+      "is_active": true,
+      "created_by": null,
+      "created_at": "2026-02-14T15:38:11.197122+00:00",
+      "updated_at": "2026-02-14T15:38:11.197122+00:00",
+      "category": "Inclusive Architecture"
+    },
+    {
+      "id": "a8d8d73f-6d87-4865-a539-544dda281ccd",
+      "organization_id": "ec180296-dfe8-4345-869e-66b524e0a12c",
+      "title": "Bias Awareness Scoring Dimensions & Metrics",
+      "content": "LANGUAGE & MESSAGING DIMENSION (25% weight): Anti-bias lexicon compliance, asset-based framing ratio, person-first/identity-first accuracy, plain language readability score, cultural sensitivity in localized content, decolonized terminology adoption.\n\nVISUAL REPRESENTATION DIMENSION (25% weight): Diversity metrics in imagery (skin tone distribution, age range, ability representation, gender balance), stereotyping detection in visual assets, persona spectrum coverage across marketing materials, photography guidelines adherence.\n\nACCESSIBILITY DIMENSION (25% weight): WCAG 2.2 AA compliance rate, focus indicator visibility, target size compliance (24x24px minimum), authentication accessibility (no cognitive tests), redundant entry elimination, consistent help placement, multi-sensory information delivery.\n\nAI GOVERNANCE DIMENSION (25% weight): Prompt engineering inclusivity audit, model output bias detection rate, disparate impact monitoring, human-in-the-loop gate compliance, training data diversity assessment, agentic workflow ethical guardrails, Policy-as-Code implementation status.\n\nSCORING THRESHOLDS: 90-100 (Exemplary - Industry leader in inclusion), 80-89 (Strong - Meets all baseline requirements), 70-79 (Developing - Key gaps identified), 60-69 (Needs Attention - Significant improvements required), Below 60 (Critical - Immediate action needed).\n\nPERSONA COVERAGE SCORING: Each entity assessed against 4 ability dimensions × 3 constraint levels = 12 persona checkpoints. Coverage percentage = (addressed checkpoints / 12) × 100.",
+      "content_type": "text",
+      "source_type": "manual",
+      "source_entity_id": null,
+      "source_entity_type": null,
+      "tags": [
+        "bias-awareness",
+        "scoring-methodology",
+        "metrics",
+        "inclusion-dimensions"
+      ],
+      "metadata": {},
+      "embedding_hash": null,
+      "is_active": true,
+      "created_by": null,
+      "created_at": "2026-02-14T15:38:11.197122+00:00",
+      "updated_at": "2026-02-14T15:38:11.197122+00:00",
+      "category": "Inclusive Architecture"
+    },
+    {
+      "id": "f7e82760-3fb2-4d84-8714-e2e0d3570a4e",
+      "organization_id": "ec180296-dfe8-4345-869e-66b524e0a12c",
+      "title": "WCAG 2.2 Technical Foundations for Inclusive Architecture (2026)",
+      "content": "The release of WCAG 2.2 marks a pivotal moment in digital accessibility, shifting focus toward cognitive, learning, and motor disabilities. Nine new success criteria build on WCAG 2.1, operationalizing POUR principles (Perceivable, Operable, Understandable, Robust). KEY CRITERIA: 2.4.11 Focus Not Obscured (Minimum) [AA], 2.4.12 Focus Not Obscured (Enhanced) [AAA], 2.4.13 Focus Appearance [AAA], 2.5.7 Dragging Movements [AA] requires non-dragging alternative, 2.5.8 Target Size (Minimum) [AA] 24x24 CSS pixel minimum, 3.2.6 Consistent Help [A], 3.3.7 Redundant Entry [A] auto-fill to reduce cognitive load, 3.3.8 Accessible Authentication [AA] prohibits puzzle-based tests, 3.3.9 Accessible Authentication Enhanced [AAA]. IMPLEMENTATION: Support biometric data, email-based magic links, or password managers. Auto-fill fields to reduce cognitive tax. 24x24px minimum touch targets.",
+      "content_type": "text",
+      "source_type": "manual",
+      "source_entity_id": null,
+      "source_entity_type": null,
+      "tags": [
+        "wcag",
+        "accessibility",
+        "wcag-2.2",
+        "pour-principles",
+        "2026"
+      ],
+      "metadata": {},
+      "embedding_hash": null,
+      "is_active": true,
+      "created_by": null,
+      "created_at": "2026-02-14T16:01:15.324148+00:00",
+      "updated_at": "2026-02-14T16:01:15.324148+00:00",
+      "category": "Accessibility Standards"
+    },
+    {
+      "id": "bda9cb81-ff3b-4793-a622-4826c4439628",
+      "organization_id": "ec180296-dfe8-4345-869e-66b524e0a12c",
+      "title": "WFA 12 Key Areas Bias Litmus Test Framework",
+      "content": "The World Federation of Advertisers (WFA) framework identifies 12 key areas where unconscious bias compromises brand messaging and product design. Commercial impact: inclusive advertising linked to 3.46% increase in short-term sales and 16.26% increase in long-term sales. THE 12 AREAS: 1. Business & Brand Challenge: Who is excluded? 2. Strategic Insight & Data: Bias in research? 3. Creative & Comms Brief: Mandate representation? 4. Agency & Partner Selection: Diverse talent? 5. Creative Development: 3Ps (Presence, Perspective, Personality)? 6. Pre-testing: Check for bias amongst affected group? 7. Production & Casting: Inclusive casting, stereotyping props? 8. Post-production & Edit: Final edit without new biases? 9. Media Placement: Brand safety blocking minority content? 10. Localisation: Cultural nuances? 11. Launch & Activation: Impact on diverse groups? 12. Analysis & Effectiveness: Building knowledge?",
+      "content_type": "text",
+      "source_type": "manual",
+      "source_entity_id": null,
+      "source_entity_type": null,
+      "tags": [
+        "wfa",
+        "bias-awareness",
+        "advertising",
+        "inclusion",
+        "dei"
+      ],
+      "metadata": {},
+      "embedding_hash": null,
+      "is_active": true,
+      "created_by": null,
+      "created_at": "2026-02-14T16:02:03.60112+00:00",
+      "updated_at": "2026-02-14T16:02:03.60112+00:00",
+      "category": "Brand Theory"
+    },
+    {
+      "id": "a7a673ba-5a8a-4e84-b426-20a41d8ee929",
+      "organization_id": "ec180296-dfe8-4345-869e-66b524e0a12c",
+      "title": "Product Inclusion & Equity (PI&E) - Who Else? Framework",
+      "content": "Based on Annie Jean-Baptiste (Google). Shifts from giving underrepresented consumers a seat at the table to full co-creation. KEY PRINCIPLES: The Curb-Cut Effect (centering marginalized users creates features improving products for everyone), Intersectionality (identities are not monolithic, amplified barriers require holistic solutions), Asset-Based Framing (focus on what people possess/can do). FIVE TOUCHPOINTS: 1. IDEATION: Whose voice is missing? 2. RESEARCH: Flag generalized pen portraits excluding underrepresented groups. 3. DESIGN: Implement Curb-Cut Effect—features solving for specific disability but improving usability for all. 4. TESTING: Automate recruitment of diverse co-designers. 5. MARKETING: Evaluate narratives for intersectionality, avoid tokenistic portrayals.",
+      "content_type": "text",
+      "source_type": "manual",
+      "source_entity_id": null,
+      "source_entity_type": null,
+      "tags": [
+        "pie",
+        "product-inclusion",
+        "equity",
+        "google",
+        "who-else",
+        "curb-cut-effect"
+      ],
+      "metadata": {},
+      "embedding_hash": null,
+      "is_active": true,
+      "created_by": null,
+      "created_at": "2026-02-14T16:02:03.60112+00:00",
+      "updated_at": "2026-02-14T16:02:03.60112+00:00",
+      "category": "Inclusion Frameworks"
+    },
+    {
+      "id": "7ecf91c6-f7c1-431c-97da-0b55f1954e35",
+      "organization_id": "ec180296-dfe8-4345-869e-66b524e0a12c",
+      "title": "Microsoft Inclusive Design Methodology and Persona Spectrum",
+      "content": "Accessibility as design opportunity. Persona Spectrum maps mismatches: Permanent (one arm), Temporary (arm injury/cast), Situational (new parent one-handed). Solving for one permanent disability scales to millions of temporary and situational users. 2026 extensions include cognitive dimensions like Respecting Focus for neurodiversity. Five dimensions: Mobility, Vision, Hearing, Speech, Cognitive—each across permanent/temporary/situational scenarios.",
+      "content_type": "text",
+      "source_type": "manual",
+      "source_entity_id": null,
+      "source_entity_type": null,
+      "tags": [
+        "microsoft",
+        "persona-spectrum",
+        "inclusive-design",
+        "universal-design"
+      ],
+      "metadata": {},
+      "embedding_hash": null,
+      "is_active": true,
+      "created_by": null,
+      "created_at": "2026-02-14T16:02:03.60112+00:00",
+      "updated_at": "2026-02-14T16:02:03.60112+00:00",
+      "category": "Inclusion Frameworks"
+    },
+    {
+      "id": "cf32bd7f-a773-4477-b0ca-916a88b3fb01",
+      "organization_id": "ec180296-dfe8-4345-869e-66b524e0a12c",
+      "title": "Technical Anti-Bias Lexicon for Code and Documentation",
+      "content": "Terminology replacements: Tech Hierarchy: Master/Slave to Primary/Secondary or Controller/Main. Permissions: Whitelist/Blacklist to Allowlist/Denylist. Socioeconomic: The poor/homeless to People with lower incomes/People experiencing homelessness. Ableism: Crazy/Insane/Crippled to Unpredictable/Overwhelming/Frozen. Gender: Fireman/Guys/Chairman to Firefighter/Folks/Chairperson. All brand content, documentation, and code should be scanned against this lexicon.",
+      "content_type": "text",
+      "source_type": "manual",
+      "source_entity_id": null,
+      "source_entity_type": null,
+      "tags": [
+        "lexicon",
+        "anti-bias",
+        "inclusive-language",
+        "terminology"
+      ],
+      "metadata": {},
+      "embedding_hash": null,
+      "is_active": true,
+      "created_by": null,
+      "created_at": "2026-02-14T16:02:03.60112+00:00",
+      "updated_at": "2026-02-14T16:02:03.60112+00:00",
+      "category": "Language Standards"
+    },
+    {
+      "id": "e7ab6276-cd96-4922-b522-d08676dcf140",
+      "organization_id": "ec180296-dfe8-4345-869e-66b524e0a12c",
+      "title": "Inclusive Imagery: The Stop/Go Framework for Digital Asset Management",
+      "content": "STOP: Hospital-style equipment in non-medical contexts, pity-based hierarchies, heroic tropes for everyday activities, unnecessary dependency depictions, isolated disability models. GO: Real people in realistic settings, authentic equipment aids, equal power hierarchies (all models same level), normalized invisible disabilities, diverse body types/ages/ethnicities, people with disabilities in leadership positions.",
+      "content_type": "text",
+      "source_type": "manual",
+      "source_entity_id": null,
+      "source_entity_type": null,
+      "tags": [
+        "imagery",
+        "stop-go",
+        "dam",
+        "visual-identity",
+        "inclusive-imagery"
+      ],
+      "metadata": {},
+      "embedding_hash": null,
+      "is_active": true,
+      "created_by": null,
+      "created_at": "2026-02-14T16:02:03.60112+00:00",
+      "updated_at": "2026-02-14T16:02:03.60112+00:00",
+      "category": "Visual Standards"
+    },
+    {
+      "id": "26f8fed6-ec19-45bb-afb4-96f22d83f105",
+      "organization_id": "ec180296-dfe8-4345-869e-66b524e0a12c",
+      "title": "Multi-Sensory UX and the Science of Affordances",
+      "content": "Strategic Redundancy integrates touch (haptics), sound, and spatial audio to reduce cognitive load. Haptic Feedback mimics physical touch. Auditory Cues for confirmations and errors. Synchronized Timing across modalities must be simultaneous. Perceived affordances must match actual affordances. Negative affordances (grayed-out buttons) need plain language explanations. Coverage rated strong/moderate/weak.",
+      "content_type": "text",
+      "source_type": "manual",
+      "source_entity_id": null,
+      "source_entity_type": null,
+      "tags": [
+        "multi-sensory",
+        "ux",
+        "affordances",
+        "haptics",
+        "cognitive-load"
+      ],
+      "metadata": {},
+      "embedding_hash": null,
+      "is_active": true,
+      "created_by": null,
+      "created_at": "2026-02-14T16:02:03.60112+00:00",
+      "updated_at": "2026-02-14T16:02:03.60112+00:00",
+      "category": "UX Research"
+    },
+    {
+      "id": "c383048c-a9a2-4ef8-b492-bf9dbb1db0f9",
+      "organization_id": "ec180296-dfe8-4345-869e-66b524e0a12c",
+      "title": "AI Governance & Policy-as-Code for Bias Detection (2026)",
+      "content": "Agentic AI must be verticalized with deep brand domain knowledge. Policy-as-Code translates legal compliance into automated rules. Disparate Impact Ratio: If AI skews results for protected group beyond 1.25 or below 0.80 (U.S. 80% rule), system triggers alert. Data Journeys: End-to-end lineage traces biased outcomes through every transformation. Threshold Monitoring: Real-time bias drift detection. Assessment levels: Data Journey Traceability (high/medium/low), Bias Detection Automation (high/medium/low), Threshold Monitoring (active/partial/absent).",
+      "content_type": "text",
+      "source_type": "manual",
+      "source_entity_id": null,
+      "source_entity_type": null,
+      "tags": [
+        "ai-governance",
+        "policy-as-code",
+        "disparate-impact",
+        "bias-detection",
+        "agentic-ai"
+      ],
+      "metadata": {},
+      "embedding_hash": null,
+      "is_active": true,
+      "created_by": null,
+      "created_at": "2026-02-14T16:02:03.60112+00:00",
+      "updated_at": "2026-02-14T16:02:03.60112+00:00",
+      "category": "AI Governance"
+    },
+    {
+      "id": "e533fc98-b165-4b59-a5d0-86af009200a3",
+      "organization_id": "ec180296-dfe8-4345-869e-66b524e0a12c",
+      "title": "Universal Event Accessibility Framework & 2026 Inclusion Checklist",
+      "content": "Events must assume disabled participants. PHYSICAL: Doors 32in+ wide, <5lbs force; Hallways 64in+ for two-way traffic; Aisles 36in+ for wheelchairs. COMMUNICATION: CamelCase hashtags for screen readers; Roving microphones for Q&A; Speakers describe all visuals; Sans serif fonts 24pt+ minimum; Captions on all videos. TECHNICAL: No puzzle-based auth (WCAG 3.3.8); Biometric or email-link preferred; 24x24px touch targets. The 2026 Master Inclusion Checklist encompasses 26 actions across linguistic, technical, physical, and communication categories.",
+      "content_type": "text",
+      "source_type": "manual",
+      "source_entity_id": null,
+      "source_entity_type": null,
+      "tags": [
+        "events",
+        "checklist",
+        "physical-accessibility",
+        "universal-design",
+        "2026"
+      ],
+      "metadata": {},
+      "embedding_hash": null,
+      "is_active": true,
+      "created_by": null,
+      "created_at": "2026-02-14T16:02:03.60112+00:00",
+      "updated_at": "2026-02-14T16:02:03.60112+00:00",
+      "category": "Event Standards"
+    },
+    {
+      "id": "1af50abe-0b2c-4785-8d37-e77eb0693d93",
+      "organization_id": "ec180296-dfe8-4345-869e-66b524e0a12c",
+      "title": "Foundations of Inclusive Architecture: TransPerfect 2026 Vision",
+      "content": "At TransPerfect, the mission is to be the world's leading enabler of global communications through Intelligent Performance. The 2026 digital landscape shifts from reactive compliance to proactive, intentional inclusion. Brand hubs and product architectures serve as primary conduits for equitable human engagement. The synthesis of technical standards (WCAG 2.2), neuroscientific UX principles (multi-sensory design), and ethical AI governance (Policy-as-Code) creates the Invisible Enabler—allowing creators to build for everyone by default. Core Values: Integrity, Quality, Service, Own It, Urgency, Respect, Teamwork, Diversity, Financial Responsibility, Results. Inclusion in 2026 is the very foundation of Intelligent Performance.",
+      "content_type": "text",
+      "source_type": "manual",
+      "source_entity_id": null,
+      "source_entity_type": null,
+      "tags": [
+        "transperfect",
+        "vision",
+        "inclusive-architecture",
+        "intelligent-performance",
+        "2026",
+        "foundational"
+      ],
+      "metadata": {},
+      "embedding_hash": null,
+      "is_active": true,
+      "created_by": null,
+      "created_at": "2026-02-14T16:02:03.60112+00:00",
+      "updated_at": "2026-02-14T16:02:03.60112+00:00",
+      "category": "Strategic Vision"
+    },
+    {
+      "id": "33ea08ef-1f3a-4e9a-8265-fc860248a9d6",
+      "organization_id": "ec180296-dfe8-4345-869e-66b524e0a12c",
+      "title": "🧠 Brand Intelligence: Life Sciences",
+      "content": "Analysis completed\nMarket Position: Market participant\nKey Advantages: Brand recognition",
+      "content_type": "intelligence",
+      "source_type": "entity_brain",
+      "source_entity_id": "725d5397-a2bc-4cba-8764-18c218015ed0",
+      "source_entity_type": "brand",
+      "tags": [
+        "brand",
+        "auto-generated",
+        "brain-insight"
+      ],
+      "metadata": {},
+      "embedding_hash": null,
+      "is_active": true,
+      "created_by": null,
+      "created_at": "2026-02-15T13:25:57.207194+00:00",
+      "updated_at": "2026-02-15T13:25:57.207194+00:00",
+      "category": "entity_insights"
+    },
+    {
+      "id": "35fc11eb-91da-4f83-9700-d2e9a44d5ec1",
+      "organization_id": "ec180296-dfe8-4345-869e-66b524e0a12c",
+      "title": "Visual Language of 2026 – Executive Summary",
+      "content": "By 2026, digital visual design emphasizes expressive, user-centered, and dynamic aesthetics. Color schemes are bright, saturated, and flexible, often generated or shifted algorithmically (e.g. Google's AI-driven Material You palettes). Typography breaks from strict minimalist sans-serifs to become oversized, custom and story-driven, with variable fonts and playful distortions.\n\n## COLOR PALETTES\n- Saturated & High-Contrast: Bright, vivid hues are back. Neon gradients, chromatic contrasts and \"dopamine\" color themes inspired by Y2K retro aesthetics. Deep blacks and vibrant accent colors amplify contrast in dark mode.\n- Dynamic & Personalized: Many systems (e.g. Material You) generate on-the-fly palettes from user content. A single \"seed\" color is algorithmically expanded into 5 tonal palettes.\n\n## TYPOGRAPHY\n- Expressive & Oversized: Headlines use custom or variable fonts that morph and animate. Kinetic lettering and layering. Display type can be chunky, whimsical or irregular.\n- Heritage & \"Mutant\" Classics: Revival of vintage or hand-crafted styles reinterpreted with modern twists. Typefaces may be purposefully imperfect or textured.\n- Accessibility & Scalability: Text systems include variable weight/width axes and dynamic scaling.\n\n## ICONOGRAPHY\n- Flat meets Dimensional: Icons remain largely flat and geometric but embrace subtle depth cues. SF Symbols updated with gradient rendering and gentle bevels for Liquid Glass.\n- Playful & Custom: Icons carry whimsy—varied line thickness or irregular silhouettes.\n- Scale and Adaptation: Vector icon systems support multi-color variants and variable sizing.\n\n## LAYOUTS AND GRIDS\n- Freeform & Overlapping: Rigid grids give way to fluid, editorial \"zine-like\" compositions. Overlapping text, images and shapes create collage-like pages.\n- CSS Grid & Dynamic Columns: Modern CSS Grid and Responsive design leveraged.\n- Asymmetry & Unexpected Composition: Off-center images, diagonal splits, cut-out overlays.\n\n## MOTION AND INTERACTION\n- Micro-Interactions: Every tap, hover or scroll accompanied by subtle animation.\n- Emotion & Storytelling: Motion used narratively. Scrollytelling sequences guide users through stories.\n- AI and Context Awareness: Interfaces adapt in real time based on user mood and context.\n- Gamification: Progress bars, achievement badges, interactive feedback loops.\n\n## IMAGERY AND PHOTOGRAPHY\n- Authentic & Textured Photos: Stock-photo slickness declining. Brands favor \"real\" imagery with grain, lighting imperfections, moody tonality. Direct flash photography injects energy and grit.\n- Collage and Mixed Media: Digital collages, scrapbooking and layered illustrations. Photographs torn or sticker-ed, overlapped with hand-drawn sketches.\n- Analog/Digital Hybrid: Campaigns overlay digital information onto analog motifs.\n- Surreal Elements: Absurd juxtapositions, dreamlike scenes, AI-generated surreal imagery.\n\n## MATERIALS AND TEXTURES\n- Translucent & Layered: Glassmorphism persists. Apple's Liquid Glass is fully layered and context-aware.\n- Physical Textures: Simulated tactile surfaces (paper fibers, wood grain, stone).\n- Specularity and Depth: Realistic specular highlights and depth-of-field in illustration and 3D.\n\n## ACCESSIBILITY AND INCLUSIVITY\n- Built-in Dark Mode: Nearly all major systems support light and dark themes.\n- High Contrast & Legibility: WCAG contrast ratios strictly followed.\n- Adaptive Interfaces: Auto-adjust to user preferences (large type, voice, reduced motion).\n- Inclusive Imagery: Diverse representation, local cultural patterns incorporated.\n\n## BRANDING SYSTEMS & CROSS-PLATFORM\n- Unified Design Languages: Apple's Liquid Glass spans iPhone, iPad, Mac, Watch and VisionOS.\n- Adaptive Logos and Identities: Logos morph shape, animate or recolor based on context.\n- AI Integration: Theme-building agents using natural language to customize design.\n\n## TIMELINE (2020-2026)\n- 2020: Flat/minimal dominance; Dark mode gains; Neumorphism peaks\n- 2021: Material You launched – dynamic color personalization\n- 2022: Apple VisionPro → spatial UI design principles\n- 2023: AI-driven generative tools influence design; chaotic layouts mainstream\n- 2024: Rise of analog-digital hybrid styles (texture, collage)\n- 2025: Apple Liquid Glass cross-platform design; Salesforce SLDS2 with dark mode and AI-theming\n- 2026: Material You 3.0 with real-time AI-adaptive theming; pervasive personalization\n\n## REGIONAL AND CULTURAL VARIATIONS\nDesigners increasingly localize: incorporating regional patterns, motifs and color symbolism. Asian markets use lacquered red and stylized calligraphy. Middle Eastern designs draw on Islamic geometric patterns. Latin American styles use vibrant warm hues and hand-drawn flair.\n\n## OPEN QUESTIONS\n- How will generative AI reshape core aesthetics beyond tools?\n- Balancing maximalist expression with usability and cognitive load\n- Cross-device consistency (AR glasses, cars, new media)\n- Sustainability and ethical use of AI in design\n- Whether humanized aesthetic endures or swings back to tech-driven minimalism\n\nSources: Adobe 2026 design trends, Apple WWDC25 Liquid Glass, Microsoft Fluent 2, Salesforce SLDS2, IBM Carbon 11, Google Material You, Spotify Wrapped 2025, Creative Bloq, Figma, The Branding Journal.",
+      "content_type": "research",
+      "source_type": "document_import",
+      "source_entity_id": null,
+      "source_entity_type": null,
+      "tags": [
+        "visual-design",
+        "2026-trends",
+        "typography",
+        "color-palettes",
+        "iconography",
+        "motion-design",
+        "accessibility",
+        "branding-systems",
+        "cross-platform",
+        "cultural-adaptation",
+        "AI-design",
+        "liquid-glass",
+        "material-you"
+      ],
+      "metadata": {},
+      "embedding_hash": null,
+      "is_active": true,
+      "created_by": null,
+      "created_at": "2026-02-22T22:05:50.687406+00:00",
+      "updated_at": "2026-02-22T22:05:50.687406+00:00",
+      "category": "general"
+    },
+    {
+      "id": "ef994bb9-01a6-4c49-9aa9-b6796562d78d",
+      "organization_id": "ec180296-dfe8-4345-869e-66b524e0a12c",
+      "title": "🧠 Brand Intelligence: TransPerfect",
+      "content": "Analysis completed\nMarket Position: Market participant\nKey Advantages: Brand recognition",
+      "content_type": "intelligence",
+      "source_type": "entity_brain",
+      "source_entity_id": "0d6d5a5f-0dd0-4e62-9ac2-285a4095de84",
+      "source_entity_type": "brand",
+      "tags": [
+        "brand",
+        "auto-generated",
+        "brain-insight"
+      ],
+      "metadata": {},
+      "embedding_hash": null,
+      "is_active": true,
+      "created_by": null,
+      "created_at": "2026-02-23T00:25:25.988348+00:00",
+      "updated_at": "2026-02-23T00:25:25.988348+00:00",
+      "category": "entity_insights"
+    },
+    {
+      "id": "54a7082e-e91b-4463-88a9-fc16a318191b",
+      "organization_id": "ec180296-dfe8-4345-869e-66b524e0a12c",
+      "title": "🧠 Brand Intelligence: TransPerfect",
+      "content": "Analysis completed\nMarket Position: Market participant\nKey Advantages: Brand recognition",
+      "content_type": "intelligence",
+      "source_type": "entity_brain",
+      "source_entity_id": "0d6d5a5f-0dd0-4e62-9ac2-285a4095de84",
+      "source_entity_type": "brand",
+      "tags": [
+        "brand",
+        "auto-generated",
+        "brain-insight"
+      ],
+      "metadata": {},
+      "embedding_hash": null,
+      "is_active": true,
+      "created_by": null,
+      "created_at": "2026-02-23T00:30:47.519582+00:00",
+      "updated_at": "2026-02-23T00:30:47.519582+00:00",
+      "category": "entity_insights"
+    },
+    {
+      "id": "b65676d4-d3b5-4e9e-8e48-8fffb67f4297",
+      "organization_id": "ec180296-dfe8-4345-869e-66b524e0a12c",
+      "title": "🧠 Event Intelligence: GlobalLink NEXT",
+      "content": "Analysis completed\nMarket Position: Market participant\nKey Advantages: Brand recognition",
+      "content_type": "intelligence",
+      "source_type": "entity_brain",
+      "source_entity_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "source_entity_type": "event",
+      "tags": [
+        "event",
+        "auto-generated",
+        "brain-insight"
+      ],
+      "metadata": {},
+      "embedding_hash": null,
+      "is_active": true,
+      "created_by": null,
+      "created_at": "2026-03-05T22:24:01.919482+00:00",
+      "updated_at": "2026-03-05T22:24:01.919482+00:00",
+      "category": "entity_insights"
+    },
+    {
+      "id": "359829e9-9348-4afb-8e80-330d56caea6b",
+      "organization_id": "ec180296-dfe8-4345-869e-66b524e0a12c",
+      "title": "🧠 Brand Intelligence: Media",
+      "content": "Analysis completed\nMarket Position: Market participant\nKey Advantages: Brand recognition",
+      "content_type": "intelligence",
+      "source_type": "entity_brain",
+      "source_entity_id": "cb0f36e6-e533-44d1-a56f-6baf4a5eb2c2",
+      "source_entity_type": "brand",
+      "tags": [
+        "brand",
+        "auto-generated",
+        "brain-insight"
+      ],
+      "metadata": {},
+      "embedding_hash": null,
+      "is_active": true,
+      "created_by": null,
+      "created_at": "2026-03-19T20:07:13.54612+00:00",
+      "updated_at": "2026-03-19T20:07:13.54612+00:00",
+      "category": "entity_insights"
+    },
+    {
+      "id": "922ceb1e-1421-4e3e-a61b-d16d5f0123b1",
+      "organization_id": "ec180296-dfe8-4345-869e-66b524e0a12c",
+      "title": "🧠 Brand Intelligence: Games",
+      "content": "Analysis completed\nMarket Position: Market participant\nKey Advantages: Brand recognition",
+      "content_type": "intelligence",
+      "source_type": "entity_brain",
+      "source_entity_id": "af4c1015-def2-4bb4-befc-8054c1cffb62",
+      "source_entity_type": "brand",
+      "tags": [
+        "brand",
+        "auto-generated",
+        "brain-insight"
+      ],
+      "metadata": {},
+      "embedding_hash": null,
+      "is_active": true,
+      "created_by": null,
+      "created_at": "2026-04-03T14:57:14.942029+00:00",
+      "updated_at": "2026-04-03T14:57:14.942029+00:00",
+      "category": "entity_insights"
+    },
+    {
+      "id": "4315c68b-ab56-4a56-9493-343b4ae114c2",
+      "organization_id": "ec180296-dfe8-4345-869e-66b524e0a12c",
+      "title": "🧠 Product Intelligence: GlobalLink",
+      "content": "Analysis completed\nMarket Position: Market participant\nKey Advantages: Brand recognition",
+      "content_type": "intelligence",
+      "source_type": "entity_brain",
+      "source_entity_id": "d4cc286f-1047-4bda-80a1-888e158e1244",
+      "source_entity_type": "product",
+      "tags": [
+        "product",
+        "auto-generated",
+        "brain-insight"
+      ],
+      "metadata": {},
+      "embedding_hash": null,
+      "is_active": true,
+      "created_by": null,
+      "created_at": "2026-04-07T19:52:22.203655+00:00",
+      "updated_at": "2026-04-07T19:52:22.203655+00:00",
+      "category": "entity_insights"
+    },
+    {
+      "id": "7029a376-e560-443d-981c-67936b454dcf",
+      "organization_id": "ec180296-dfe8-4345-869e-66b524e0a12c",
+      "title": "📎 Whitepaper: Ai in Localization",
+      "content": "<!DOCTYPE html>\n<html class=\"maestro global-header\" xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\">\n<head><meta charset=\"utf-8\" />\n<meta content=\"noindex, nofollow, noimageindex\" name=\"robots\" />\n<meta content=\"width=device-width, initial-scale=1\" name=\"viewport\" />\n<noscript>\n<meta content=\"0;url=/scl/fi/otp6d4l2kt3nidf1sjcxf/GL_AI-in-Localization-How-to-Win.pdf?dl=0&amp;noscript=1&amp;rlkey=e6f2nbnnjexk2rd3mh9qhzqvw\" http-equiv=\"refresh\" />\n</noscript>\n<script nonce=\"DCY37zt5ig60WLhXPfu60BWytY8=\">window.EDISON_METRICS_JS_EXECUTION_START = performance.now();\n</script><title>Dropbox</title>\n<link rel=\"shortcut icon\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/images/favicon.ico\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/snackbar-vfl8BcUDV.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/error-vflUzpyte.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/foundation-vflH6wwwv.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/notify-vfl1v0oiv.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/abuse/fingerprintjs_component-vflTizAkf.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/typescript/component_libraries/dwg-components/src/index.web-vflZVo29a.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/app_actions/index-vflWAvAtF.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/dig-components/index.web-vfltJ6f-C.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/typescript/component_libraries/dig-experimental/src/index.web-vflMgkV3K.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/js/file_viewer/index.web-vflMfKScd.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/js/comments2/index-vflQdvUHu.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/dig/fonts-vflMHuSEC.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/buy/pages/dropbox_buy-vfl2Z1XLp.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/spectrum/index.web-vfl6Hbk66.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/google_one_tap-vflp9XDLJ.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/dig-fonts/index.metaserver-vflTQCDDt.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/maestro_appshell_styles-vflfNNLV5.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/dig-illustrations/index.web-vflB2icJ2.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/recaptcha-vflthGnp8.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<script nonce=\"DCY37zt5ig60WLhXPfu60BWytY8=\">window.CSP_SCRIPT_NONCE = \"DCY37zt5ig60WLhXPfu60BWytY8=\"</script><script nonce=\"DCY37zt5ig60WLhXPfu60BWytY8=\">\"use strict\";(()=>{const e=window;let i;const a=()=>{i=[],e.addRequireLoadCallback=e=>i.push(e),e.configureRequire=function(){const i=arguments;e.addRequireLoadCallback((()=>e.configureRequire.apply(null,i)))},e.define=function(){const i=arguments;e.addRequireLoadCallback((()=>e.define.apply(null,i)))}};a(),e._insertRequireShim=a,e.InitRequireJs=a=>{e.requireContexts={},e.configureRequire=a,e.addRequireLoadCallback=e=>e(),i.forEach((e=>e()))}})();\n\n</script><script nonce=\"DCY37zt5ig60WLhXPfu60BWytY8=\">(function () {\n    var start = performance.now();\n    \n        window.addRequireLoadCallback(function() {\n            window.EDISON_METRICS_REQUIRE_LOAD_CALLBACK_TIME = performance.now() - start;\n        });\n    \n})();\n</script><script nonce=\"prTEhMSoA7fNdtfCO&#43;T1EXGkH7I=\" src=\"https://cfl.dropboxstatic.com/static/metaserver/static/js/alameda_bundle/alameda_bundle_ie_en-vflN3jacV.js\" crossorigin=\"anonymous\"></script>\n</head><body><script nonce=\"DCY37zt5ig60WLhXPfu60BWytY8=\">window.__SERVED_BY_EDISON_WEB_SERVER__ = true;\n\nconst PAGE_INIT_DATA = {\n    sentryOptions: {\"dsn\":\"https://015d5ce7dd3142cd8fca094a50adbf69@d.dropbox.com/4505546831036416\",\"release\":\"7a7444328e61f93b96156e576d3294842c22c731\",\"environment\":\"prod\",\"tags\":{\"edison_atlasservlet\":\"file_viewer\",\"edison_page_name\":\"scl_oboe_file\",\"browser_id\":\"325784605966100836052700172961590706178\"}},\n    devServerHostname: \"\",\n    requireFallbackBaseUrl: \"https://www.dropboxstatic.com/\",\n    langpack: {locale: \"en\"},\n    useReactNext: false ,\n    exceptionExtras: {\"page_repo_rev\":\"7a7444328e61f93b96156e576d3294842c22c731\",\"yaps_deployment\":\"prod\",\"yaps_project\":\"edison_atlasservlet.file_viewer-edison\",\"page_locale\":\"en\",\"page_load_timestamp\":1775591543},\n    exceptionTags: [\"is_edison\",\"browser-id:325784605966100836052700172961590706178\",\"edison_page_name:scl_oboe_file\",\"edison_atlasservlet:file_viewer\",\"edison_atlasservlet:file_viewer:prod\"],\n    initDataBase64: \"EiAyZWJmYWQyZTBkNTc0N2Q2Yjg1MDdjM2E2OWQ1NjA3Nxj3wNXOBiJ+aHR0cHM6Ly93d3cuZHJvcGJveC5jb20vc2NsL2ZpL290cDZkNGwya3QzbmlkZjFzamN4Zi9HTF9BSS1pbi1Mb2NhbGl6YXRpb24tSG93LXRvLVdpbi5wZGY/cmxrZXk9ZTZmMm5ibm5qZXhrMnJkM21oOXFoenF2dyZkbD0wOksKJzMyNTc4NDYwNTk2NjEwMDgzNjA1MjcwMDE3Mjk2MTU5MDcwNjE3OBIgZjUxN2Q1MzJiNjNhMGI0MTVkMDIwZDcxZTdjMjgwMDJCJmVkaXNvbl9hdGxhc3NlcnZsZXQuZmlsZV92aWV3ZXItZWRpc29uSgRwcm9kUg1zY2xfb2JvZV9maWxlWgJlbmIoN2E3NDQ0MzI4ZTYxZjkzYjk2MTU2ZTU3NmQzMjk0ODQyYzIyYzczMWpQCiF4LWRyb3Bib3gtY2xpZW50LXlhcHMtYXR0cmlidXRpb24SK2VkaXNvbl9hdGxhc3NlcnZsZXQuZmlsZV92aWV3ZXItZWRpc29uOnByb2RyBAoAEgB6E3NoYXJlZF9jb250ZW50X2xpbmuCAShzaGFyZWRfY29udGVudF9saW5rX3ZpZXdfZmlsZV9hbmRfZm9sZGVykgFYCiZhdGxhcy9maWxlX3ZpZXdlci9zdGF0aWMvc2NsX3BhZ2VfZmlsZRIoOThkOGEyOWQ4OGZjNmU4Nzg5NTBjNWI1ZTVhYWUzMWM4MmJhMTUyZBoEcHJvZLoBAlVT\",\n\n};\n\n\n\n    var requireConfig = {\"baseUrl\": \"https://cfl.dropboxstatic.com/\", \"waitSeconds\": 0, \"paths\": {\"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_abuse_fingerprintjs_abuse_fpjs_provider\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_abuse_fingerprintjs_abuse_fpjs_provider-vfl9yDgOg\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_abuse_funcaptcha_modal\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_abuse_funcaptcha_modal-vflFv9DZL\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_abuse_login_and_register_constants_fetch\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_abuse_login_and_register_constants_fetch-vfl58sTOn\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_accessibility_ax_audit\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_accessibility_ax_audit-vflZ56Iuw\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_account_email\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_account_email-vflWMw32g\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_account_email_verify\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_account_email_verify-vflncGX0m\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_account_email_verify_reasons\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_account_email_verify_reasons-vflFf3XyM\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_account_menu_account_menu_contents\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_account_menu_account_menu_contents-vfloJdFjf\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_account_menu_account_menu_upgrade_button_util\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_account_menu_account_menu_upgrade_button_util-vfl0IEjvK\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_action_plugins_copy_action_action\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_action_plugins_copy_action_action-vfl9DZdSm\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_action_plugins_delete_action_action\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_action_plugins_delete_action_action-vfl24m1hR\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_action_plugins_download_action_action\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_action_plugins_download_action_action-vfl55j-3H\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_action_plugins_move_action_action\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_action_plugins_move_action_action-vflYh5wvq\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_action_plugins_open_in_action_dropdown\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_action_plugins_open_in_action_dropdown-vflY9wIYy\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_action_plugins_pdf_edit_action_action\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_action_plugins_pdf_edit_action_action-vfl0it5R7\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_action_plugins_self_sign_action_action\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_action_plugins_self_sign_action_action-vflfZ8eoM\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_action_plugins_send_for_signature_action_action\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_action_plugins_send_for_signature_action_action-vflB8FI8z\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_action_plugins_unzip_action_action\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_action_plugins_unzip_action_action-vfl2Tc6Nm\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_action_plugins_version_history_action_action\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_action_plugins_version_history_action_action-vflXopPO8\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_actions_download_app_modal_modal\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_actions_download_app_modal_modal-vfllB--qB\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_activation_data_slices\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_activation_data_slices-vflSKls67\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_activation_data_store\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_activation_data_store-vflHZf5vE\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_admin_api_admin_console_api_client\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_admin_api_admin_console_api_client-vflpzBr48\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_admin_console_billing_redesign_models_managed_subscriptions\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_admin_console_billing_redesign_models_managed_subscriptions-vfl_f2p9-\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_admin_console_home_after_display_hooks_log_select_cta.after-display\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_admin_console_home_after_display_hooks_log_select_cta.after-display-vflPYetQX\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_admin_console_home_after_display_hooks_log_shown_admin_console_home_onboarding_modal.after-display\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_admin_console_home_after_display_hooks_log_shown_admin_console_home_onboarding_modal.after-display-vflVnuwQ4\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_adyen_adyen-web_adyen\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_adyen_adyen-web_adyen-vfl2pqe6_\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_api-v2-client_src_dropbox\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_api-v2-client_src_dropbox-vflHcEFHe\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_api_v2_routes_restorations_provider\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_api_v2_routes_restorations_provider-vfl5l5Xcr\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_api_v2_routes_shortcuts_provider\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_api_v2_routes_shortcuts_provider-vfl9BCUJB\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_api_v2_unauthed_client\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_api_v2_unauthed_client-vflJDnvsQ\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_assume_flows_utils\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_assume_flows_utils-vfl1Ww0uy\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_auth_email_mfa_email_mfa_challenge_modal\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_auth_email_mfa_email_mfa_challenge_modal-vflWoyEeI\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_auth_login_or_register_modal\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_auth_login_or_register_modal-vflJrko8a\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_auth_multi_account_login_modal\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_auth_multi_account_login_modal-vflSumU9F\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_auth_webauthn\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_auth_webauthn-vflsrR6nA\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_babel_runtime_helpers_isNativeReflectConstruct\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_babel_runtime_helpers_isNativeReflectConstruct-vflH8D2Q0\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_base64\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_base64-vflLb2ZW2\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_bem\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_bem-vfl7vTGLm\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_browse_interface\": \"static/atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_browse_interface-vflVYpRoK\", \"atlas/file_viewer/scl_oboe_file_bundle_amd/dist/c_browser_browser_detection\": \"static/atlas/file_v",
+      "content_type": "pdf",
+      "source_type": "asset_extract",
+      "source_entity_id": "d4cc286f-1047-4bda-80a1-888e158e1244",
+      "source_entity_type": "product",
+      "tags": [
+        "product",
+        "GlobalLink",
+        "Whitepaper",
+        "auto-extracted"
+      ],
+      "metadata": {},
+      "embedding_hash": "qx5dms",
+      "is_active": true,
+      "created_by": null,
+      "created_at": "2026-04-07T19:52:23.747185+00:00",
+      "updated_at": "2026-04-07T19:52:23.747185+00:00",
+      "category": "digital_assets"
+    },
+    {
+      "id": "7a5e1b13-d75b-48a1-aec8-b8c5b0f693d0",
+      "organization_id": "ec180296-dfe8-4345-869e-66b524e0a12c",
+      "title": "📎 Template: GLobalLink Droopbox",
+      "content": "<!DOCTYPE html>\n<html class=\"maestro global-header\" xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\">\n<head><meta charset=\"utf-8\" />\n<meta content=\"noindex, nofollow, noimageindex\" name=\"robots\" />\n<meta content=\"width=device-width, initial-scale=1\" name=\"viewport\" />\n<noscript>\n<meta content=\"0;url=/scl/fo/f1kv1d0twow5hagpmrd1k/AIGLyWpIQ25NXdB6Qukhiuc?dl=0&amp;noscript=1&amp;rlkey=4g0e3avhek4z029at7iffdvtf\" http-equiv=\"refresh\" />\n</noscript>\n<script nonce=\"lHBtb20z4lMkC2G02RJGVkelMmY=\">window.EDISON_METRICS_JS_EXECUTION_START = performance.now();\n</script><title>Dropbox</title>\n<link rel=\"shortcut icon\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/images/favicon.ico\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/dig-components/index.web-vfltJ6f-C.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/abuse/fingerprintjs_component-vflTizAkf.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/maestro_layout-vfluaMGaL.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/notify-vfl1v0oiv.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/typescript/component_libraries/dig-experimental/src/index.web-vflMgkV3K.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/react_title_bar-vfl3itV4i.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/google_one_tap-vflp9XDLJ.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/maestro_appshell_styles-vflfNNLV5.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/spectrum/index.web-vfl6Hbk66.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/account_menu_v2-vflm2lWl_.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/dig-fonts/index.metaserver-vflTQCDDt.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/typescript/component_libraries/pro-ui/src/index.web-vflJQVwcd.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/typescript/component_libraries/dwg-components/src/index.web-vflZVo29a.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/snackbar-vfl8BcUDV.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/account/emails-vfl8LmoWe.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/shared_link_folder-vflpPef5h.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/abuse/report_flag-vflD3Q7IW.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<script nonce=\"lHBtb20z4lMkC2G02RJGVkelMmY=\">window.CSP_SCRIPT_NONCE = \"lHBtb20z4lMkC2G02RJGVkelMmY=\"</script><script nonce=\"lHBtb20z4lMkC2G02RJGVkelMmY=\">\"use strict\";(()=>{const e=window;let i;const a=()=>{i=[],e.addRequireLoadCallback=e=>i.push(e),e.configureRequire=function(){const i=arguments;e.addRequireLoadCallback((()=>e.configureRequire.apply(null,i)))},e.define=function(){const i=arguments;e.addRequireLoadCallback((()=>e.define.apply(null,i)))}};a(),e._insertRequireShim=a,e.InitRequireJs=a=>{e.requireContexts={},e.configureRequire=a,e.addRequireLoadCallback=e=>e(),i.forEach((e=>e()))}})();\n\n</script><script nonce=\"lHBtb20z4lMkC2G02RJGVkelMmY=\">(function () {\n    var start = performance.now();\n    \n        window.addRequireLoadCallback(function() {\n            window.EDISON_METRICS_REQUIRE_LOAD_CALLBACK_TIME = performance.now() - start;\n        });\n    \n})();\n</script><script nonce=\"/B5Iw9Fs5mK265Fe92C9c7WVN1w=\" src=\"https://cfl.dropboxstatic.com/static/metaserver/static/js/alameda_bundle/alameda_bundle_ie_en-vflN3jacV.js\" crossorigin=\"anonymous\"></script>\n</head><body><script nonce=\"lHBtb20z4lMkC2G02RJGVkelMmY=\">window.__SERVED_BY_EDISON_WEB_SERVER__ = true;\n\nconst PAGE_INIT_DATA = {\n    sentryOptions: {\"dsn\":\"https://015d5ce7dd3142cd8fca094a50adbf69@d.dropbox.com/4505546831036416\",\"release\":\"7a7444328e61f93b96156e576d3294842c22c731\",\"environment\":\"canary\",\"tags\":{\"edison_atlasservlet\":\"file_viewer\",\"edison_page_name\":\"scl_oboe_folder\",\"browser_id\":\"108595526219323573908809698327842187451\"}},\n    devServerHostname: \"\",\n    requireFallbackBaseUrl: \"https://www.dropboxstatic.com/\",\n    langpack: {locale: \"en\"},\n    useReactNext: false ,\n    exceptionExtras: {\"page_repo_rev\":\"7a7444328e61f93b96156e576d3294842c22c731\",\"yaps_deployment\":\"canary\",\"yaps_project\":\"edison_atlasservlet.file_viewer-edison\",\"page_locale\":\"en\",\"page_load_timestamp\":1775591543},\n    exceptionTags: [\"is_edison\",\"browser-id:108595526219323573908809698327842187451\",\"edison_page_name:scl_oboe_folder\",\"edison_atlasservlet:file_viewer\",\"edison_atlasservlet:file_viewer:canary\"],\n    initDataBase64: \"EiA0ZWI4YWEwY2FjMjQ0MjZlYmFmNmU5OWI2OWQ1NjA3Nxj3wNXOBiJxaHR0cHM6Ly93d3cuZHJvcGJveC5jb20vc2NsL2ZvL2Yxa3YxZDB0d293NWhhZ3BtcmQxay9BSUdMeVdwSVEyNU5YZEI2UXVraGl1Yz9ybGtleT00ZzBlM2F2aGVrNHowMjlhdDdpZmZkdnRmJmRsPTA6SwonMTA4NTk1NTI2MjE5MzIzNTczOTA4ODA5Njk4MzI3ODQyMTg3NDUxEiA1MWIyYmNkMWRjN2E3MzkyYzc4NzY3YTlmNDEyZThiYkImZWRpc29uX2F0bGFzc2VydmxldC5maWxlX3ZpZXdlci1lZGlzb25KBmNhbmFyeVIPc2NsX29ib2VfZm9sZGVyWgJlbmIoN2E3NDQ0MzI4ZTYxZjkzYjk2MTU2ZTU3NmQzMjk0ODQyYzIyYzczMWpSCiF4LWRyb3Bib3gtY2xpZW50LXlhcHMtYXR0cmlidXRpb24SLWVkaXNvbl9hdGxhc3NlcnZsZXQuZmlsZV92aWV3ZXItZWRpc29uOmNhbmFyeXIECgASAHoTc2hhcmVkX2NvbnRlbnRfbGlua4IBKHNoYXJlZF9jb250ZW50X2xpbmtfdmlld19maWxlX2FuZF9mb2xkZXKSAVwKKGF0bGFzL2ZpbGVfdmlld2VyL3N0YXRpYy9zY2xfcGFnZV9mb2xkZXISKDk4ZDhhMjlkODhmYzZlODc4OTUwYzViNWU1YWFlMzFjODJiYTE1MmQaBmNhbmFyeboBAlVT\",\n\n};\n\n\n\n    var requireConfig = {\"baseUrl\": \"https://cfl.dropboxstatic.com/\", \"waitSeconds\": 0, \"paths\": {\"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_abuse_fingerprintjs_abuse_fpjs_provider\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_abuse_fingerprintjs_abuse_fpjs_provider-vflFzFfDQ\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_abuse_funcaptcha_modal\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_abuse_funcaptcha_modal-vfl13VRmN\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_abuse_login_and_register_constants_fetch\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_abuse_login_and_register_constants_fetch-vflbqNKKj\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_accessibility_ax_audit\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_accessibility_ax_audit-vflZ56Iuw\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_account_email\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_account_email-vflniQbzh\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_account_email_verify_reasons\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_account_email_verify_reasons-vflFf3XyM\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_account_menu_account_menu_contents\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_account_menu_account_menu_contents-vflJNAwga\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_ai_action_definition\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_ai_action_definition-vflMX_4WY\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_comment_action_button\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_comment_action_button-vflZ9EM3d\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_conversion_action_conditions\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_conversion_action_conditions-vflVWtIaH\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_copy_action_action\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_copy_action_action-vfl3A70FX\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_delete_action_action\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_delete_action_action-vflAwBjvl\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_delete_action_definition\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_delete_action_definition-vfl_68aqa\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_download_action_action\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_download_action_action-vflugPG0O\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_download_action_definition\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_download_action_definition-vfl1bH4s6\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_image_edit_action_definition\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_image_edit_action_definition-vflxztV7A\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_move_action_action\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_move_action_action-vflATGJcl\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_open_in_action_dropdown\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_open_in_action_dropdown-vflu5HYbG\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_open_in_action_utils\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_open_in_action_utils-vflnSTfP4\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_pdf_edit_action_action\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_pdf_edit_action_action-vflcTGIPb\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_self_sign_action_action\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_self_sign_action_action-vfluKIejX\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_send_for_signature_action_action\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_send_for_signature_action_action-vflti-8Oy\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_transcript_action_utils\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_transcript_action_utils-vflea7Zkk\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_unzip_action_action\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_unzip_action_action-vflzAeXG6\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_version_history_action_action\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_version_history_action_action-vflUrqo9F\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_actions_download_app_modal_modal\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_actions_download_app_modal_modal-vfliuM8wp\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_activation_data_slices\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_activation_data_slices-vfliVJRfD\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_activation_data_store\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_activation_data_store-vflf3_v-_\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_admin_api_admin_console_api_client\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_admin_api_admin_console_api_client-vflW-0-cu\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_admin_console_billing_redesign_models_managed_subscriptions\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_admin_console_billing_redesign_models_managed_subscriptions-vflp5Avsw\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_admin_console_home_after_display_hooks_log_select_cta.after-display\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_admin_console_home_after_display_hooks_log_select_cta.after-display-vflMv8oy6\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_admin_console_home_after_display_hooks_log_shown_admin_console_home_onboarding_modal.after-display\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_admin_console_home_after_display_hooks_log_shown_admin_console_home_onboarding_modal.after-display-vflh2pGgC\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_admin_registration_source_constants\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_admin_registration_source_constants-vflSkAQWi\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_adyen_adyen-web_adyen\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_adyen_adyen-web_adyen-vfl2pqe6_\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_api-v2-client_src_dropbox\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_api-v2-client_src_dropbox-vflHcEFHe\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_api_v2_redux_file_viewer\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_api_v2_redux_file_viewer-vfly5U5Nq\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_api_v2_routes_restorations_provider\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_api_v2_routes_restorations_provider-vfl0Cl0nM\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_api_v2_routes_shortcuts_provider\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_api_v2_routes_shortcuts_provider-vflIqPYF7\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_api_v2_routes_stacks_provider\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_api_v2_routes_stacks_provider-vflhJA8BV\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_api_v2_routes_team_insights_provider\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_api_v2_routes_team_in",
+      "content_type": "text",
+      "source_type": "asset_extract",
+      "source_entity_id": "d4cc286f-1047-4bda-80a1-888e158e1244",
+      "source_entity_type": "product",
+      "tags": [
+        "product",
+        "GlobalLink",
+        "Template",
+        "auto-extracted"
+      ],
+      "metadata": {},
+      "embedding_hash": "kvj81w",
+      "is_active": true,
+      "created_by": null,
+      "created_at": "2026-04-07T19:52:24.995995+00:00",
+      "updated_at": "2026-04-07T19:52:24.995995+00:00",
+      "category": "digital_assets"
+    },
+    {
+      "id": "cd6229e9-9803-46cf-a14b-496d4b128894",
+      "organization_id": "ec180296-dfe8-4345-869e-66b524e0a12c",
+      "title": "🧠 Brand Intelligence: Life Sciences",
+      "content": "Analysis completed\nMarket Position: Market participant\nKey Advantages: Brand recognition",
+      "content_type": "intelligence",
+      "source_type": "entity_brain",
+      "source_entity_id": "725d5397-a2bc-4cba-8764-18c218015ed0",
+      "source_entity_type": "brand",
+      "tags": [
+        "brand",
+        "auto-generated",
+        "brain-insight"
+      ],
+      "metadata": {},
+      "embedding_hash": null,
+      "is_active": true,
+      "created_by": null,
+      "created_at": "2026-04-14T13:35:34.257198+00:00",
+      "updated_at": "2026-04-14T13:35:34.257198+00:00",
+      "category": "entity_insights"
+    },
+    {
+      "id": "8863da14-db01-49ec-b9e0-6ad30743c48b",
+      "organization_id": "ec180296-dfe8-4345-869e-66b524e0a12c",
+      "title": "📎 Template: Brand Assets",
+      "content": "<!DOCTYPE html>\n<html class=\"maestro global-header\" xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\">\n<head><meta charset=\"utf-8\" />\n<meta content=\"noindex, nofollow, noimageindex\" name=\"robots\" />\n<meta content=\"width=device-width, initial-scale=1\" name=\"viewport\" />\n<noscript>\n<meta content=\"0;url=/scl/fo/jamqqtgj4qn59qb9lzict/AKVymnQHRTCkmu1fwIa-3q8?dl=0&amp;noscript=1&amp;rlkey=by8hb3316sgin1yj6qs7wq00z\" http-equiv=\"refresh\" />\n</noscript>\n<script nonce=\"VK8twMBOmdwq4F/V2EmMeoEwXf0=\">window.EDISON_METRICS_JS_EXECUTION_START = performance.now();\n</script><title>Dropbox</title>\n<link rel=\"shortcut icon\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/images/favicon.ico\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/maestro_layout-vfluaMGaL.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/dig-components/index.web-vfltJ6f-C.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/account_menu_v2-vflm2lWl_.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/abuse/report_flag-vflD3Q7IW.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/shared_link_folder-vflpPef5h.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/notify-vfl1v0oiv.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/typescript/component_libraries/dig-experimental/src/index.web-vflMgkV3K.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/dig-fonts/index.metaserver-vflTQCDDt.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/abuse/fingerprintjs_component-vflTizAkf.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/maestro_appshell_styles-vflfNNLV5.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/account/emails-vfl8LmoWe.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/typescript/component_libraries/pro-ui/src/index.web-vflJQVwcd.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/spectrum/index.web-vfl6Hbk66.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/snackbar-vfl8BcUDV.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/react_title_bar-vfl3itV4i.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/typescript/component_libraries/dwg-components/src/index.web-vflZVo29a.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<link rel=\"preload\" href=\"https://cfl.dropboxstatic.com/static/metaserver/static/css/google_one_tap-vflp9XDLJ.css\" crossorigin as=\"style\" data-loader=\"dbx_edison_page[requested_css]\"/>\n<script nonce=\"VK8twMBOmdwq4F/V2EmMeoEwXf0=\">window.CSP_SCRIPT_NONCE = \"VK8twMBOmdwq4F/V2EmMeoEwXf0=\"</script><script nonce=\"VK8twMBOmdwq4F/V2EmMeoEwXf0=\">\"use strict\";(()=>{const e=window;let i;const a=()=>{i=[],e.addRequireLoadCallback=e=>i.push(e),e.configureRequire=function(){const i=arguments;e.addRequireLoadCallback((()=>e.configureRequire.apply(null,i)))},e.define=function(){const i=arguments;e.addRequireLoadCallback((()=>e.define.apply(null,i)))}};a(),e._insertRequireShim=a,e.InitRequireJs=a=>{e.requireContexts={},e.configureRequire=a,e.addRequireLoadCallback=e=>e(),i.forEach((e=>e()))}})();\n\n</script><script nonce=\"VK8twMBOmdwq4F/V2EmMeoEwXf0=\">(function () {\n    var start = performance.now();\n    \n        window.addRequireLoadCallback(function() {\n            window.EDISON_METRICS_REQUIRE_LOAD_CALLBACK_TIME = performance.now() - start;\n        });\n    \n})();\n</script><script nonce=\"Ho0SfaeSvxWXlwDnrzui66iW7Jo=\" src=\"https://cfl.dropboxstatic.com/static/metaserver/static/js/alameda_bundle/alameda_bundle_ie_en-vflN3jacV.js\" crossorigin=\"anonymous\"></script>\n</head><body><script nonce=\"VK8twMBOmdwq4F/V2EmMeoEwXf0=\">window.__SERVED_BY_EDISON_WEB_SERVER__ = true;\n\nconst PAGE_INIT_DATA = {\n    sentryOptions: {\"dsn\":\"https://015d5ce7dd3142cd8fca094a50adbf69@d.dropbox.com/4505546831036416\",\"release\":\"f7a5bd04e77d16ab4cc9d40c5dcfb9617b8f8a55\",\"environment\":\"prod\",\"tags\":{\"edison_atlasservlet\":\"file_viewer\",\"edison_page_name\":\"scl_oboe_folder\",\"browser_id\":\"98703218697284082973542875309793334189\"}},\n    devServerHostname: \"\",\n    requireFallbackBaseUrl: \"https://www.dropboxstatic.com/\",\n    langpack: {locale: \"en\"},\n    useReactNext: false ,\n    exceptionExtras: {\"page_repo_rev\":\"f7a5bd04e77d16ab4cc9d40c5dcfb9617b8f8a55\",\"yaps_deployment\":\"prod\",\"yaps_project\":\"edison_atlasservlet.file_viewer-edison\",\"page_locale\":\"en\",\"page_load_timestamp\":1776173735},\n    exceptionTags: [\"is_edison\",\"browser-id:98703218697284082973542875309793334189\",\"edison_page_name:scl_oboe_folder\",\"edison_atlasservlet:file_viewer\",\"edison_atlasservlet:file_viewer:prod\"],\n    initDataBase64: \"EiBhYjBiY2I3ZWM3MzI0MzE2OTRhMGVhNTc2OWRlNDJhNxinhfnOBiJxaHR0cHM6Ly93d3cuZHJvcGJveC5jb20vc2NsL2ZvL2phbXFxdGdqNHFuNTlxYjlsemljdC9BS1Z5bW5RSFJUQ2ttdTFmd0lhLTNxOD9ybGtleT1ieThoYjMzMTZzZ2luMXlqNnFzN3dxMDB6JmRsPTA6SgomOTg3MDMyMTg2OTcyODQwODI5NzM1NDI4NzUzMDk3OTMzMzQxODkSIDRhNDE4YzY3MzIzZWU2ZWI3NmNmYmJlZjE3ZTNkM2FkQiZlZGlzb25fYXRsYXNzZXJ2bGV0LmZpbGVfdmlld2VyLWVkaXNvbkoEcHJvZFIPc2NsX29ib2VfZm9sZGVyWgJlbmIoZjdhNWJkMDRlNzdkMTZhYjRjYzlkNDBjNWRjZmI5NjE3YjhmOGE1NWpQCiF4LWRyb3Bib3gtY2xpZW50LXlhcHMtYXR0cmlidXRpb24SK2VkaXNvbl9hdGxhc3NlcnZsZXQuZmlsZV92aWV3ZXItZWRpc29uOnByb2RyBAoAEgB6E3NoYXJlZF9jb250ZW50X2xpbmuCAShzaGFyZWRfY29udGVudF9saW5rX3ZpZXdfZmlsZV9hbmRfZm9sZGVykgFaCihhdGxhcy9maWxlX3ZpZXdlci9zdGF0aWMvc2NsX3BhZ2VfZm9sZGVyEig2MWQ2MzMyZDFlNTNhNGViM2E3MTBiYTc0MGZhOTAwMmNkMTFhZjViGgRwcm9kugECVVM=\",\n\n};\n\n\n\n    var requireConfig = {\"baseUrl\": \"https://cfl.dropboxstatic.com/\", \"waitSeconds\": 0, \"paths\": {\"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_abuse_fingerprintjs_abuse_fpjs_provider\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_abuse_fingerprintjs_abuse_fpjs_provider-vflFzFfDQ\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_abuse_funcaptcha_modal\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_abuse_funcaptcha_modal-vfl13VRmN\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_abuse_login_and_register_constants_fetch\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_abuse_login_and_register_constants_fetch-vflbqNKKj\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_accessibility_ax_audit\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_accessibility_ax_audit-vflZ56Iuw\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_account_email\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_account_email-vflniQbzh\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_account_email_verify_reasons\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_account_email_verify_reasons-vflFf3XyM\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_account_menu_account_menu_contents\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_account_menu_account_menu_contents-vflQyM6uz\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_ai_action_definition\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_ai_action_definition-vfltNQt-h\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_comment_action_button\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_comment_action_button-vfl4jSdZ9\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_conversion_action_conditions\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_conversion_action_conditions-vflbCGykJ\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_copy_action_action\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_copy_action_action-vflcp0zk7\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_delete_action_action\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_delete_action_action-vflxmfO3A\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_delete_action_definition\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_delete_action_definition-vflZVU2MV\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_download_action_action\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_download_action_action-vflZUWwRJ\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_download_action_definition\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_download_action_definition-vfl1bH4s6\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_image_edit_action_definition\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_image_edit_action_definition-vfl0Ldd6g\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_move_action_action\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_move_action_action-vfl6crAtc\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_open_in_action_dropdown\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_open_in_action_dropdown-vfl3EUtnI\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_open_in_action_utils\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_open_in_action_utils-vflnSTfP4\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_pdf_edit_action_action\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_pdf_edit_action_action-vflcTGIPb\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_self_sign_action_action\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_self_sign_action_action-vflYyWvr-\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_send_for_signature_action_action\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_send_for_signature_action_action-vfliiYO5J\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_transcript_action_utils\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_transcript_action_utils-vflRXkVOf\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_unzip_action_action\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_unzip_action_action-vflR1HYbi\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_version_history_action_action\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_action_plugins_version_history_action_action-vflUrqo9F\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_actions_download_app_modal_modal\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_actions_download_app_modal_modal-vfluxjRLZ\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_activation_data_slices\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_activation_data_slices-vfliVJRfD\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_activation_data_store\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_activation_data_store-vflf3_v-_\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_admin_api_admin_console_api_client\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_admin_api_admin_console_api_client-vflW-0-cu\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_admin_console_billing_redesign_models_managed_subscriptions\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_admin_console_billing_redesign_models_managed_subscriptions-vflp5Avsw\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_admin_console_home_after_display_hooks_log_select_cta.after-display\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_admin_console_home_after_display_hooks_log_select_cta.after-display-vflMv8oy6\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_admin_console_home_after_display_hooks_log_shown_admin_console_home_onboarding_modal.after-display\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_admin_console_home_after_display_hooks_log_shown_admin_console_home_onboarding_modal.after-display-vflh2pGgC\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_admin_registration_source_constants\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_admin_registration_source_constants-vflSkAQWi\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_adyen_adyen-web_adyen\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_adyen_adyen-web_adyen-vfl2pqe6_\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_api-v2-client_src_dropbox\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_api-v2-client_src_dropbox-vflYlP2HH\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_api_v2_redux_file_viewer\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_api_v2_redux_file_viewer-vfltBjB6F\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_api_v2_routes_restorations_provider\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_api_v2_routes_restorations_provider-vfl0Cl0nM\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_api_v2_routes_shortcuts_provider\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_api_v2_routes_shortcuts_provider-vflIqPYF7\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_api_v2_routes_stacks_provider\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_api_v2_routes_stacks_provider-vflhJA8BV\", \"atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_api_v2_routes_team_insights_provider\": \"static/atlas/file_viewer/scl_oboe_folder_bundle_amd/dist/c_api_v2_routes_team_insights_provider-",
+      "content_type": "text",
+      "source_type": "asset_extract",
+      "source_entity_id": "725d5397-a2bc-4cba-8764-18c218015ed0",
+      "source_entity_type": "brand",
+      "tags": [
+        "brand",
+        "Life Sciences",
+        "Template",
+        "auto-extracted"
+      ],
+      "metadata": {},
+      "embedding_hash": "sfj3n8",
+      "is_active": true,
+      "created_by": null,
+      "created_at": "2026-04-14T13:35:36.920289+00:00",
+      "updated_at": "2026-04-14T13:35:36.920289+00:00",
+      "category": "digital_assets"
+    },
+    {
+      "id": "f7111008-3aaa-4d6e-8c57-1af4328674e4",
+      "organization_id": "ec180296-dfe8-4345-869e-66b524e0a12c",
+      "title": "🧠 Event Intelligence: GlobalLink NEXT",
+      "content": "Analysis completed\nMarket Position: Market participant\nKey Advantages: Brand recognition",
+      "content_type": "intelligence",
+      "source_type": "entity_brain",
+      "source_entity_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "source_entity_type": "event",
+      "tags": [
+        "event",
+        "auto-generated",
+        "brain-insight"
+      ],
+      "metadata": {},
+      "embedding_hash": null,
+      "is_active": true,
+      "created_by": null,
+      "created_at": "2026-04-21T21:14:16.712115+00:00",
+      "updated_at": "2026-04-21T21:14:16.712115+00:00",
+      "category": "entity_insights"
+    },
+    {
+      "id": "3d3ad1e2-efdf-455f-8b22-96752e5e1b20",
+      "organization_id": "ec180296-dfe8-4345-869e-66b524e0a12c",
+      "title": "🧠 Brand Intelligence: Life Sciences",
+      "content": "Analysis completed\nMarket Position: Market participant\nKey Advantages: Brand recognition",
+      "content_type": "intelligence",
+      "source_type": "entity_brain",
+      "source_entity_id": "725d5397-a2bc-4cba-8764-18c218015ed0",
+      "source_entity_type": "brand",
+      "tags": [
+        "brand",
+        "auto-generated",
+        "brain-insight"
+      ],
+      "metadata": {},
+      "embedding_hash": null,
+      "is_active": true,
+      "created_by": null,
+      "created_at": "2026-06-16T23:59:22.080899+00:00",
+      "updated_at": "2026-06-16T23:59:22.080899+00:00",
+      "category": "entity_insights"
+    },
+    {
+      "id": "24523182-5c75-43eb-a4b6-b6b822da577e",
+      "organization_id": "ec180296-dfe8-4345-869e-66b524e0a12c",
+      "title": "🧠 Event Intelligence: TransPerfect NEXT",
+      "content": "Analysis completed\nMarket Position: Market participant\nKey Advantages: Brand recognition",
+      "content_type": "intelligence",
+      "source_type": "entity_brain",
+      "source_entity_id": "0b6d1876-fd2b-4c52-9609-9a18962933d2",
+      "source_entity_type": "event",
+      "tags": [
+        "event",
+        "auto-generated",
+        "brain-insight"
+      ],
+      "metadata": {},
+      "embedding_hash": null,
+      "is_active": true,
+      "created_by": null,
+      "created_at": "2026-07-07T14:23:55.442468+00:00",
+      "updated_at": "2026-07-07T14:23:55.442468+00:00",
+      "category": "entity_insights"
+    }
+  ],
+  "brand_intelligence": [],
+  "errors": {
+    "bi": "column brand_intelligence.cultural_readiness does not exist"
+  }
+}
