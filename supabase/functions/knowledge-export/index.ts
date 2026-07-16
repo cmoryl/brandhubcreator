@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
   const [oi, okb, bi] = await Promise.all([
     supabase.from("oracle_intelligence").select("*"),
     supabase.from("oracle_knowledge_base").select("*"),
-    supabase.from("brand_intelligence").select("id, entity_type, entity_id, organization_id, knowledge_entries, brand_summary, market_position, competitive_landscape, cultural_readiness, updated_at"),
+    supabase.from("brand_intelligence").select("id, entity_type, entity_id, organization_id, knowledge_entries, brand_summary, market_position, target_audience, competitive_advantages, brand_voice_profile, growth_recommendations, competitive_landscape, cultural_insights, updated_at"),
   ]);
 
   return new Response(
