@@ -1,0 +1,40 @@
+                       Table "public.organization_icon_libraries"
+      Column       |           Type           | Collation | Nullable |      Default      
+-------------------+--------------------------+-----------+----------+-------------------
+ id                | uuid                     |           | not null | gen_random_uuid()
+ organization_id   | uuid                     |           | not null | 
+ name              | text                     |           | not null | 
+ level             | text                     |           | not null | 'core'::text
+ description       | text                     |           |          | 
+ icons             | jsonb                    |           | not null | '[]'::jsonb
+ parent_library_id | uuid                     |           |          | 
+ is_active         | boolean                  |           | not null | true
+ display_order     | integer                  |           | not null | 0
+ created_at        | timestamp with time zone |           | not null | now()
+ updated_at        | timestamp with time zone |           | not null | now()
+ created_by        | uuid                     |           |          | 
+Indexes:
+    "organization_icon_libraries_pkey" PRIMARY KEY, btree (id)
+    "idx_org_icon_libraries_level" btree (level)
+    "idx_org_icon_libraries_org_id" btree (organization_id)
+    "idx_org_icon_libraries_parent" btree (parent_library_id)
+Check constraints:
+    "organization_icon_libraries_level_check" CHECK (level = ANY (ARRAY['core'::text, 'product_line'::text, 'brand'::text]))
+Foreign-key constraints:
+    "organization_icon_libraries_organization_id_fkey" FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
+    "organization_icon_libraries_parent_library_id_fkey" FOREIGN KEY (parent_library_id) REFERENCES organization_icon_libraries(id) ON DELETE SET NULL
+Referenced by:
+    TABLE "icon_library_brand_links" CONSTRAINT "icon_library_brand_links_library_id_fkey" FOREIGN KEY (library_id) REFERENCES organization_icon_libraries(id) ON DELETE CASCADE
+    TABLE "organization_icon_libraries" CONSTRAINT "organization_icon_libraries_parent_library_id_fkey" FOREIGN KEY (parent_library_id) REFERENCES organization_icon_libraries(id) ON DELETE SET NULL
+Policies:
+    POLICY "Org admins can delete icon libraries" FOR DELETE
+      USING ((is_org_admin(auth.uid(), organization_id) OR has_role(auth.uid(), 'admin'::app_role)))
+    POLICY "Org admins can insert icon libraries" FOR INSERT
+      WITH CHECK ((is_org_admin(auth.uid(), organization_id) OR has_role(auth.uid(), 'admin'::app_role)))
+    POLICY "Org admins can update icon libraries" FOR UPDATE
+      USING ((is_org_admin(auth.uid(), organization_id) OR has_role(auth.uid(), 'admin'::app_role)))
+    POLICY "Org members can view icon libraries" FOR SELECT
+      USING ((is_org_member(auth.uid(), organization_id) OR has_role(auth.uid(), 'admin'::app_role)))
+Triggers:
+    update_org_icon_libraries_updated_at BEFORE UPDATE ON organization_icon_libraries FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+
