@@ -4,6 +4,9 @@ project_id = "nhxaijbyqfkkhhoornzy"
 
 
 
+[functions.knowledge-export]
+verify_jwt = false
+
 [functions.brand-kit-harvester]
 verify_jwt = false
 
