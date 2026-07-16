@@ -1,0 +1,63 @@
+         table_name          |    column_name    |        data_type         | is_nullable |               column_default               
+-----------------------------+-------------------+--------------------------+-------------+--------------------------------------------
+ icon_ab_events              | id                | bigint                   | NO          | nextval('icon_ab_events_id_seq'::regclass)
+ icon_ab_events              | test_id           | uuid                     | NO          | 
+ icon_ab_events              | variant_id        | uuid                     | NO          | 
+ icon_ab_events              | event_type        | text                     | NO          | 
+ icon_ab_events              | session_id        | text                     | YES         | 
+ icon_ab_events              | user_id           | uuid                     | YES         | 
+ icon_ab_events              | created_at        | timestamp with time zone | NO          | now()
+ icon_ab_tests               | id                | uuid                     | NO          | gen_random_uuid()
+ icon_ab_tests               | organization_id   | uuid                     | NO          | 
+ icon_ab_tests               | library_id        | uuid                     | YES         | 
+ icon_ab_tests               | name              | text                     | NO          | 
+ icon_ab_tests               | slot_key          | text                     | NO          | 
+ icon_ab_tests               | status            | text                     | NO          | 'running'::text
+ icon_ab_tests               | winner_variant_id | uuid                     | YES         | 
+ icon_ab_tests               | created_by        | uuid                     | YES         | 
+ icon_ab_tests               | created_at        | timestamp with time zone | NO          | now()
+ icon_ab_tests               | updated_at        | timestamp with time zone | NO          | now()
+ icon_ab_variants            | id                | uuid                     | NO          | gen_random_uuid()
+ icon_ab_variants            | test_id           | uuid                     | NO          | 
+ icon_ab_variants            | icon_id           | text                     | NO          | 
+ icon_ab_variants            | label             | text                     | YES         | 
+ icon_ab_variants            | svg_path          | text                     | YES         | 
+ icon_ab_variants            | view_box          | text                     | YES         | '0 0 24 24'::text
+ icon_ab_variants            | weight            | integer                  | NO          | 1
+ icon_ab_variants            | created_at        | timestamp with time zone | NO          | now()
+ icon_library_brand_links    | id                | uuid                     | NO          | gen_random_uuid()
+ icon_library_brand_links    | library_id        | uuid                     | NO          | 
+ icon_library_brand_links    | brand_id          | uuid                     | YES         | 
+ icon_library_brand_links    | organization_id   | uuid                     | NO          | 
+ icon_library_brand_links    | allow_overrides   | boolean                  | NO          | true
+ icon_library_brand_links    | color_overrides   | jsonb                    | YES         | 
+ icon_library_brand_links    | created_at        | timestamp with time zone | NO          | now()
+ icon_library_brand_links    | created_by        | uuid                     | YES         | auth.uid()
+ icon_library_brand_links    | product_id        | uuid                     | YES         | 
+ icon_library_brand_links    | event_id          | uuid                     | YES         | 
+ icon_library_brand_links    | entity_type       | text                     | NO          | 'brand'::text
+ icon_usage_events           | id                | uuid                     | NO          | gen_random_uuid()
+ icon_usage_events           | organization_id   | uuid                     | NO          | 
+ icon_usage_events           | brand_id          | uuid                     | YES         | 
+ icon_usage_events           | user_id           | uuid                     | YES         | 
+ icon_usage_events           | industry          | text                     | YES         | 
+ icon_usage_events           | section_id        | text                     | NO          | 
+ icon_usage_events           | pack              | text                     | NO          | 
+ icon_usage_events           | icon_name         | text                     | NO          | 
+ icon_usage_events           | action            | text                     | NO          | 
+ icon_usage_events           | source            | text                     | YES         | 
+ icon_usage_events           | created_at        | timestamp with time zone | NO          | now()
+ organization_icon_libraries | id                | uuid                     | NO          | gen_random_uuid()
+ organization_icon_libraries | organization_id   | uuid                     | NO          | 
+ organization_icon_libraries | name              | text                     | NO          | 
+ organization_icon_libraries | level             | text                     | NO          | 'core'::text
+ organization_icon_libraries | description       | text                     | YES         | 
+ organization_icon_libraries | icons             | jsonb                    | NO          | '[]'::jsonb
+ organization_icon_libraries | parent_library_id | uuid                     | YES         | 
+ organization_icon_libraries | is_active         | boolean                  | NO          | true
+ organization_icon_libraries | display_order     | integer                  | NO          | 0
+ organization_icon_libraries | created_at        | timestamp with time zone | NO          | now()
+ organization_icon_libraries | updated_at        | timestamp with time zone | NO          | now()
+ organization_icon_libraries | created_by        | uuid                     | YES         | 
+(59 rows)
+
