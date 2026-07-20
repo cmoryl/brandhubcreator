@@ -1,0 +1,1 @@
+UPDATE brand_intelligence_jobs SET status='pending', progress=0, error_message=NULL WHERE id='6f1c6df2-d7dd-4417-8985-96fffe599de0';
