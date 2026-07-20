@@ -1,0 +1,135 @@
+# PDF Master Index
+
+Generated: 2026-07-20T14:20:19.931930Z
+Total PDFs: 104
+
+
+## Brands
+
+
+### Games (games) — 25 PDFs
+
+- [TPGames_CaseStudy_TripWire](https://www.dropbox.com/scl/fi/h2b5muv1dtvsg7xb595c2/TPGames_CaseStudy_TripWire.pdf?rlkey=b4z6bltcwa6btrdua5cq806oz&dl=0) · Spotlight _brochures_
+- [TPGames_Success Story_fatshark](https://www.dropbox.com/scl/fi/us4wyz8o9l3cj4k68h4f2/TPGames_Success-Story_fatshark.pdf?rlkey=q0litsd4xrxp8qe4wvmzxxueu&dl=0) · Spotlight _brochures_
+- [TPGames_Success Story_InXileEntertainment](https://www.dropbox.com/scl/fi/lgl4b3f4gfxmqsvxnhtqk/TPGames_Success-Story_InXileEntertainment.pdf?rlkey=ppdwjq70sphfngr0m667rxtpy&dl=0) · Spotlight _brochures_
+- [TPGames_Success Story_Netmarble](https://www.dropbox.com/scl/fi/snlq3o2ej6myrnl7kptb5/TPGames_Success-Story_Netmarble.pdf?rlkey=7649vmll7q8f89wt0u6w74u1i&dl=0) · Spotlight _brochures_
+- [TPGames_Success Story_NimbleGiantEntertainment](https://www.dropbox.com/scl/fi/dophu4ablq7dfa2kenf9y/TPGames_Success-Story_NimbleGiantEntertainment.pdf?rlkey=96641b8sxsamoqx2r4ll6kp9i&dl=0) · Spotlight _brochures_
+- [TPGames_Success Story_OliveX](https://www.dropbox.com/scl/fi/ul1abhtf3zhcl6i7binwc/TPGames_Success-Story_OliveX.pdf?rlkey=7ersic09mbuvq4yturbo7kagq&dl=0) · Spotlight _brochures_
+- [TPGames_Success Story_Team17](https://www.dropbox.com/scl/fi/xocyi63f3bki6ylgkmg0c/TPGames_Success-Story_Team17.pdf?rlkey=m7gk27oin9rqhwo8al2s30lom&dl=0) · Spotlight _brochures_
+- [TPGames_Success Story_Xbox](https://www.dropbox.com/scl/fi/6rdotc4cakuugyh17yodk/TPGames_Success-Story_Xbox.pdf?rlkey=fumfjar6t9mz7vw13x4ahmc7t&dl=0) · Spotlight _brochures_
+- [TGS-2025-A4-ENG-fin-updated_Outlined 1](https://www.dropbox.com/scl/fi/cmasaj6kf8diqhp5554xl/TGS-2025-A4-ENG-fin-updated_Outlined-1.pdf?rlkey=z08utrk3tgttb9thbpuf11r1l&dl=0) · eBrochure _brochures_
+- [TPGames_Accessibility Solutions_eBro](https://www.dropbox.com/scl/fi/nez9hi4rghkibp9xzea1n/TPGames_Accessibility-Solutions_eBro.pdf?rlkey=yr8pph06fhb3stjkhh49ivmrd&dl=0) · eBrochure _brochures_
+- [TPGames_AI-Powered-Platform_eBro](https://www.dropbox.com/scl/fi/jk2tohjtnczectmw8pgh2/TPGames_AI-Powered-Platform_eBro.pdf?rlkey=yc62pyklxqj73u0sbm7l6k902&dl=0) · eBrochure _brochures_
+- [TPGames_AISolutions_eBro](https://www.dropbox.com/scl/fi/qyk1abw3s2zby50vcmj2c/TPGames_AISolutions_eBro.pdf?rlkey=jsc7a53llwgxmnp6akihs98p2&dl=0) · eBrochure _brochures_
+- [TPGames_ArtServices_eBro](https://www.dropbox.com/scl/fi/31z5uv4sfg08346vvogvz/TPGames_ArtServices_eBro.pdf?rlkey=dgmyn0stk3npy77gqvolgslnu&dl=0) · eBrochure _brochures_
+- [TPGames_Audio Services_Ebro](https://www.dropbox.com/scl/fi/u0lc8kcrkp0tjb6vo8ggl/TPGames_Audio-Services_Ebro.pdf?rlkey=2z4kkr42now99vh3lei3227lw&dl=0) · eBrochure _brochures_
+- [TPGames_Community Management_Ebro](https://www.dropbox.com/scl/fi/2l138ua2vmihhy6cg23mi/TPGames_Community-Management_Ebro.pdf?rlkey=9urudkutm641gppirsp3isvji&dl=0) · eBrochure _brochures_
+- [TPGames_Conversational AI Player Support eBro](https://www.dropbox.com/scl/fi/jbp5z40ddzvf9kqvkn7xo/TPGames_Conversational-AI-Player-Support-eBro.pdf?rlkey=xldezzedrjaru9jpxiq8lmi0s&dl=0) · eBrochure _brochures_
+- [TPGames_FunctionalQA_eBro](https://www.dropbox.com/scl/fi/qisz40sr52xm0eyv05nub/TPGames_FunctionalQA_eBro.pdf?rlkey=ppnmulwn6kcc80rk5a3wjcq64&dl=0) · eBrochure _brochures_
+- [TPGames_Internalization Solutions eBro](https://www.dropbox.com/scl/fi/y0hne1s4ijyuevle2fk1m/TPGames_Internalization-Solutions-eBro.pdf?rlkey=f2z3t5ghj3velxoh1g7ab05rr&dl=0) · eBrochure _brochures_
+- [TPGames_Localization_eBro](https://www.dropbox.com/scl/fi/i996s03ndsktkxd35x6az/TPGames_Localization_eBro.pdf?rlkey=tcmekoivsy5623jrbjkve03ip&dl=0) · eBrochure _brochures_
+- [TPGames_LocalizationQA_eBro](https://www.dropbox.com/scl/fi/ez54n5p7323w1gl7puwf9/TPGames_LocalizationQA_eBro.pdf?rlkey=mn5kit55oqp1rsnwqo0tk24lv&dl=0) · eBrochure _brochures_
+- [TPGames_MarketingServices_eBro](https://www.dropbox.com/scl/fi/2fokjn0i5g0ltrdgltf0c/TPGames_MarketingServices_eBro.pdf?rlkey=d2qe25cges55zpazgbwqqh0qi&dl=0) · eBrochure _brochures_
+- [TPGames_PlayerSupport_eBro](https://www.dropbox.com/scl/fi/bmv3zt3s813rdmwvqqz3f/TPGames_PlayerSupport_eBro.pdf?rlkey=pr52wa2sq465ihdda6vzflqum&dl=0) · eBrochure _brochures_
+- [TPgames_UXTestingSolutions_eBrochure](https://www.dropbox.com/scl/fi/h9cua3zadk5h6ulvtr5an/TPgames_UXTestingSolutions_eBrochure.pdf?rlkey=obicvwth6sp8l1dopp399n9p4&dl=0) · Brief _brochures_
+- [TPGames_Zendesk Adaptor Brief](https://www.dropbox.com/scl/fi/zyzqq8736dz7237wgvgut/TPGames_Zendesk-Adaptor-Brief.pdf?rlkey=ivgsuvsmh1no5wrzxmxkb04be&dl=0) · Brief _brochures_
+- [TPGames_GLVoice_eBrochure](https://www.dropbox.com/scl/fi/amdnyxaaypthfrqjnfnu4/TPGames_GLVoice_eBrochure.pdf?rlkey=pehs0h8yzz3qibdv7kocipoez&dl=0) · Brief _brochures_
+
+### Media (media) — 34 PDFs
+
+- [TPMedia_Ryanair_Spotlight](https://www.dropbox.com/scl/fi/z8322iduk8quxd7tdzw0f/TPMedia_Ryanair_Spotlight.pdf?rlkey=uwbl8qg04ne8j8vzziva8212i&dl=0) · Spotlight _brochures_
+- [TransPerfect Media Monster Spotlight](https://www.dropbox.com/scl/fi/0t04hggwf7xst770g39a7/TransPerfect-Media-Monster-Spotlight.pdf?rlkey=guj9svpd03gb3decwpleibo2v&dl=0) · Spotlight _brochures_
+- [TransPerfect Media Red Bull Spotlight](https://www.dropbox.com/scl/fi/juyp0rhb90f8x6bs828ic/TransPerfect-Media-Red-Bull-Spotlight.pdf?rlkey=kqq31bgfaohwyyfx6o4twiy0r&dl=0) · Spotlight _brochures_
+- [TransPerfect Media TEDEd Spotlight](https://www.dropbox.com/scl/fi/9m467exkykd7vtc44bdg5/TransPerfect-Media-TEDEd-Spotlight.pdf?rlkey=gegt9eztq9edx0cwuj2safof3&dl=0) · Spotlight _brochures_
+- [GlobalLinkMedai_HBOMax_CaseStudy](https://www.dropbox.com/scl/fi/psugwx92hr8unrah86dgo/GlobalLinkMedai_HBOMax_CaseStudy.pdf?rlkey=xenktpfwpr3v5dlhi1stgm3v9&dl=0) · Case Study _brochures_
+- [TPMedia_Accessibility_CaseStudy_FINAL 2](https://www.dropbox.com/scl/fi/4ayjl3onk7w9ypurnoqko/TPMedia_Accessibility_CaseStudy_FINAL-2.pdf?rlkey=m51hgaxiwhl0envv8jw3sdiah&dl=0) · Case Study _brochures_
+- [TPMedia_CrunchyRoll_CaseStudy](https://www.dropbox.com/scl/fi/y1swjfz66h53ulskfaqt5/TPMedia_CrunchyRoll_CaseStudy.pdf?rlkey=np8nmcz2hq5gypae8iegvc6r4&dl=0) · Case Study _brochures_
+- [TPMedia_TV5Monde_CaseStudy 1](https://www.dropbox.com/scl/fi/62hmuxmosu2nxc8u4dm5t/TPMedia_TV5Monde_CaseStudy-1.pdf?rlkey=xninexc5b6vcodby0lwcjh52c&dl=0) · Case Study _brochures_
+- [TPMedia_SportDocuseries_SuccessStory](https://www.dropbox.com/scl/fi/f4m0rsf3eu76kr2y2b7g5/TPMedia_SportDocuseries_SuccessStory.pdf?rlkey=tdhwgibn6rxkhhwxnauj1tblp&dl=0) · Case Study _brochures_
+- [TransPerfect Media Curiosity Stream Case Study](https://www.dropbox.com/scl/fi/igq5v4f70wwl90sz2z2zt/TransPerfect-Media-Curiosity-Stream-Case-Study.pdf?rlkey=k1fzgh6sq58vk6kcfgfc9rjfp&dl=0) · Case Study _brochures_
+- [TransPerfect Media HPE Case Study](https://www.dropbox.com/scl/fi/zzt0a2cuvnhdtclfuatla/TransPerfect-Media-HPE-Case-Study.pdf?rlkey=19k78jbp19ew1vla79q2j8muj&dl=0) · Case Study _brochures_
+- [TransPerfect Media MGA Case Study](https://www.dropbox.com/scl/fi/s5ihmua56qmvctohhvour/TransPerfect-Media-MGA-Case-Study.pdf?rlkey=mjj8m3h2auy7fxwz389qa15a1&dl=0) · Case Study _brochures_
+- [TransPerfect Media Medical Training Case Study](https://www.dropbox.com/scl/fi/riem2r2md163tcdnyhq54/TransPerfect-Media-Medical-Training-Case-Study.pdf?rlkey=av87kuvgzqoxmfj34v2f8sqbh&dl=0) · Case Study _brochures_
+- [TransPerfect Media Text-to-Speech Dual Case Study](https://www.dropbox.com/scl/fi/4ab93jjs9hqd097olkhga/TransPerfect-Media-Text-to-Speech-Dual-Case-Study.pdf?rlkey=a13oxwet9jd65efgwx49xsixm&dl=0) · Case Study _brochures_
+- [TransPerfect Media Viacom Case Study](https://www.dropbox.com/scl/fi/aotdasf3rvu5i0zsqf1ur/TransPerfect-Media-Viacom-Case-Study.pdf?rlkey=dsjvnyjm3e8yi4ar728ab2itg&dl=0) · Case Study _brochures_
+- [TransPerfect Media Wondery Case Study](https://www.dropbox.com/scl/fi/z8egw5brbc1eo8hyo0au3/TransPerfect-Media-Wondery-Case-Study.pdf?rlkey=iqs2xx2t347b1bjv1n9jtp4b9&dl=0) · Case Study _brochures_
+- [GLmedia_ebro_25 3](https://www.dropbox.com/scl/fi/vsnttu7t4z0d71f6qbkod/GLmedia_ebro_25-3.pdf?rlkey=aejwcdn6olyajzkx7nsuzpqto&dl=0) · eBrochure _brochures_
+- [MPC One Pager](https://www.dropbox.com/scl/fi/fup34qpxsxxvx3sudfys1/MPC-One-Pager.pdf?rlkey=ifvnmzcla8evpw8du6rerd74w&dl=0) · eBrochure _brochures_
+- [TP_THE MILL_ONE PAGER](https://www.dropbox.com/scl/fi/8b5uwumqeyu7c7nl25zju/TP_THE-MILL_ONE-PAGER.pdf?rlkey=1y8ro5c1cmg39vjrosnjdmk8z&dl=0) · eBrochure _brochures_
+- [TPMedia_eBrochure_Conductor_v5 1](https://www.dropbox.com/scl/fi/1u9021l2c4pf4zwzmfy1w/TPMedia_eBrochure_Conductor_v5-1.pdf?rlkey=6i2uzp39lha6as6l87dr5dxol&dl=0) · eBrochure _brochures_
+- [TPMedia_eBrochure_Director_v4 2](https://www.dropbox.com/scl/fi/ixggvs2u9xdmwpf9hzdkp/TPMedia_eBrochure_Director_v4-2.pdf?rlkey=faupevg3boyek3ya4szfe2nu0&dl=0) · eBrochure _brochures_
+- [TPMedia_eBrochure_Inspector_v4 1](https://www.dropbox.com/scl/fi/doujrexj792jgzbpw0hap/TPMedia_eBrochure_Inspector_v4-1.pdf?rlkey=dazw8riq4dz9h3jfcm9eyjs0c&dl=0) · eBrochure _brochures_
+- [TransPerfect Media - Anime Expertise](https://www.dropbox.com/scl/fi/sewhsnqhz6mwveil85ub6/TransPerfect-Media-Anime-Expertise.pdf?rlkey=jwvxu0d082zimoiumk84gsa1m&dl=0) · eBrochure _brochures_
+- [TransPerfect Media - Kids  Family Expertise](https://www.dropbox.com/scl/fi/to18m68h5yyxpjojn7fjo/TransPerfect-Media-Kids-Family-Expertise.pdf?rlkey=zlttpby4ysj3jod9jcwgps180&dl=0) · eBrochure _brochures_
+- [TransPerfect Media - Theatrical Expertise](https://www.dropbox.com/scl/fi/pq9lkguys0ob1hrja9rkj/TransPerfect-Media-Theatrical-Expertise.pdf?rlkey=c3igngt0ji9lpzsa4ts6p4el0&dl=0) · eBrochure _brochures_
+- [TransPerfect Media Accessibility Services](https://www.dropbox.com/scl/fi/pfrgbch6xjhoa6asotvp6/TransPerfect-Media-Accessibility-Services.pdf?rlkey=8wpvuuxj3fc7x63wccfyyooap&dl=0) · eBrochure _brochures_
+- [TransPerfect Media One-Pager](https://www.dropbox.com/scl/fi/dy591pdzurm3vthm8ddfl/TransPerfect-Media-One-Pager.pdf?rlkey=v85ol23bdhpeat8sx4m2apwkb&dl=0) · eBrochure _brochures_
+- [TPMedia_Brightcove_Integration_eBro_ENT](https://www.dropbox.com/scl/fi/u14q92p3sn67y0y0dntuw/TPMedia_Brightcove_Integration_eBro_ENT.pdf?rlkey=qe0z8e1tz4wf38tb92jfdkeh1&dl=0) · Solutions Briefs _brochures_
+- [TPMedia_Brightcove_Integration_eBro](https://www.dropbox.com/scl/fi/pptns1origje4420wjhvy/TPMedia_Brightcove_Integration_eBro.pdf?rlkey=bv21o9xje8rzeibu0vdsceaht&dl=0) · Solutions Briefs _brochures_
+- [TPMedia_ExtremeReach_Integration_eBro](https://www.dropbox.com/scl/fi/fro5zucwg93iuk8tjqzzi/TPMedia_ExtremeReach_Integration_eBro.pdf?rlkey=tdo54di41p70u28d6obthvjcn&dl=0) · Solutions Briefs _brochures_
+- [TransPerfect Media Kaltura Integration](https://www.dropbox.com/scl/fi/3da9wkmlyujr1adv61br1/TransPerfect-Media-Kaltura-Integration.pdf?rlkey=qhs9ybijr3iqujf150om6p1mc&dl=0) · Solutions Briefs _brochures_
+- [TPMedia_FilmClassics_brochure_FINAL](https://www.dropbox.com/scl/fi/fdg7dk6971lxf131ju4f1/TPMedia_FilmClassics_brochure_FINAL.pdf?rlkey=3i3zn6710tc2pbcx7jk482z8k&dl=0) · Brochure _brochures_
+- [contentlabs ebro-V12](https://www.dropbox.com/scl/fi/em5iyqlh9kqvcuwoxpb2i/contentlabs-ebro-V12.pdf?rlkey=460b8mlm0xq6mnpr3bt9ifdlr&dl=0) · ContentLabs _brochures_
+- [ContentLabs_Life Sciences_Service Offering 1 5](https://www.dropbox.com/scl/fi/up18e7ab4wl2b59ee1vzm/ContentLabs_Life-Sciences_Service-Offering-1-5.pdf?rlkey=necsfdqes0h96co3w1enk9luj&dl=0) · ContentLabs _brochures_
+
+### TransPerfect (transperfect) — 1 PDFs
+
+- [Visual Asset Documentation — Digital Toolbox](https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/public/organization-assets/transperfect/visual-asset-documentation-2025-11.pdf) · Brand Guidelines _brochures_
+
+## Products
+
+
+### DataForce (dataforce) — 25 PDFs
+
+- [DataForce_BPO_SolutionsBrief](https://www.dropbox.com/scl/fi/cwvk2mpqwsmrv51qohhnc/DataForce_BPO_SolutionsBrief.pdf?rlkey=7i28mhzj1npbz53wbpulsdqom&dl=0) · Brief _brochures_
+- [DataForce_ComputerVision_Solutions Brief](https://www.dropbox.com/scl/fi/qow9zj9l8gg48uydtyp3q/DataForce_ComputerVision_Solutions-Brief.pdf?rlkey=2n2kyd4xfdoh7oyxcmvsp0rm4&dl=0) · Brief _brochures_
+- [DataForce_ComputerVision_Workflow](https://www.dropbox.com/scl/fi/ev8lsmm7qu5qbhquj9ezc/DataForce_ComputerVision_Workflow.pdf?rlkey=wse9lf4c39q35ddyr00brmv22&dl=0) · Brief _brochures_
+- [DataForce_Data_Collection_User_Studies_Guide](https://www.dropbox.com/scl/fi/wpk7xfi0bqrto5j0jwiaf/DataForce_Data_Collection_User_Studies_Guide.pdf?rlkey=hqau8wgeqvg8cvo7e4l488g6g&dl=0) · Brief _brochures_
+- [DataForce_Retail Solutions Brief](https://www.dropbox.com/scl/fi/bax2c3sy4871s7en0z56a/DataForce_Retail-Solutions-Brief.pdf?rlkey=nlwgdin69wvxio5412gls0a8p&dl=0) · Brief _brochures_
+- [DataForce_Search Product Ad Relevance Guide](https://www.dropbox.com/scl/fi/s58nyblc0wono9obdgzh6/DataForce_Search-Product-Ad-Relevance-Guide.pdf?rlkey=zeej5fxw0n2umiuwt4j14alp8&dl=0) · Brief _brochures_
+- [DataForce_Sourcing_Process_SolutionsBrief](https://www.dropbox.com/scl/fi/qx53161cluk797ckimpz8/DataForce_Sourcing_Process_SolutionsBrief.pdf?rlkey=e3g6wq07qoapgrjxsbsyu45u2&dl=0) · Brief _brochures_
+- [DataForce_Workflow_LLM](https://www.dropbox.com/scl/fi/qkvo3otle5kjd0zw8d988/DataForce_Workflow_LLM.pdf?rlkey=dhp579pl3gyt8suwex8oclm8c&dl=0) · Brief _brochures_
+- [DataForce_ClinicalAI_DataServices_ebro](https://www.dropbox.com/scl/fi/2e9243xexa565rr7ph6i3/DataForce_ClinicalAI_DataServices_ebro.pdf?rlkey=e2tt1iqvu9o9jszrnmq7bie8t&dl=0) · eBrochure _brochures_
+- [DataForce_FactSheet](https://www.dropbox.com/scl/fi/9kmevjqrodmox8p1rq82b/DataForce_FactSheet.pdf?rlkey=jqwi0fhlhyruuse2d7067yriw&dl=0) · eBrochure _brochures_
+- [DataForce_General_EBro](https://www.dropbox.com/scl/fi/uhml4x9evxk138xffirbm/DataForce_General_EBro.pdf?rlkey=dvdwk1ubg9mqy8f1pv0s7mlxg&dl=0) · eBrochure _brochures_
+- [DataForce_MachineTranslation_eBro](https://www.dropbox.com/scl/fi/fs5awei5k6h1clhtw0rw0/DataForce_MachineTranslation_eBro.pdf?rlkey=lsrxyeq5v6x7strc13e1887vw&dl=0) · eBrochure _brochures_
+- [DataForce_RedTeamingAI_eBro_r2 1](https://www.dropbox.com/scl/fi/j8es55koj9spkld8we6gv/DataForce_RedTeamingAI_eBro_r2-1.pdf?rlkey=hpsoe2jds745jvcz2ket69rch&dl=0) · eBrochure _brochures_
+- [DataForce_ResearchServices_eBro_r2pdf](https://www.dropbox.com/scl/fi/c39r2mosk0dcd4owrrw4z/DataForce_ResearchServices_eBro_r2pdf.pdf?rlkey=q5kglxszc8b6c3etasg5lykja&dl=0) · eBrochure _brochures_
+- [DataForce_Secure_Data_Collection_Labeling_ENUS](https://www.dropbox.com/scl/fi/nnfv649rxwt7ghyp5e607/DataForce_Secure_Data_Collection_Labeling_ENUS.pdf?rlkey=0bv2fo86kfs0oqcy747piure6&dl=0) · eBrochure _brochures_
+- [DF_GenerativeAI eBro_2025](https://www.dropbox.com/scl/fi/n4qk6wzbulvnk04owix68/DF_GenerativeAI-eBro_2025.pdf?rlkey=bj7dxd7vjt7w0m3gpoko93wv0&dl=0) · eBrochure _brochures_
+- [DataForce_Success Story_Data Entry_Pharmaceutical Company](https://www.dropbox.com/scl/fi/0ueitwsigodcivugx7jb7/DataForce_Success-Story_Data-Entry_Pharmaceutical-Company.pdf?rlkey=1l3gn1l3440vxk6385v0k62vu&dl=0) · Spotlight _brochures_
+- [DataForce_Success Story_Large Scale Image Dataset](https://www.dropbox.com/scl/fi/na51tuv3t6juv8bcwnaqh/DataForce_Success-Story_Large-Scale-Image-Dataset.pdf?rlkey=no1x815bk5kqixt1jepwcezpz&dl=0) · Spotlight _brochures_
+- [DataForce_Success Story_Robotic Arm](https://www.dropbox.com/scl/fi/kcxtstr3rl0mft7m8jw0b/DataForce_Success-Story_Robotic-Arm.pdf?rlkey=8v58a1zbp5vc4raj6riuheihr&dl=0) · Spotlight _brochures_
+- [DataForce_Success Story_Safety Text Translation](https://www.dropbox.com/scl/fi/iqsqq32dmkbukj6vrzjoi/DataForce_Success-Story_Safety-Text-Translation.pdf?rlkey=5en0j4ardnd93sa88n8sk95yt&dl=0) · Spotlight _brochures_
+- [DataForce_Success Story_STEM Datasets](https://www.dropbox.com/scl/fi/tw7tkb13wp1252a933acj/DataForce_Success-Story_STEM-Datasets.pdf?rlkey=3cfudzn70zrolhk3ipme27cyh&dl=0) · Spotlight _brochures_
+- [DataForce_Success Story_STEM Talent Sourcing](https://www.dropbox.com/scl/fi/kcmzbgcbm833iklcd0oiz/DataForce_Success-Story_STEM-Talent-Sourcing.pdf?rlkey=1d6sp2pcdrozkp6q2fvin888z&dl=0) · Spotlight _brochures_
+- [DataForce_Success Story_Textual Content Creation](https://www.dropbox.com/scl/fi/mj3y7f0byr44n687ecaoe/DataForce_Success-Story_Textual-Content-Creation.pdf?rlkey=pcjd6c05e8frvd6iy9bth457o&dl=0) · Spotlight _brochures_
+- [DF_Autonomous Driving Annotation_Spotlight](https://www.dropbox.com/scl/fi/omt3yp7wq5qcfqwl0a5oy/DF_Autonomous-Driving-Annotation_Spotlight.pdf?rlkey=meg229emzma7y9qln4wzww2fi&dl=0) · Spotlight _brochures_
+- [DataForce_LifeSciences_Annotation_Whitepaper](https://www.dropbox.com/scl/fi/g0s80y4dhogqnk0g8t900/DataForce_LifeSciences_Annotation_Whitepaper.pdf?rlkey=anc1cfvzrr05rxuc3zgzs92sx&dl=0) · Whitepaper _brochures_
+
+### GlobalLink (globallink) — 1 PDFs
+
+- [Ai in Localization](https://www.dropbox.com/scl/fi/otp6d4l2kt3nidf1sjcxf/GL_AI-in-Localization-How-to-Win.pdf?rlkey=e6f2nbnnjexk2rd3mh9qhzqvw&dl=0) · Whitepaper _brochures_
+
+### GlobalLink Web (globallink-web) — 18 PDFs
+
+- [TPT_Travel_Spotlight_Heathrow](https://www.dropbox.com/scl/fi/rn2upwig29sc8zpmxwxvi/TPT_Travel_Spotlight_Heathrow.pdf?rlkey=mxx0i2tglu07elati3hxqhx2z&dl=0) · Spotlight _brochures_
+- [TPT_Travel_Spotlight_Discover Palm Beach](https://www.dropbox.com/scl/fi/ehsj0bogpnvcbzj57ln3w/TPT_Travel_Spotlight_Discover-Palm-Beach.pdf?rlkey=81pyc18fnv3cge3l0f30xjs5y&dl=0) · Spotlight _brochures_
+- [TPT_Retail_Spotlight_BarrysBootcamp](https://www.dropbox.com/scl/fi/x04buxpaqwawsttg7s074/TPT_Retail_Spotlight_BarrysBootcamp.pdf?rlkey=v6eg3bz0ea4ft3mbs4hrkbcc7&dl=0) · Spotlight _brochures_
+- [TPT_GlobalLink_Retail_vVardis_Spotlight](https://www.dropbox.com/scl/fi/4zv0azpx6clra8h5fw7qw/TPT_GlobalLink_Retail_vVardis_Spotlight.pdf?rlkey=9a1ofhhslam8mp0me4m5u60q8&dl=0) · Spotlight _brochures_
+- [TPT_Retail_Spotlight_BALR.](https://www.dropbox.com/scl/fi/zltcgfeu3d0ews1thchtl/TPT_Retail_Spotlight_BALR..pdf?rlkey=irbnhb671iz1mrs2hkxpqoanu&dl=0) · Spotlight _brochures_
+- [TPLS_Web Localization Playbook Travel Brands Guide](https://www.dropbox.com/scl/fi/dt9srcm0ea12v07vioula/TPLS_Web-Localization-Playbook-Travel-Brands-Guide.pdf?rlkey=ox2ltwq8uun69bbvn9v85z3n1&dl=0) · eBrochure _brochures_
+- [TPLS_Retail Asset_10sep24 1](https://www.dropbox.com/scl/fi/zz3ivcl21mhha9qain32c/TPLS_Retail-Asset_10sep24-1.pdf?rlkey=iak0uxnelm31pjc33jhc8puhu&dl=0) · eBrochure _brochures_
+- [TPLS_Considerations for Localization_5sep24](https://www.dropbox.com/scl/fi/3b1xfygs643kuk8wxf1qw/TPLS_Considerations-for-Localization_5sep24.pdf?rlkey=yczbv6corctw8lnyvx3hs16id&dl=0) · eBrochure _brochures_
+- [Guide_Multilingual_Websites_How_to_Obtain_Executive_BuyIn 3](https://www.dropbox.com/scl/fi/jgdhtzbqsy0gesz14yo3j/Guide_Multilingual_Websites_How_to_Obtain_Executive_BuyIn-3.pdf?rlkey=ppohfeksbwbk2ux4v3yp41c4l&dl=0) · eBrochure _brochures_
+- [GL_Web Localization Playbook - Marketers_April2025](https://www.dropbox.com/scl/fi/7y1w2kcmxufajopoyzeqv/GL_Web-Localization-Playbook-Marketers_April2025.pdf?rlkey=ntebp80qjy0vsme1iksmtb233&dl=0) · eBrochure _brochures_
+- [GL_Top 5 GenAI Solutions to Power a High-Performing Global Website 1](https://www.dropbox.com/scl/fi/wgumn97kub2qaiiz370tb/GL_Top-5-GenAI-Solutions-to-Power-a-High-Performing-Global-Website-1.pdf?rlkey=869myzafih6tqybic4f5f8hu9&dl=0) · eBrochure _brochures_
+- [GL_Retail Compilation_Dec2024_V2](https://www.dropbox.com/scl/fi/6qj44itdrwkuh8h5ovlwe/GL_Retail-Compilation_Dec2024_V2.pdf?rlkey=92lcg7kmgioo7933jqnr4anxr&dl=0) · eBrochure _brochures_
+- [GL_AI in Localization How to Win 1](https://www.dropbox.com/scl/fi/csg3h6canlm6qjrdz6iz3/GL_AI-in-Localization-How-to-Win-1.pdf?rlkey=qn78dca3oopyixny3n0u03uwi&dl=0) · eBrochure _brochures_
+- [GL_Top Search Engines by Region](https://www.dropbox.com/scl/fi/udpq6n4yrklzyddol8h73/GL_Top-Search-Engines-by-Region.pdf?rlkey=g05jxsdomszxnyajlg3bow4yu&dl=0) · Infographic _brochures_
+- [GLWeb_Cross-Border-Market-Expansion-Readiness_Checklist 1](https://www.dropbox.com/scl/fi/lcwt8m7j8j0hb1sgic42e/GLWeb_Cross-Border-Market-Expansion-Readiness_Checklist-1.pdf?rlkey=f35j05zdenusdpopolel9f8zb&dl=0) · Check Lists _brochures_
+- [GL_Your Multilingual SEO Success Checklist 1](https://www.dropbox.com/scl/fi/iv47uyhy05wwfle3uhec1/GL_Your-Multilingual-SEO-Success-Checklist-1.pdf?rlkey=aje3ued5s0b1bqca91b2sypcr&dl=0) · Check Lists _brochures_
+- [GL_Success_Infographic_alternates_23sep2024](https://www.dropbox.com/scl/fi/8ntnod473o59aphzf9t45/GL_Success_Infographic_alternates_23sep2024.pdf?rlkey=fvdq2jc00czg3giv8f7ilaj92&dl=0) · Infographic _brochures_
+- [GL_GL Web_Manual vs Auto Trans.pdf](https://www.dropbox.com/scl/fi/38ymqrahth1wh5azh0ot6/GL_GL-Web_Manual-vs-Auto-Trans.pdf.pdf?rlkey=9it5hga0936eh036ds7shjbnp&dl=0) · Infographic _brochures_
+
+## Events
