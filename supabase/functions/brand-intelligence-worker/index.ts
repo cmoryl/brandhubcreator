@@ -408,6 +408,7 @@ serve(async (req) => {
       }
     } catch (e) {
       console.warn('[worker] Icon Studio fetch failed (non-critical):', e);
+    }
 
     // Build event-specific physical accessibility context
     const isEvent = job.entity_type === 'event';
