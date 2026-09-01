@@ -4778,6 +4778,79 @@
 <div class="card">Image refit values, applied identically on every division: page 1 colour logo cropped to 0,0,266.6422275410815,143.65350008775766; page 3 navy logo cropped to 0,0,258.47875144952644,139.2554273434324; page 1 circlelines resized to 489.7958012687303 &times; 488.8631489521864; page 3 circlelines resized to 490.4175694797596 &times; 489.4849171632157.</div>
 <div class="card">Wordmark fitting varies by division because each [Division]NEXT lockup has its own aspect ratio (0.113 to 0.293 height-to-width). Divisions near the Games reference ratio took a proportional crop to frame width; the wider lockups (TransPerfect, Dataforce, Experience) needed the frame itself resized to the asset's ratio, because Canva force-scales an image to cover its frame and would otherwise clip the sides.</div>
 
+<h2 id="sec-15">15. Vendor Kiosks</h2>
+<div class="note">Free-standing kiosk panels for the NEXT 2026 trade floor at the QEII Centre. Two 2026 front-panel templates exist: <strong>Booth A</strong> with a TV cut-out and <strong>Booth B</strong> without. The 2025 set carried ten product-line kiosks, each a three-artboard file &mdash; front panel plus left and right side returns. All ten are being re-registered onto the 2026 template rather than rebuilt, so each product keeps its own art direction.</div>
+
+<h3>Template specification</h3>
+<table>
+  <tr><th>Field</th><th>Booth A &mdash; with screen</th><th>Booth B &mdash; no screen</th></tr>
+  <tr><td>Trim</td><td>1830 &times; 2440 mm</td><td>1830 &times; 2440 mm</td></tr>
+  <tr><td>Bleed</td><td>100 mm all four sides</td><td>100 mm all four sides</td></tr>
+  <tr><td>Document size</td><td>2030 &times; 2640 mm</td><td>2030 &times; 2640 mm</td></tr>
+  <tr><td>Cut-out</td><td>1421.8 &times; 797 mm</td><td>none</td></tr>
+  <tr><td>Illustrator layers</td><td><code>Art</code>, <code>Cut</code></td><td><code>Art</code>, <code>Cut</code></td></tr>
+  <tr><td>Source template</td><td><code>TradeBoothA_Front_1830x2440mm_Plus100mmBleed.ai</code></td><td><code>TradeBoothB_Front_1830x2440mm_Plus100mmBleed.ai</code></td></tr>
+</table>
+
+<h3>Cut-out geometry (Booth A)</h3>
+<table>
+  <tr><th>Measurement</th><th>Value</th></tr>
+  <tr><td>Opening size</td><td>1421.8 &times; 797 mm (~64&Prime; diagonal, marginally wider than true 16:9)</td></tr>
+  <tr><td>From left trim edge</td><td>204 mm</td></tr>
+  <tr><td>From right trim edge</td><td>204 mm (horizontally centred)</td></tr>
+  <tr><td>From top trim edge</td><td>405 mm</td></tr>
+  <tr><td>From bottom trim edge</td><td>1238 mm</td></tr>
+  <tr><td>Opening centre height</td><td>1636 mm off the floor</td></tr>
+  <tr><td>Usable band above opening</td><td>1830 &times; 405 mm</td></tr>
+  <tr><td>Usable band below opening</td><td>1830 &times; 1238 mm</td></tr>
+  <tr><td>Cut line colour</td><td>100% magenta CMYK keyline, not a named spot &mdash; confirm whether the printer needs a <code>CutContour</code> swatch</td></tr>
+</table>
+
+<h3>Panel registry &mdash; 2025 source files</h3>
+<div class="note">Ten files, three artboards each (front + two side returns) = 30 panels. All are 1830 &times; 2440 mm flat with <strong>no bleed</strong>, so every one needs its background extended 100 mm on all four sides for 2026. The &ldquo;cut-out&rdquo; column records whether the 2026 opening lands on empty background or on existing artwork, tested against every text object's bounding box.</div>
+<table>
+  <tr><th>Product</th><th>Source file</th><th>Cut-out</th><th>What collides</th></tr>
+  <tr><td>AI / Unbabel</td><td><code>AI_TVKioskTemplate_v2.ai</code></td><td><span class="status done">clear</span></td><td>&mdash;</td></tr>
+  <tr><td>TransPerfect Digital</td><td><code>Digital_TVKioskTemplate_v2.ai</code></td><td><span class="status done">clear</span></td><td>&mdash;</td></tr>
+  <tr><td>GlobalLink Creative</td><td><code>GL_Creative_TVKioskTemplate_v2.ai</code></td><td><span class="status done">clear</span></td><td>&mdash;</td></tr>
+  <tr><td>GlobalLink Live</td><td><code>GL_Live_TVKioskTemplatev_2.ai</code></td><td><span class="status done">clear</span></td><td>&mdash;</td></tr>
+  <tr><td>GlobalLink Strings</td><td><code>GL_StringsKioskTemplate.ai</code></td><td><span class="status open">collision</span></td><td>Headline block and neon frame, 603&ndash;1044 mm from top trim</td></tr>
+  <tr><td>GlobalLink Web</td><td><code>GL_Web_TVKioskTemplate_v2.ai</code></td><td><span class="status done">clear</span></td><td>&mdash;</td></tr>
+  <tr><td>TransPerfect Media</td><td><code>Media_TVKioskTemplate_v2.ai</code></td><td><span class="status done">clear</span></td><td>&mdash;</td></tr>
+  <tr><td>Reef Review</td><td><code>Reef_KioskTemplate.ai</code></td><td><span class="status open">collision</span></td><td>Sub-head and &ldquo;Dive right in&rdquo; headline, 507&ndash;957 mm from top trim</td></tr>
+  <tr><td>Sterling</td><td><code>SterlingKioskTemplate.ai</code></td><td><span class="status open">collision</span></td><td>Sterling wordmark lockup &mdash; outlined art, found on visual review not text search</td></tr>
+  <tr><td>Trial Interactive</td><td><code>TI_KioskTemplate.ai</code></td><td><span class="status open">collision</span></td><td>Sub-head and eCLINICAL PLATFORM lockup, 498&ndash;1179 mm from top trim</td></tr>
+</table>
+<div class="card">The four collisions need re-composition, not a nudge. Clearing GL Strings upward would take 639 mm of travel against only 405 mm of headroom above the opening; Reef needs 552 mm and TI 774 mm. In each case the block has to split &mdash; headline above the opening, remainder below &mdash; or the composition rebalances around the cut.</div>
+
+<h3>Type</h3>
+<table>
+  <tr><th>File</th><th>Weights in use</th></tr>
+  <tr><td>AI / Unbabel</td><td>Poppins Light, Regular, SemiBold</td></tr>
+  <tr><td>TransPerfect Digital</td><td>Poppins Medium, Regular</td></tr>
+  <tr><td>GlobalLink Creative</td><td>Poppins Medium, Regular</td></tr>
+  <tr><td>GlobalLink Live</td><td>Poppins Light, Medium, Regular</td></tr>
+  <tr><td>GlobalLink Strings</td><td>Poppins Light, Regular</td></tr>
+  <tr><td>GlobalLink Web</td><td>Poppins Bold, Light, Regular</td></tr>
+  <tr><td>TransPerfect Media</td><td>Poppins Light, Regular</td></tr>
+  <tr><td>Reef Review</td><td>Poppins Light, Regular, SemiBold</td></tr>
+  <tr><td>Trial Interactive</td><td>Poppins Black, Regular</td></tr>
+  <tr><td>Sterling</td><td>none &mdash; fully outlined, no live type</td></tr>
+</table>
+<div class="card">Nine of the ten are set in Poppins, which puts them squarely inside the standing Poppins &rarr; Geist audit. The swap runs in the same pass as the template work to avoid a second trip through all thirty panels. Geist metrics differ from Poppins, so every block needs a fit check afterwards rather than a blind replace. Sterling has no live type at all &mdash; any copy change there means rebuilding from the source font.</div>
+
+<h3>Build status</h3>
+<div class="card"><strong>2026 templates received</strong> &mdash; Booth A and Booth B front panels, geometry confirmed against the files themselves.</div>
+<div class="card"><strong>2025 source files received</strong> &mdash; all ten, three artboards each, audited for cut-out collisions and font usage.</div>
+<div class="card"><strong>In progress</strong> &mdash; re-registration onto the 2026 template in Illustrator: bleed to 100 mm, backgrounds extended, <code>Cut</code> layer added, Poppins replaced with Geist, copy and QR codes updated for 2026.</div>
+<div class="card"><strong>Open &mdash; side returns.</strong> Artboards 2 and 3 of each file carry just the product logo on brand background. No 2026 template exists for these; only the front panels were supplied. That is 20 of the 30 panels currently without a spec.</div>
+<div class="card"><strong>Open &mdash; 2026 line-up.</strong> The 2025 set is product lines. Confirm whether 2026 repeats these ten, switches to the 11 NEXT divisions, or runs both.</div>
+<div class="card"><strong>Open &mdash; furniture.</strong> Whether a counter sits in front of the panels determines how low copy can safely sit, which affects the four re-laid-out compositions.</div>
+<div class="card"><strong>Open &mdash; QR codes.</strong> Every front panel carries one; all need regenerating against 2026 destinations.</div>
+<div class="card"><strong>Open &mdash; file hosting.</strong> Final <code>.ai</code> files and preview renders are not yet linked here. Once the updated files exist they need hosting on Supabase alongside the PowerPoint exports, and this section gains a download column.</div>
+
+
+
 
 <!-- ============ LOGO ZOOM + DROPBOX DOWNLOAD MODAL ============ -->
 <div class="logo-modal" id="logoModal" role="dialog" aria-modal="true" aria-labelledby="logoModalTitle">
